@@ -3,6 +3,10 @@ spring:
     url: ${DATASOURCE:jdbc:mysql://localhost:3306/csrs?user=root&password=password&useSSL=false}
     platform: mysql
     driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    host: ${REDIS_HOST}
+    password: ${REDIS_PASSWORD:}
+    port: ${REDIS_PORT}
   data:
     redis:
       repositories:
