@@ -145,6 +145,12 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         return updateOrgUnit;
     }
 
+    public OrganisationalUnit removeParentOrganisation(OrganisationalUnit organisationalUnit){
+        organisationalUnit.setParent(null);
+        repository.save(organisationalUnit);
+        return organisationalUnit;
+    }
+
     public List<String> getOrganisationalUnitCodes() {
         List<String> allCodes = repository.findAllCodes();
         Collections.sort(allCodes, String.CASE_INSENSITIVE_ORDER);

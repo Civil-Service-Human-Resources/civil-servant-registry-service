@@ -173,6 +173,14 @@ public class OrganisationalUnitController {
         }
     }
 
+    @DeleteMapping("/{organisationalUnitId}/parent")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity removeParentOrganisation(@PathVariable Long organisationalUnitId){
+        Optional<OrganisationalUnit> organisationalUnit = organisationalUnitService.getOrganisationalUnit(organisationalUnitId);
+        organisationalUnitService.removeParentOrganisation(organisationalUnit.get());
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Map<String, String> handleValidationExceptions(

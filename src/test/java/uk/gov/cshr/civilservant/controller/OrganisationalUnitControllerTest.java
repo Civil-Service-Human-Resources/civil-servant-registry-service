@@ -319,6 +319,22 @@ public class OrganisationalUnitControllerTest {
     }
 
     @Test
+    public void removeParentOrganisationReturnsOKWhenRun() throws Exception {
+        OrganisationalUnit organisationalUnit = new OrganisationalUnit();
+        organisationalUnit.setId(30L);
+
+        when(organisationalUnitService.getOrganisationalUnit(organisationalUnit.getId())).thenReturn(Optional.of(organisationalUnit));
+        when(organisationalUnitService.deleteAgencyToken(organisationalUnit)).thenReturn(organisationalUnit);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(String.format("/organisationalUnits/%d/parent", organisationalUnit.getId())))
+                .andExpect(status().isOk());
+
+        verify(organisationalUnitService, times(1)).getOrganisationalUnit(organisationalUnit.getId());
+        verify(organisationalUnitService, times(1)).removeParentOrganisation(organisationalUnit);
+    }
+
+    @Test
     public void deleteAgencyToken_notFound() throws Exception {
         OrganisationalUnit organisationalUnit = new OrganisationalUnit();
         organisationalUnit.setId(500L);
