@@ -1,8 +1,4 @@
 spring:
-  data:
-    redis:
-      repositories:
-        enabled: false
   rest:
       detection-strategy: annotated
   jackson:
@@ -90,10 +86,6 @@ spring:
       hibernate:
         dialect: uk.gov.cshr.civilservant.config.CustomMySqlDialect
         enable_lazy_load_no_trans: true
-  redis:
-    host: ${REDIS_HOST:localhost}
-    password: ${REDIS_PASSWORD:}
-    port: ${REDIS_PORT:6379}
 
 govNotify:
   enabled: ${GOV_NOTIFY_ENABLED:true}
