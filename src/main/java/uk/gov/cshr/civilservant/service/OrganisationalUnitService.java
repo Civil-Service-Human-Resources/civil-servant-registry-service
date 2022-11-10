@@ -1,8 +1,12 @@
 package uk.gov.cshr.civilservant.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import uk.gov.cshr.civilservant.controller.models.OrganisationalUnitOrderingDirection;
+import uk.gov.cshr.civilservant.controller.models.OrganisationalUnitOrderingKey;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.AgencyTokenResponseDto;
@@ -13,9 +17,12 @@ import uk.gov.cshr.civilservant.exception.NoOrganisationsFoundException;
 import uk.gov.cshr.civilservant.exception.TokenAlreadyExistsException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
+import uk.gov.cshr.civilservant.service.customComparators.OrganisationalUnitComparator;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -23,11 +30,16 @@ import java.util.*;
 public class OrganisationalUnitService extends SelfReferencingEntityService<OrganisationalUnit, OrganisationalUnitDto> {
 
     private OrganisationalUnitRepository repository;
+    private OrganisationalUnitDtoFactory dtoFactory;
     private AgencyTokenService agencyTokenService;
     private IdentityService identityService;
 
-    public OrganisationalUnitService(OrganisationalUnitRepository organisationalUnitRepository, OrganisationalUnitDtoFactory organisationalUnitDtoFactory, AgencyTokenService agencyTokenService, IdentityService identityService) {
+    public OrganisationalUnitService(OrganisationalUnitRepository organisationalUnitRepository,
+                                     OrganisationalUnitDtoFactory organisationalUnitDtoFactory,
+                                     AgencyTokenService agencyTokenService,
+                                     IdentityService identityService) {
         super(organisationalUnitRepository, organisationalUnitDtoFactory);
+        this.dtoFactory = organisationalUnitDtoFactory;
         this.repository = organisationalUnitRepository;
         this.agencyTokenService = agencyTokenService;
         this.identityService = identityService;
@@ -186,4 +198,39 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
             }
         );
     }
+
+    public OrganisationalUnitDto getOrganisationalUnit(Long id, boolean includeFormattedName, boolean includeParents) {
+        OrganisationalUnit organisationalUnit = repository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Organisational Unit with id %s was not found", id))
+        );
+        OrganisationalUnitDto converted = dtoFactory.create(organisationalUnit, includeFormattedName);
+        if (includeParents && converted.getParentId() != null) {
+            converted.setParent(this.getOrganisationalUnit(converted.getParentId(), includeFormattedName, true));
+        }
+        return converted;
+    }
+
+    public List<OrganisationalUnitDto> getOrganisationalUnits(List<Long> ids,
+                                                              boolean includeFormattedName,
+                                                              OrganisationalUnitOrderingKey orderBy,
+                                                              OrganisationalUnitOrderingDirection orderDirection) {
+        List<OrganisationalUnit> organisations;
+        if (!ids.isEmpty()) {
+            organisations = repository.findAllById(ids);
+        } else {
+            organisations = repository.findAll();
+        }
+
+        Stream<OrganisationalUnitDto> dtos = organisations
+                .stream()
+                .map(o -> dtoFactory.create(o, includeFormattedName));
+
+        if (orderBy != null && orderDirection != null) {
+            Comparator<OrganisationalUnitDto> comparator = new OrganisationalUnitComparator(orderBy, orderDirection);
+            dtos = dtos.sorted(comparator);
+        }
+
+        return dtos.collect(Collectors.toList());
+    }
+
 }

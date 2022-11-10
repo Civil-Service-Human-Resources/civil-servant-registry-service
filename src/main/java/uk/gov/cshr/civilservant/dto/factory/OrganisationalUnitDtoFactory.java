@@ -1,11 +1,13 @@
 package uk.gov.cshr.civilservant.dto.factory;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.OrganisationalUnitDto;
 import uk.gov.cshr.civilservant.service.RepositoryEntityService;
 
 @Component
+@Slf4j
 public class OrganisationalUnitDtoFactory
     extends DtoFactory<OrganisationalUnitDto, OrganisationalUnit> {
 
@@ -15,14 +17,26 @@ public class OrganisationalUnitDtoFactory
     this.repositoryEntityService = repositoryEntityService;
   }
 
-  public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit) {
+  public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit, boolean includeFormattedName) {
     OrganisationalUnitDto organisationalUnitDto = new OrganisationalUnitDto();
+    organisationalUnitDto.setId(organisationalUnit.getId());
     organisationalUnitDto.setCode(organisationalUnit.getCode());
     organisationalUnitDto.setName(organisationalUnit.getName());
-    organisationalUnitDto.setFormattedName(formatName(organisationalUnit));
+    if (includeFormattedName) {
+      organisationalUnitDto.setFormattedName(formatName(organisationalUnit));
+    }
+    if (organisationalUnit.getParent() != null) {
+      organisationalUnitDto.setParentId(organisationalUnit.getParent().getId());
+    }
+    organisationalUnitDto.setAbbreviation(organisationalUnit.getAbbreviation());
     organisationalUnitDto.setHref(repositoryEntityService.getUri(organisationalUnit));
+    organisationalUnitDto.setAgencyToken(organisationalUnit.getAgencyToken());
 
     return organisationalUnitDto;
+  }
+
+  public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit) {
+    return create(organisationalUnit, true);
   }
 
   /**

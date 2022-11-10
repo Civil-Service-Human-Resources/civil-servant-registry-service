@@ -2,6 +2,7 @@ package uk.gov.cshr.civilservant.dto;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import uk.gov.cshr.civilservant.domain.AgencyToken;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -9,7 +10,9 @@ public class OrganisationalUnitDto extends DtoEntity {
 
     private static final long serialVersionUID = 1L;
 
+    protected OrganisationalUnitDto parent;
+    protected Long parentId;
     protected String formattedName;
     private String code;
-
+    protected AgencyToken agencyToken;
 }
