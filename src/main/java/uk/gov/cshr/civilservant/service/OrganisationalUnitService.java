@@ -203,11 +203,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         OrganisationalUnit organisationalUnit = repository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Organisational Unit with id %s was not found", id))
         );
-        OrganisationalUnitDto converted = dtoFactory.create(organisationalUnit, includeFormattedName);
-        if (includeParents && converted.getParentId() != null) {
-            converted.setParent(this.getOrganisationalUnit(converted.getParentId(), includeFormattedName, true));
-        }
-        return converted;
+        return dtoFactory.create(organisationalUnit, includeFormattedName, includeParents);
     }
 
     public List<OrganisationalUnitDto> getOrganisationalUnits(List<Long> ids,
@@ -223,7 +219,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
 
         Stream<OrganisationalUnitDto> dtos = organisations
                 .stream()
-                .map(o -> dtoFactory.create(o, includeFormattedName));
+                .map(o -> dtoFactory.create(o, includeFormattedName, false));
 
         if (orderBy != null && orderDirection != null) {
             Comparator<OrganisationalUnitDto> comparator = new OrganisationalUnitComparator(orderBy, orderDirection);
