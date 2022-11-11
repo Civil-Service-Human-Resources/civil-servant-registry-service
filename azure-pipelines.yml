@@ -29,9 +29,9 @@ steps:
     inputs:
       containerRegistry: 'lpgregistry ACR'
       ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
-        repository: 'lpg-learner-record/prod'
+        repository: 'civil-servant-registry-service/prod'
       ${{ else }}:
-        repository: 'lpg-learner-record/test'
+        repository: 'civil-servant-registry-service/test'
       command: 'buildAndPush'
       Dockerfile: '**/Dockerfile'
       tags: '$(Build.SourceBranchName)'
