@@ -1,4 +1,4 @@
-package uk.gov.cshr.civilservant.service.customComparators;
+package uk.gov.cshr.civilservant.service.comparator;
 
 import uk.gov.cshr.civilservant.controller.models.OrganisationalUnitOrderingDirection;
 import uk.gov.cshr.civilservant.controller.models.OrganisationalUnitOrderingKey;

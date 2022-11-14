@@ -17,7 +17,7 @@ import uk.gov.cshr.civilservant.exception.NoOrganisationsFoundException;
 import uk.gov.cshr.civilservant.exception.TokenAlreadyExistsException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
-import uk.gov.cshr.civilservant.service.customComparators.OrganisationalUnitComparator;
+import uk.gov.cshr.civilservant.service.comparator.OrganisationalUnitComparator;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.*;
