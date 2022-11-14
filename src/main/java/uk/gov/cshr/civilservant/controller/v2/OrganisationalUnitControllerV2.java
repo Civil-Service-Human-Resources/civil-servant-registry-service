@@ -40,7 +40,6 @@ public class OrganisationalUnitControllerV2 {
     @GetMapping()
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<OrganisationalUnitResponse> listOrganisations(
-            @RequestParam(value = "ids", required = false, defaultValue = "") List<Long> ids,
             @RequestParam(value = "includeFormattedName", required = false, defaultValue = "false") boolean includeFormattedName,
             @RequestParam(value = "orderBy", required = false, defaultValue = "NAME") OrganisationalUnitOrderingKey orderBy,
             @RequestParam(value = "orderDirection", required = false, defaultValue = "ASC") OrganisationalUnitOrderingDirection orderDirection
@@ -49,7 +48,7 @@ public class OrganisationalUnitControllerV2 {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot order by formattedName when includeFormattedName is false");
         }
         List<OrganisationalUnitDto> organisationalUnitDtos = organisationalUnitService.getOrganisationalUnits(
-                ids, includeFormattedName, orderBy, orderDirection);
+                includeFormattedName, orderBy, orderDirection);
         return ResponseEntity.ok(new OrganisationalUnitResponse(organisationalUnitDtos));
     }
 

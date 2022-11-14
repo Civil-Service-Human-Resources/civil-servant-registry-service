@@ -206,17 +206,10 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         return dtoFactory.create(organisationalUnit, includeFormattedName, includeParents);
     }
 
-    public List<OrganisationalUnitDto> getOrganisationalUnits(List<Long> ids,
-                                                              boolean includeFormattedName,
+    public List<OrganisationalUnitDto> getOrganisationalUnits(boolean includeFormattedName,
                                                               OrganisationalUnitOrderingKey orderBy,
                                                               OrganisationalUnitOrderingDirection orderDirection) {
-        List<OrganisationalUnit> organisations;
-        if (!ids.isEmpty()) {
-            organisations = repository.findAllById(ids);
-        } else {
-            organisations = repository.findAll();
-        }
-
+        List<OrganisationalUnit> organisations = repository.findAll();
         Stream<OrganisationalUnitDto> dtos = organisations
                 .stream()
                 .map(o -> dtoFactory.create(o, includeFormattedName, false));
