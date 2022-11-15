@@ -1,13 +1,11 @@
 package uk.gov.cshr.civilservant.dto.factory;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.OrganisationalUnitDto;
 import uk.gov.cshr.civilservant.service.RepositoryEntityService;
 
 @Component
-@Slf4j
 public class OrganisationalUnitDtoFactory
     extends DtoFactory<OrganisationalUnitDto, OrganisationalUnit> {
 
