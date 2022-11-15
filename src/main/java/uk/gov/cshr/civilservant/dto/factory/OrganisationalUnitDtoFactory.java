@@ -11,35 +11,20 @@ import uk.gov.cshr.civilservant.service.RepositoryEntityService;
 public class OrganisationalUnitDtoFactory
     extends DtoFactory<OrganisationalUnitDto, OrganisationalUnit> {
 
-  private final RepositoryEntityService<OrganisationalUnit> repositoryEntityService;
+  private RepositoryEntityService<OrganisationalUnit> repositoryEntityService;
 
   public OrganisationalUnitDtoFactory(RepositoryEntityService repositoryEntityService) {
     this.repositoryEntityService = repositoryEntityService;
   }
 
-  public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit, boolean includeParent, boolean includeFormattedName) {
+  public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit) {
     OrganisationalUnitDto organisationalUnitDto = new OrganisationalUnitDto();
-    organisationalUnitDto.setId(organisationalUnit.getId());
     organisationalUnitDto.setCode(organisationalUnit.getCode());
     organisationalUnitDto.setName(organisationalUnit.getName());
-    if (includeFormattedName) {
-      organisationalUnitDto.setFormattedName(formatName(organisationalUnit));
-    }
-    if (organisationalUnit.getParent() != null) {
-      organisationalUnitDto.setParentId(organisationalUnit.getParent().getId());
-      if (includeParent) {
-        organisationalUnitDto.setParent(this.create(organisationalUnit.getParent(), true, false));
-      }
-    }
-    organisationalUnitDto.setAbbreviation(organisationalUnit.getAbbreviation());
+    organisationalUnitDto.setFormattedName(formatName(organisationalUnit));
     organisationalUnitDto.setHref(repositoryEntityService.getUri(organisationalUnit));
-    organisationalUnitDto.setAgencyToken(organisationalUnit.getAgencyToken());
 
     return organisationalUnitDto;
-  }
-
-  public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit) {
-    return create(organisationalUnit, false, true);
   }
 
   /**
