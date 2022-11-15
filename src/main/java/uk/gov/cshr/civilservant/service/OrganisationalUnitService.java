@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 public class OrganisationalUnitService extends SelfReferencingEntityService<OrganisationalUnit, OrganisationalUnitDto> {
 
     private OrganisationalUnitRepository repository;
+    private OrganisationalUnitDtoFactory dtoFactory;
     private AgencyTokenService agencyTokenService;
     private IdentityService identityService;
 
@@ -36,6 +37,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
                                      IdentityService identityService) {
         super(organisationalUnitRepository, organisationalUnitDtoFactory);
         this.repository = organisationalUnitRepository;
+        this.dtoFactory = organisationalUnitDtoFactory;
         this.agencyTokenService = agencyTokenService;
         this.identityService = identityService;
     }
@@ -100,6 +102,11 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
 
     public Optional<OrganisationalUnit> getOrganisationalUnit(Long id) {
         return repository.findById(id);
+    }
+
+    public OrganisationalUnitDto getOrganisationalUnit(Long id, boolean includeParents) {
+        OrganisationalUnit organisationalUnit = getOrganisationalUnit(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return dtoFactory.create(organisationalUnit, includeParents, false);
     }
 
     public List<OrganisationalUnit> getOrganisationsNormalised() {
