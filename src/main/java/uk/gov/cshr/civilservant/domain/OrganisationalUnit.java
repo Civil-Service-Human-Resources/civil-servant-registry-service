@@ -22,6 +22,9 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     @Column(name = "payment_methods")
     private String paymentMethods = PaymentMethod.PURCHASE_ORDER.toString();
 
+    @Column(name = "parent_id", insertable = false, updatable = false)
+    private Long parentId;
+
     @OneToOne(cascade = {CascadeType.ALL})
     private AgencyToken agencyToken;
 
@@ -30,6 +33,7 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
         this.code = organisationalUnit.getCode();
         this.name = organisationalUnit.getName();
         this.parent = organisationalUnit.getParent();
+        this.parentId = organisationalUnit.getParentId();
         this.children = organisationalUnit.getChildren();
         this.abbreviation = organisationalUnit.getAbbreviation();
         this.setPaymentMethods(organisationalUnit.getPaymentMethods());
@@ -52,6 +56,8 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     public void setCode(String code) {
         this.code = code;
     }
+
+    public Long getParentId() { return parentId; }
 
     @Override
     public OrganisationalUnit getParent() {
