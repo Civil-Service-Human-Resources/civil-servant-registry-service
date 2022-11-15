@@ -30,25 +30,16 @@ public class OrganisationalUnitControllerV2 {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<OrganisationalUnitDto> getOrganisation(
             @PathVariable(value = "organisationalUnitId") Long id,
-            @RequestParam(value = "includeFormattedName", required = false, defaultValue = "false") boolean includeFormattedName,
             @RequestParam(value = "includeParents", required = false, defaultValue = "false") boolean includeParents
     ) {
-        OrganisationalUnitDto organisationalUnitDto = organisationalUnitService.getOrganisationalUnit(id, includeFormattedName, includeParents);
+        OrganisationalUnitDto organisationalUnitDto = organisationalUnitService.getOrganisationalUnit(id, includeParents);
         return ResponseEntity.ok(organisationalUnitDto);
     }
 
     @GetMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<OrganisationalUnitResponse> listOrganisations(
-            @RequestParam(value = "includeFormattedName", required = false, defaultValue = "false") boolean includeFormattedName,
-            @RequestParam(value = "orderBy", required = false, defaultValue = "NAME") OrganisationalUnitOrderingKey orderBy,
-            @RequestParam(value = "orderDirection", required = false, defaultValue = "ASC") OrganisationalUnitOrderingDirection orderDirection
-    ) {
-        if (orderBy.equals(OrganisationalUnitOrderingKey.FORMATTED_NAME) && !includeFormattedName) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot order by formattedName when includeFormattedName is false");
-        }
-        List<OrganisationalUnitDto> organisationalUnitDtos = organisationalUnitService.getOrganisationalUnits(
-                includeFormattedName, orderBy, orderDirection);
+    public ResponseEntity<OrganisationalUnitResponse> listOrganisations() {
+        List<OrganisationalUnitDto> organisationalUnitDtos = organisationalUnitService.getOrganisationalUnits();
         return ResponseEntity.ok(new OrganisationalUnitResponse(organisationalUnitDtos));
     }
 

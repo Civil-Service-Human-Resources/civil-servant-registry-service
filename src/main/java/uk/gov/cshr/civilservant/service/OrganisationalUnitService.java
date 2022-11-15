@@ -17,7 +17,6 @@ import uk.gov.cshr.civilservant.exception.NoOrganisationsFoundException;
 import uk.gov.cshr.civilservant.exception.TokenAlreadyExistsException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
-import uk.gov.cshr.civilservant.service.comparator.OrganisationalUnitComparator;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.*;
@@ -199,25 +198,18 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         );
     }
 
-    public OrganisationalUnitDto getOrganisationalUnit(Long id, boolean includeFormattedName, boolean includeParents) {
+    public OrganisationalUnitDto getOrganisationalUnit(Long id, boolean includeParents) {
         OrganisationalUnit organisationalUnit = repository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Organisational Unit with id %s was not found", id))
         );
-        return dtoFactory.create(organisationalUnit, includeFormattedName, includeParents);
+        return dtoFactory.create(organisationalUnit, includeParents);
     }
 
-    public List<OrganisationalUnitDto> getOrganisationalUnits(boolean includeFormattedName,
-                                                              OrganisationalUnitOrderingKey orderBy,
-                                                              OrganisationalUnitOrderingDirection orderDirection) {
+    public List<OrganisationalUnitDto> getOrganisationalUnits() {
         List<OrganisationalUnit> organisations = repository.findAll();
         Stream<OrganisationalUnitDto> dtos = organisations
                 .stream()
-                .map(o -> dtoFactory.create(o, includeFormattedName, false));
-
-        if (orderBy != null && orderDirection != null) {
-            Comparator<OrganisationalUnitDto> comparator = new OrganisationalUnitComparator(orderBy, orderDirection);
-            dtos = dtos.sorted(comparator);
-        }
+                .map(o -> dtoFactory.create(o, false));
 
         return dtos.collect(Collectors.toList());
     }

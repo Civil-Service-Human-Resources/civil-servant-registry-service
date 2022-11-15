@@ -79,41 +79,6 @@ public class OrganisationalUnitControllerV2Test {
 
     @Test
     @SneakyThrows
-    public void testGetOrganisationsWithFormattedName() {
-        when(organisationalUnitRepository.findAll()).thenReturn(orgs);
-        mockMvc.perform(get("/v2/organisationalUnits?includeFormattedName=true")
-                .accept(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.organisationalUnits[0].formattedName").value("grandparent (GPT) | parent (PT) | child (CH)"))
-                .andExpect(jsonPath("$.organisationalUnits[1].formattedName").value("grandparent (GPT)"))
-                .andExpect(jsonPath("$.organisationalUnits[2].formattedName").value("grandparentTwo (GPT2)"))
-                .andExpect(jsonPath("$.organisationalUnits[3].formattedName").value("grandparent (GPT) | parent (PT)"));
-    }
-
-    @Test
-    @SneakyThrows
-    public void testGetOrganisationsWithFormattedNameOrderByFormattedName() {
-        when(organisationalUnitRepository.findAll()).thenReturn(orgs);
-        mockMvc.perform(get("/v2/organisationalUnits?includeFormattedName=true&orderBy=FORMATTED_NAME")
-                        .accept(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.organisationalUnits[0].formattedName").value("grandparent (GPT)"))
-                .andExpect(jsonPath("$.organisationalUnits[1].formattedName").value("grandparent (GPT) | parent (PT)"))
-                .andExpect(jsonPath("$.organisationalUnits[2].formattedName").value("grandparent (GPT) | parent (PT) | child (CH)"))
-                .andExpect(jsonPath("$.organisationalUnits[3].formattedName").value("grandparentTwo (GPT2)"));
-    }
-
-    @Test
-    @SneakyThrows
-    public void testGetOrganisationsFormattedNameException() {
-        when(organisationalUnitRepository.findAll()).thenReturn(orgs);
-        mockMvc.perform(get("/v2/organisationalUnits?orderBy=FORMATTED_NAME")
-                        .accept(APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @SneakyThrows
     public void testGetOrganisation() {
         when(organisationalUnitRepository.findById(1L)).thenReturn(Optional.of(orgs.get(0)));
         mockMvc.perform(get("/v2/organisationalUnits/1")
@@ -124,25 +89,12 @@ public class OrganisationalUnitControllerV2Test {
 
     @Test
     @SneakyThrows
-    public void testGetOrganisationWithFormattedName() {
+    public void testGetOrganisationAndParents() {
         when(organisationalUnitRepository.findById(2L)).thenReturn(Optional.of(orgs.get(1)));
-        mockMvc.perform(get("/v2/organisationalUnits/2?includeFormattedName=true")
+        mockMvc.perform(get("/v2/organisationalUnits/2?includeParents=true")
                         .accept(APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("parent"))
-                .andExpect(jsonPath("$.formattedName").value("grandparent (GPT) | parent (PT)"));
-    }
-
-    @Test
-    @SneakyThrows
-    public void testGetOrganisationWithFormattedNameAndParents() {
-        when(organisationalUnitRepository.findById(2L)).thenReturn(Optional.of(orgs.get(1)));
-        mockMvc.perform(get("/v2/organisationalUnits/2?includeFormattedName=true&includeParents=true")
-                        .accept(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("parent"))
-                .andExpect(jsonPath("$.formattedName").value("grandparent (GPT) | parent (PT)"))
-                .andExpect(jsonPath("$.parent.name").value("grandparent"))
-                .andExpect(jsonPath("$.parent.formattedName").value("grandparent (GPT)"));
+                .andExpect(jsonPath("$.parent.name").value("grandparent"));
     }
 }
