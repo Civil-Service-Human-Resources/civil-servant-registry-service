@@ -5,8 +5,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.cshr.civilservant.controller.models.OrganisationalUnitOrderingDirection;
-import uk.gov.cshr.civilservant.controller.models.OrganisationalUnitOrderingKey;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.AgencyTokenResponseDto;
@@ -202,14 +200,14 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         OrganisationalUnit organisationalUnit = repository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Organisational Unit with id %s was not found", id))
         );
-        return dtoFactory.create(organisationalUnit, includeParents);
+        return dtoFactory.create(organisationalUnit, includeParents, false);
     }
 
     public List<OrganisationalUnitDto> getOrganisationalUnits() {
         List<OrganisationalUnit> organisations = repository.findAll();
         Stream<OrganisationalUnitDto> dtos = organisations
                 .stream()
-                .map(o -> dtoFactory.create(o, false));
+                .map(o -> dtoFactory.create(o, false, false));
 
         return dtos.collect(Collectors.toList());
     }

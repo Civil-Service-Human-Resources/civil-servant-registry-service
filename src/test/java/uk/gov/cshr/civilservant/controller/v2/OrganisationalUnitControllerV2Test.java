@@ -71,10 +71,10 @@ public class OrganisationalUnitControllerV2Test {
         mockMvc.perform(get("/v2/organisationalUnits")
                         .accept(APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.organisationalUnits[0].name").value("child"))
-                .andExpect(jsonPath("$.organisationalUnits[1].name").value("grandparent"))
-                .andExpect(jsonPath("$.organisationalUnits[2].name").value("grandparentTwo"))
-                .andExpect(jsonPath("$.organisationalUnits[3].name").value("parent"));
+                .andExpect(jsonPath("$.organisationalUnits[0].name").value("grandparent"))
+                .andExpect(jsonPath("$.organisationalUnits[1].name").value("parent"))
+                .andExpect(jsonPath("$.organisationalUnits[2].name").value("child"))
+                .andExpect(jsonPath("$.organisationalUnits[3].name").value("grandparentTwo"));
     }
 
     @Test
