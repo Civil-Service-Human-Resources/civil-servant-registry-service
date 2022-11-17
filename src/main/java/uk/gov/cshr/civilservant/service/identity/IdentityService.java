@@ -112,7 +112,8 @@ public class IdentityService {
         UriComponents url = agencyTokenUrlBuilder.buildAndExpand(uid);
 
         try {
-            return Objects.requireNonNull(restOperations.getForObject(url.toUriString(), AgencyTokenCapacityUsed.class)).capacityUsed;
+            AgencyTokenCapacityUsed capacityUsed = restOperations.getForObject(url.toUriString(), AgencyTokenCapacityUsed.class);
+            return Objects.requireNonNull(capacityUsed).capacityUsed;
         } catch (HttpClientErrorException clientError) {
             if(clientError.getStatusCode() == HttpStatus.NOT_FOUND) {
                 log.warn("Token for uid " + uid + " does not exist");

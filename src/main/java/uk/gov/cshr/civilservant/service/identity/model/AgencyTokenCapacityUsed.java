@@ -1,10 +1,10 @@
 package uk.gov.cshr.civilservant.service.identity.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class AgencyTokenCapacityUsed {
     public int capacityUsed;
 }
