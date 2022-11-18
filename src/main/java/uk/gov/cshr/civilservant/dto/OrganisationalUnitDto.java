@@ -14,6 +14,7 @@ public class OrganisationalUnitDto extends DtoEntity {
 
     protected String formattedName;
     private String code;
+    private String abbreviation;
     private AgencyToken agencyToken;
 
 }

@@ -19,6 +19,7 @@ public class OrganisationalUnitDtoFactory
     OrganisationalUnitDto organisationalUnitDto = new OrganisationalUnitDto();
     organisationalUnitDto.setCode(organisationalUnit.getCode());
     organisationalUnitDto.setName(organisationalUnit.getName());
+    organisationalUnitDto.setAbbreviation(organisationalUnit.getAbbreviation());
     organisationalUnitDto.setId(organisationalUnit.getId());
     if (formatName) {
       organisationalUnitDto.setFormattedName(formatName(organisationalUnit));
