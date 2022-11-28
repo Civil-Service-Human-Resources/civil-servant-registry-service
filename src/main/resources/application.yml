@@ -19,9 +19,9 @@ spring:
         show_sql: false
         format_sql: false
   datasource:
-#    url: ${DATASOURCE:jdbc:mysql://localhost:3306/csrs?user=root&password=my-secret-pw&useSSL=false}
-#    platform: mysql
-#    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DATASOURCE:jdbc:mysql://localhost:3306/csrs?user=root&password=my-secret-pw&useSSL=false}
+    platform: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       connection-timeout: 30000
       idle-timeout: 600000
