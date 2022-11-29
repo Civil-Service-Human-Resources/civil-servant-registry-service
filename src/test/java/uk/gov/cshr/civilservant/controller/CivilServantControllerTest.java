@@ -84,6 +84,28 @@ public class CivilServantControllerTest {
     }
 
     @Test
+    public void shouldReturnOkAndUpdateCivilServantIfNoLineManager() throws Exception {
+        when(civilServantRepository.findByPrincipal()).thenReturn(Optional.of(createCivilServant("myuid")));
+        CivilServantResource civilServantResource = new CivilServantResource();
+        civilServantResource.setLineManagerEmailAddress("");
+
+        CivilServant civilServant = createCivilServant("myuid");
+        civilServant.setId(1L);
+
+        when(civilServantResourceFactory.create(civilServant)).thenReturn(new Resource<>(civilServantResource));
+
+        mockMvc.perform(
+                patch("/civilServants/manager?email=").with(csrf())
+                        .accept(APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lineManagerEmailAddress").value(""));
+
+        verify(civilServantRepository).save(any());
+
+    }
+
+    @Test
     public void shouldReturnNotProcessableIfNoDetailForLoggedInUser() throws Exception {
 
         when(lineManagerService.checkLineManager("learner@domain.com")).thenReturn(new IdentityFromService());

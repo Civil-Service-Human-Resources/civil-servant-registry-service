@@ -43,6 +43,9 @@ public class CivilServantResourceFactory {
 
             civilServantResource.setLineManagerName(lineManager.getFullName());
             civilServantResource.setLineManagerEmailAddress(identityService.getEmailAddress(lineManager));
+        } else {
+            civilServantResource.setLineManagerName("");
+            civilServantResource.setLineManagerEmailAddress("");
         }
 
         civilServantResource.setUserId(civilServant.getId());

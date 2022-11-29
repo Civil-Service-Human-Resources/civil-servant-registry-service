@@ -81,8 +81,16 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
         Optional<CivilServant> optionalCivilServant = civilServantRepository.findByPrincipal();
 
         if (optionalCivilServant.isPresent()) {
+            CivilServant civilServant = optionalCivilServant.get();
 
-            IdentityFromService lineManagerIdentity = lineManagerService.checkLineManager(email);
+            if(email.isEmpty()) {
+                civilServant.setLineManager(null);
+                civilServantRepository.save(civilServant);
+                return ResponseEntity.ok(civilServantResourceFactory.create(civilServant));
+
+            }
+
+            IdentityFromService lineManagerIdentity = lineManagerService.checkLineManager(email.trim());
             if (lineManagerIdentity == null) {
                 log.debug("Line manager email address not found in identity-service.");
                 return ResponseEntity.notFound().build();
@@ -95,7 +103,6 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
             }
 
             CivilServant lineManager = optionalLineManager.get();
-            CivilServant civilServant = optionalCivilServant.get();
             if (lineManager.equals(civilServant)) {
                 log.info("User tried to set line manager to themself, {}.", civilServant);
                 return ResponseEntity.badRequest().build();
@@ -104,7 +111,7 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
             civilServant.setLineManager(lineManager);
             civilServantRepository.save(civilServant);
 
-            lineManagerService.notifyLineManager(civilServant, lineManager, email);
+            lineManagerService.notifyLineManager(civilServant, lineManager, email.trim());
 
             return ResponseEntity.ok(civilServantResourceFactory.create(civilServant));
         }
