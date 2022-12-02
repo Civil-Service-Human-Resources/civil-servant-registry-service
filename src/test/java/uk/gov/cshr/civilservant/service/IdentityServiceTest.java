@@ -20,6 +20,7 @@ import uk.gov.cshr.civilservant.exception.NoOrganisationsFoundException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
+import uk.gov.cshr.civilservant.service.identity.model.AgencyTokenCapacityUsed;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -103,18 +104,18 @@ public class IdentityServiceTest {
     @Test
     public void shouldReturnNumberOfSpacesIfValid() throws MalformedURLException, CSRSApplicationException {
         // given
-        Integer expectedSpaces = 101;
+        int expectedSpaces = 101;
         String agencyTokenUid = UUID.randomUUID().toString();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(AGENCY_TOKEN_URL);
 
-        when(restOperations.getForObject(any(String.class), any())).thenReturn(expectedSpaces);
+        when(restOperations.getForObject(any(String.class), any())).thenReturn(new AgencyTokenCapacityUsed(expectedSpaces));
 
         // when
         int actual = identityService.getSpacesUsedForAgencyToken(agencyTokenUid);
 
         // then
         assertThat(actual, equalTo(expectedSpaces));
-        verify(restOperations, times(1)).getForObject(builder.buildAndExpand(agencyTokenUid).toUriString(), Integer.class);
+        verify(restOperations, times(1)).getForObject(builder.buildAndExpand(agencyTokenUid).toUriString(), AgencyTokenCapacityUsed.class);
     }
 
     @Test (expected = TokenDoesNotExistException.class)
