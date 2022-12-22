@@ -1,5 +1,6 @@
 package uk.gov.cshr.civilservant.service.identity;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import uk.gov.cshr.civilservant.dto.IdentityAgencyResponseDTO;
 import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.service.exception.UserNotFoundException;
+import uk.gov.cshr.civilservant.service.identity.model.AgencyTokenCapacityUsed;
 
 @Slf4j
 @Service
@@ -107,11 +109,11 @@ public class IdentityService {
     }
 
     public int getSpacesUsedForAgencyToken(String uid) throws CSRSApplicationException {
-        log.debug("Getting the spaces used");
         UriComponents url = agencyTokenUrlBuilder.buildAndExpand(uid);
 
         try {
-            return restOperations.getForObject(url.toUriString(), Integer.class);
+            AgencyTokenCapacityUsed capacityUsed = restOperations.getForObject(url.toUriString(), AgencyTokenCapacityUsed.class);
+            return Objects.requireNonNull(capacityUsed).capacityUsed;
         } catch (HttpClientErrorException clientError) {
             if(clientError.getStatusCode() == HttpStatus.NOT_FOUND) {
                 log.warn("Token for uid " + uid + " does not exist");

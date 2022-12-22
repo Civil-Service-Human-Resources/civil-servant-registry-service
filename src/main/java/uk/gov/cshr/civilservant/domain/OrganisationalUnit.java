@@ -53,6 +53,14 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
         this.code = code;
     }
 
+    public Long getParentId() {
+        if (this.hasParent()) {
+            return this.parent.getId();
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public OrganisationalUnit getParent() {
         return parent;

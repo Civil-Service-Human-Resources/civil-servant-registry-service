@@ -15,14 +15,27 @@ public class OrganisationalUnitDtoFactory
     this.repositoryEntityService = repositoryEntityService;
   }
 
-  public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit) {
+  public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit, boolean includeParents, boolean formatName) {
     OrganisationalUnitDto organisationalUnitDto = new OrganisationalUnitDto();
     organisationalUnitDto.setCode(organisationalUnit.getCode());
     organisationalUnitDto.setName(organisationalUnit.getName());
-    organisationalUnitDto.setFormattedName(formatName(organisationalUnit));
+    organisationalUnitDto.setAbbreviation(organisationalUnit.getAbbreviation());
+    organisationalUnitDto.setId(organisationalUnit.getId());
+    if (formatName) {
+      organisationalUnitDto.setFormattedName(formatName(organisationalUnit));
+    }
     organisationalUnitDto.setHref(repositoryEntityService.getUri(organisationalUnit));
+    if (includeParents && organisationalUnit.hasParent()) {
+      organisationalUnitDto.setParentId(organisationalUnit.getParentId());
+      organisationalUnitDto.setParent(create(organisationalUnit.getParent(), true, false));
+    }
+    organisationalUnitDto.setAgencyToken(organisationalUnit.getAgencyToken());
 
     return organisationalUnitDto;
+  }
+
+  public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit) {
+    return this.create(organisationalUnit, false, true);
   }
 
   /**

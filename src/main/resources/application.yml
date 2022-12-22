@@ -1,16 +1,4 @@
 spring:
-  datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/csrs?user=root&password=password&useSSL=false}
-    platform: mysql
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  redis:
-    host: ${REDIS_HOST}
-    password: ${REDIS_PASSWORD:}
-    port: ${REDIS_PORT}
-  data:
-    redis:
-      repositories:
-        enabled: false
   rest:
       detection-strategy: annotated
   jackson:
@@ -30,15 +18,18 @@ spring:
         dialect: uk.gov.cshr.civilservant.config.CustomMySqlDialect
         show_sql: false
         format_sql: false
-  # datasource:
-  #   hikari:
-  #     connection-timeout: 30000
-  #     idle-timeout: 600000
-  #     max-lifetime: 1800000
-  # h2:
-  #   console:
-  #     enabled: true
-  #     path: "/h2-console"
+  datasource:
+    url: ${DATASOURCE:jdbc:mysql://localhost:3306/csrs?user=root&password=my-secret-pw&useSSL=false}
+    platform: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  h2:
+    console:
+      enabled: true
+      path: "/h2-console"
 
 server:
   port: 9002
@@ -98,10 +89,6 @@ spring:
       hibernate:
         dialect: uk.gov.cshr.civilservant.config.CustomMySqlDialect
         enable_lazy_load_no_trans: true
-  redis:
-    host: ${REDIS_HOST:localhost}
-    password: ${REDIS_PASSWORD:}
-    port: ${REDIS_PORT:6379}
 
 govNotify:
   enabled: ${GOV_NOTIFY_ENABLED:true}
