@@ -1,9 +1,10 @@
 package uk.gov.cshr.civilservant.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.AgencyTokenResponseDto;
@@ -24,12 +25,17 @@ import java.util.*;
 public class OrganisationalUnitService extends SelfReferencingEntityService<OrganisationalUnit, OrganisationalUnitDto> {
 
     private OrganisationalUnitRepository repository;
+    private OrganisationalUnitDtoFactory dtoFactory;
     private AgencyTokenService agencyTokenService;
     private IdentityService identityService;
 
-    public OrganisationalUnitService(OrganisationalUnitRepository organisationalUnitRepository, OrganisationalUnitDtoFactory organisationalUnitDtoFactory, AgencyTokenService agencyTokenService, IdentityService identityService) {
+    public OrganisationalUnitService(OrganisationalUnitRepository organisationalUnitRepository,
+                                     OrganisationalUnitDtoFactory organisationalUnitDtoFactory,
+                                     AgencyTokenService agencyTokenService,
+                                     IdentityService identityService) {
         super(organisationalUnitRepository, organisationalUnitDtoFactory);
         this.repository = organisationalUnitRepository;
+        this.dtoFactory = organisationalUnitDtoFactory;
         this.agencyTokenService = agencyTokenService;
         this.identityService = identityService;
     }
@@ -94,6 +100,11 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
 
     public Optional<OrganisationalUnit> getOrganisationalUnit(Long id) {
         return repository.findById(id);
+    }
+
+    public OrganisationalUnitDto getOrganisationalUnit(Long id, boolean includeParents) {
+        OrganisationalUnit organisationalUnit = getOrganisationalUnit(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return dtoFactory.create(organisationalUnit, includeParents, false);
     }
 
     public List<OrganisationalUnit> getOrganisationsNormalised() {
@@ -164,14 +175,12 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         return agencyTokenService.getAgencyTokenResponseDto(agencyToken);
     }
 
-    @Cacheable("organisationalUnitsTree")
     public List<OrganisationalUnit> getOrgTree() {
         List<OrganisationalUnit> listOrg = this.getParents();
         sortOrganisationList(listOrg);
         return listOrg;
     }
 
-    @Cacheable("organisationalUnitsFlat")
     public List<OrganisationalUnitDto> getFlatOrg() {
         return this.getListSortedByValue();
     }
@@ -189,4 +198,5 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
             }
         );
     }
+
 }

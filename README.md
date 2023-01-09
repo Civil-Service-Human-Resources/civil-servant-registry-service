@@ -53,18 +53,6 @@ For a complete list of test dependencies check the `build.gradle` file. The main
 
 The CSRS application uses Flyway to manage the DB migrations inside its own schema. See the `src/main/resources/db/migration` folder. Note: in-memory H2 DB has a separate migration folder than the deployed target MySQL DB - changes must be made to both in order to run successfully when deployed to the real environments.
 
-#### Caching
-
-The CSRS application is one of few application components in LPG that has explicit caching. 
-
-The caching implemented is using the Spring `@Cacheable` annotation in the `OrganisationalUnitService` and `OrganisationalUnitRepository` classes, caching the results for flat and tree representations of organisations.
- 
-The cache is stored in a Redis instance configured in `application.yml`. Redis support for the cache is provided by the Spring Data Redis package which automatically provides Redis based caching for the `@Cacheable` annotation.
- 
-The cache is evicted on calls to save and delete in the `OrganisationalUnitRepository`.
-
-Data is stored in the cache via Java default serialization. Any class needing to be cached must implement the java.io interface `Serializable`.
-
 ## Build, run, test, deploy
 
 The application requires Java 8 (OpenJDK 8) installed to build and run.

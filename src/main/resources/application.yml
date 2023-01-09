@@ -1,8 +1,4 @@
 spring:
-  data:
-    redis:
-      repositories:
-        enabled: false
   rest:
       detection-strategy: annotated
   jackson:
@@ -23,6 +19,9 @@ spring:
         show_sql: false
         format_sql: false
   datasource:
+    url: ${DATASOURCE:jdbc:mysql://localhost:3306/csrs?user=root&password=my-secret-pw&useSSL=false}
+    platform: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       connection-timeout: 30000
       idle-timeout: 600000
@@ -51,7 +50,7 @@ oauth:
   maxTotalConnections: 200
   defaultMaxConnectionsPerRoute: 100
   maxPerServiceUrl: 100
-  jwtKey: ${jwt_key}
+  jwtKey: ${jwt_key:key}
 
 identity:
   identityAPIUrl: "${oauth.serviceUrl}/api/identities"
@@ -90,10 +89,6 @@ spring:
       hibernate:
         dialect: uk.gov.cshr.civilservant.config.CustomMySqlDialect
         enable_lazy_load_no_trans: true
-  redis:
-    host: ${REDIS_HOST:localhost}
-    password: ${REDIS_PASSWORD:}
-    port: ${REDIS_PORT:6379}
 
 govNotify:
   enabled: ${GOV_NOTIFY_ENABLED:true}

@@ -1,7 +1,5 @@
 package uk.gov.cshr.civilservant.repository;
 
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
@@ -24,12 +22,10 @@ public interface OrganisationalUnitRepository extends SelfReferencingEntityRepos
     List<OrganisationalUnit> findAllNormalised();
 
     @Override
-    @CacheEvict(value = {"organisationalUnitsTree", "organisationalUnitsFlat", "OrganisationalUnitRepositoryFindAll"}, allEntries = true)
     <S extends OrganisationalUnit> S save(S entity);
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    @CacheEvict(value = {"organisationalUnitsTree", "organisationalUnitsFlat", "OrganisationalUnitRepositoryFindAll"}, allEntries = true)
     void deleteById(Long aLong);
 
     @Query(value = "select o.code from organisational_unit o", nativeQuery = true)
@@ -41,6 +37,5 @@ public interface OrganisationalUnitRepository extends SelfReferencingEntityRepos
     Optional<OrganisationalUnit> findOrganisationByAgencyToken(AgencyToken agencyToken);
 
     @Override
-    @Cacheable("OrganisationalUnitRepositoryFindAll")
     List<OrganisationalUnit> findAll();
 }
