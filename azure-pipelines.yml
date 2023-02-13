@@ -10,6 +10,10 @@ trigger:
     include:
       - '*'
 
+variables:
+  - name: acr_repo
+    value: civil-servant-registry-service
+
 pool:
   vmImage: ubuntu-latest
 
@@ -27,11 +31,11 @@ steps:
 
   - task: Docker@2
     inputs:
-      containerRegistry: 'lpgregistry ACR'
       ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
-        repository: 'civil-servant-registry-service/prod'
+        containerRegistry: 'csl production ACR'
       ${{ else }}:
-        repository: 'civil-servant-registry-service/test'
+        containerRegistry: 'csl staging ACR'
+      repository: '${{ variables.acr_repo }}'
       command: 'buildAndPush'
       Dockerfile: '**/Dockerfile'
       tags: '$(Build.SourceBranchName)'
