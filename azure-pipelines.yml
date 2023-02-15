@@ -19,6 +19,8 @@ variables:
     ${{ else }}:
       value: 'test'
 
+name: '${{ variables.acr_repo }}.$(SourceBranchName).$(Rev:r)'
+
 pool:
   vmImage: ubuntu-latest
 
