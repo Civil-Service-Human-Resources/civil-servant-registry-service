@@ -1,12 +1,10 @@
 package uk.gov.cshr.civilservant.domain;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
+import javax.persistence.*;
+import java.util.*;
 
 @Entity
 public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit> {
@@ -25,6 +23,14 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     @OneToOne(cascade = {CascadeType.ALL})
     private AgencyToken agencyToken;
 
+    @Fetch(FetchMode.JOIN)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "organisational_unit_domains",
+            joinColumns = @JoinColumn(name = "organisational_unit_id" , referencedColumnName = "id"),
+    inverseJoinColumns = @JoinColumn(name = "domain_id" , referencedColumnName = "id"))
+    private List<Domain> domains;
+
     public OrganisationalUnit(OrganisationalUnit organisationalUnit) {
         this.id = organisationalUnit.getId();
         this.code = organisationalUnit.getCode();
@@ -34,6 +40,7 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
         this.abbreviation = organisationalUnit.getAbbreviation();
         this.setPaymentMethods(organisationalUnit.getPaymentMethods());
         this.agencyToken = organisationalUnit.agencyToken;
+        this.domains = organisationalUnit.getDomains();
     }
 
     public OrganisationalUnit() {
@@ -116,5 +123,9 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
 
     public void setAgencyToken(AgencyToken agencyToken) {
         this.agencyToken = agencyToken;
+    }
+
+    public List<Domain> getDomains() {
+        return domains;
     }
 }
