@@ -1,5 +1,26 @@
 package uk.gov.cshr.civilservant.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.FileUtils;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.cshr.civilservant.domain.Roles;
+import uk.gov.cshr.civilservant.domain.Status;
+import uk.gov.cshr.civilservant.dto.CivilServantReportDto;
+import uk.gov.cshr.civilservant.dto.SkillsReportsDto;
+import uk.gov.cshr.civilservant.service.ReportService;
+
+import java.io.File;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -9,47 +30,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.io.File;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import uk.gov.cshr.civilservant.domain.Roles;
-import uk.gov.cshr.civilservant.domain.Status;
-import uk.gov.cshr.civilservant.dto.CivilServantReportDto;
-import uk.gov.cshr.civilservant.dto.SkillsReportsDto;
-import uk.gov.cshr.civilservant.service.ReportService;
-import uk.gov.cshr.civilservant.utils.MockMVCFilterOverrider;
-
-@SpringBootTest
-@AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
 @WithMockUser(username = "user")
-public class ReportControllerTest {
+public class ReportControllerTest extends CSRSControllerTestBase {
 
   public static final String TEXT_CSV = "text/csv";
   @Autowired ObjectMapper objectMapper;
-  @Autowired private MockMvc mockMvc;
   @MockBean private ReportService reportService;
-
-  @Before
-  public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException {
-    MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy");
-  }
 
   @Test
   @WithMockUser(
@@ -68,8 +55,8 @@ public class ReportControllerTest {
         .perform(get("/report/civilServants").with(csrf()).accept(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.1.name", equalTo("User 1")))
-        .andExpect(jsonPath("$.2.name", equalTo("User 2")));
+        .andExpect(jsonPath("1.name", equalTo("User 1")))
+        .andExpect(jsonPath("2.name", equalTo("User 2")));
   }
 
   @Test
@@ -88,8 +75,8 @@ public class ReportControllerTest {
     mockMvc
         .perform(get("/report/civilServants").with(csrf()).accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.1.name", equalTo("User 1")))
-        .andExpect(jsonPath("$.2.name", equalTo("User 2")));
+        .andExpect(jsonPath("1.name", equalTo("User 1")))
+        .andExpect(jsonPath("2.name", equalTo("User 2")));
   }
 
   @Test
@@ -109,8 +96,8 @@ public class ReportControllerTest {
     mockMvc
         .perform(get("/report/civilServants").with(csrf()).accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.1.name", equalTo("User 1")))
-        .andExpect(jsonPath("$.2.name", equalTo("User 2")));
+        .andExpect(jsonPath("1.name", equalTo("User 1")))
+        .andExpect(jsonPath("2.name", equalTo("User 2")));
   }
 
   @Test
