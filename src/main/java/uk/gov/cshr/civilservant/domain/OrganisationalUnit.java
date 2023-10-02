@@ -4,7 +4,9 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Entity
 public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit> {
@@ -29,6 +31,7 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
             name = "organisational_unit_domains",
             joinColumns = @JoinColumn(name = "organisational_unit_id" , referencedColumnName = "id"),
     inverseJoinColumns = @JoinColumn(name = "domain_id" , referencedColumnName = "id"))
+    @OrderBy("domain")
     private List<Domain> domains;
 
     public OrganisationalUnit(OrganisationalUnit organisationalUnit) {
