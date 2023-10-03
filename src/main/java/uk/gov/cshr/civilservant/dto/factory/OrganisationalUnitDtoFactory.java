@@ -29,6 +29,7 @@ public class OrganisationalUnitDtoFactory
       organisationalUnitDto.setParentId(organisationalUnit.getParentId());
       organisationalUnitDto.setParent(create(organisationalUnit.getParent(), true, false));
     }
+    organisationalUnitDto.setDomains(organisationalUnit.getDomains());
     organisationalUnitDto.setAgencyToken(organisationalUnit.getAgencyToken());
 
     return organisationalUnitDto;
