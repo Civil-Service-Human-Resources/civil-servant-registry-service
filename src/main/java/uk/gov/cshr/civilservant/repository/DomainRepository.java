@@ -5,6 +5,10 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.stereotype.Repository;
 import uk.gov.cshr.civilservant.domain.Domain;
 
+import java.util.Optional;
+
 @Repository
 @RepositoryRestResource
-public interface DomainRepository extends CrudRepository<Domain, Long> { }
+public interface DomainRepository extends CrudRepository<Domain, Long> {
+    Optional<Domain> findDomainByDomain(String domain);
+}

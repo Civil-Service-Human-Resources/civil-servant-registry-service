@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
-import uk.gov.cshr.civilservant.dto.AgencyTokenDTO;
-import uk.gov.cshr.civilservant.dto.AgencyTokenResponseDto;
-import uk.gov.cshr.civilservant.dto.OrganisationalUnitDto;
+import uk.gov.cshr.civilservant.dto.*;
 import uk.gov.cshr.civilservant.dto.factory.AgencyTokenFactory;
 import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
 import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
@@ -120,6 +118,14 @@ public class OrganisationalUnitController {
         });
 
         return ResponseEntity.ok(codeParentCodesMap);
+    }
+
+    @PostMapping("/{organisationalUnitId}/domains")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.CREATED)
+    public AddDomainToOrgResponse addNewDomain(@PathVariable Long organisationalUnitId, @Valid @RequestBody DomainDto domainDto) {
+        return organisationalUnitService.addDomainToOrganisation(organisationalUnitId, domainDto.getDomain());
     }
 
     @PostMapping("/{organisationalUnitId}/agencyToken")

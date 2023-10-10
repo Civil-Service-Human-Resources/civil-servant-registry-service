@@ -1,0 +1,114 @@
+package uk.gov.cshr.civilservant.integration;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import uk.gov.cshr.civilservant.controller.CSRSControllerTestBase;
+
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@RunWith(SpringRunner.class)
+@WithMockUser(username = "user")
+public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
+
+    @Test
+    public void shouldAddNewDomain() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/organisationalUnits/1/domains")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"domain\": \"test.org\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.domain.domain", equalTo("test.org")))
+                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(1)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds", empty()))
+                .andExpect(jsonPath("$.skippedChildOrganisationIds", empty()));
+
+    }
+
+    @Test
+    public void shouldAddNewDomainAndCascade() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/organisationalUnits/31/domains")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"domain\": \"test-two.org\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.domain.domain", equalTo("test-two.org")))
+                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(2)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds[0]", equalTo(32)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds[1]", equalTo(33)))
+                .andExpect(jsonPath("$.skippedChildOrganisationIds", empty()));
+
+    }
+
+    @Test
+    public void shouldAddNewDomainAndNotCascade() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/organisationalUnits/33/domains")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"domain\": \"test-three.org\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.domain.domain", equalTo("test-three.org")))
+                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(33)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds", empty()))
+                .andExpect(jsonPath("$.skippedChildOrganisationIds", empty()));
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/organisationalUnits/32/domains")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"domain\": \"test-three.org\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.domain.domain", equalTo("test-three.org")))
+                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(32)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds", empty()))
+                .andExpect(jsonPath("$.skippedChildOrganisationIds.length()", equalTo(1)))
+                .andExpect(jsonPath("$.skippedChildOrganisationIds[0]", equalTo(33)));
+    }
+
+    @Test
+    public void shouldNotAddDomainIfOrgDoesNotExist() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/organisationalUnits/900/domains")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"domain\": \"test.org\"}"))
+                .andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    public void shouldNotAddDomainIfOrgAlreadyHasDomain() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/organisationalUnits/33/domains")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"domain\": \"test-four.org\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.domain.domain", equalTo("test-four.org")))
+                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(33)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds", empty()))
+                .andExpect(jsonPath("$.skippedChildOrganisationIds", empty()));
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/organisationalUnits/33/domains")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"domain\": \"test-four.org\"}"))
+                .andExpect(status().isBadRequest());
+
+    }
+}

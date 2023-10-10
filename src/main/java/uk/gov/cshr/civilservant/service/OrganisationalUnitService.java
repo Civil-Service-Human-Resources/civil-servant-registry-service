@@ -6,36 +6,38 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
+import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
-import uk.gov.cshr.civilservant.dto.AgencyTokenResponseDto;
-import uk.gov.cshr.civilservant.dto.OrganisationalUnitDto;
+import uk.gov.cshr.civilservant.domain.SelfReferencingEntity;
+import uk.gov.cshr.civilservant.dto.*;
 import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
-import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
-import uk.gov.cshr.civilservant.exception.NoOrganisationsFoundException;
-import uk.gov.cshr.civilservant.exception.TokenAlreadyExistsException;
-import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
+import uk.gov.cshr.civilservant.exception.*;
+import uk.gov.cshr.civilservant.repository.DomainRepository;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @Transactional
 public class OrganisationalUnitService extends SelfReferencingEntityService<OrganisationalUnit, OrganisationalUnitDto> {
 
-    private OrganisationalUnitRepository repository;
-    private OrganisationalUnitDtoFactory dtoFactory;
-    private AgencyTokenService agencyTokenService;
-    private IdentityService identityService;
+    private final OrganisationalUnitRepository repository;
+    private final OrganisationalUnitDtoFactory dtoFactory;
+    private final DomainRepository domainRepository;
+    private final AgencyTokenService agencyTokenService;
+    private final IdentityService identityService;
 
     public OrganisationalUnitService(OrganisationalUnitRepository organisationalUnitRepository,
                                      OrganisationalUnitDtoFactory organisationalUnitDtoFactory,
-                                     AgencyTokenService agencyTokenService,
+                                     DomainRepository domainRepository, AgencyTokenService agencyTokenService,
                                      IdentityService identityService) {
         super(organisationalUnitRepository, organisationalUnitDtoFactory);
         this.repository = organisationalUnitRepository;
         this.dtoFactory = organisationalUnitDtoFactory;
+        this.domainRepository = domainRepository;
         this.agencyTokenService = agencyTokenService;
         this.identityService = identityService;
     }
@@ -196,6 +198,47 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
                     sortOrganisationList(children);
                 }
             }
+        );
+    }
+
+    public AddDomainToOrgResponse addDomainToOrganisation(Long organisationalUnitId, String domainString) {
+        OrganisationalUnit organisationalUnit = repository.findById(organisationalUnitId).orElseThrow(
+                () -> new NotFoundException(String.format("Organisation with ID '%s' not found", organisationalUnitId)));
+        Domain domain = domainRepository.findDomainByDomain(domainString)
+                .orElseGet(() -> domainRepository.save(new Domain(domainString)));
+        if (organisationalUnit.doesDomainExist(domainString)) {
+            throw new AlreadyExistsException(String.format("Domain '%s' already exists on organisation '%s'",
+                    domain.getDomain(), organisationalUnit.getName()));
+        }
+        organisationalUnit.addDomain(domain);
+        repository.saveAndFlush(organisationalUnit);
+        AddDomainToOrgResponse response = new AddDomainToOrgResponse(organisationalUnitId, new DomainDto(domain));
+        if (organisationalUnit.hasChildren()) {
+            List<OrganisationalUnit> flatList = organisationalUnit.getDescendantsAsFlatList();
+            BulkUpdate bulkResponse = bulkAddDomainToOrganisations(flatList, domain);
+            response.setUpdatedChildOrganisationIds(bulkResponse.getUpdatedIds());
+            response.setSkippedChildOrganisationIds(bulkResponse.getSkippedIds());
+        }
+        return response;
+    }
+
+    public BulkUpdate bulkAddDomainToOrganisations(List<OrganisationalUnit> organisationalUnits, Domain domain) {
+        ArrayList<OrganisationalUnit> updatedOrgs = new ArrayList<>();
+        ArrayList<Long> skippedOrgIds = new ArrayList<>();
+        organisationalUnits.forEach(o -> {
+            if (o.doesDomainExist(domain.getDomain())) {
+                log.info(String.format("Domain '%s' already exists on organisation '%s', skipping.", domain.getDomain(), o.getName()));
+                skippedOrgIds.add(o.getId());
+            } else {
+                log.info(String.format("Domain '%s' does not exist on organisation '%s', adding.", domain.getDomain(), o.getName()));
+                o.addDomain(domain);
+                updatedOrgs.add(o);
+            }
+        });
+        repository.saveAll(updatedOrgs);
+        return new BulkUpdate(
+                updatedOrgs.stream().map(SelfReferencingEntity::getId).collect(Collectors.toList()),
+                skippedOrgIds
         );
     }
 

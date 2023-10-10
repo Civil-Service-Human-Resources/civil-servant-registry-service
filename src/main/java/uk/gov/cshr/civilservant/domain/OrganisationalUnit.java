@@ -1,9 +1,10 @@
 package uk.gov.cshr.civilservant.domain;
 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -25,14 +26,20 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     @OneToOne(cascade = {CascadeType.ALL})
     private AgencyToken agencyToken;
 
-    @Fetch(FetchMode.JOIN)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "organisational_unit_domains",
             joinColumns = @JoinColumn(name = "organisational_unit_id" , referencedColumnName = "id"),
-    inverseJoinColumns = @JoinColumn(name = "domain_id" , referencedColumnName = "id"))
+    inverseJoinColumns = @JoinColumn(name = "domain_id" , referencedColumnName = "id"),
+    foreignKey = @ForeignKey(name = "organisational_unit_id_FK"))
     @OrderBy("domain")
-    private List<Domain> domains;
+    private List<Domain> domains = new ArrayList<>();
+
+    @Column(nullable = false)
+    private LocalDateTime createdTimestamp;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedTimestamp;
 
     public OrganisationalUnit(OrganisationalUnit organisationalUnit) {
         this.id = organisationalUnit.getId();
@@ -44,6 +51,8 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
         this.setPaymentMethods(organisationalUnit.getPaymentMethods());
         this.agencyToken = organisationalUnit.agencyToken;
         this.domains = organisationalUnit.getDomains();
+        this.createdTimestamp = organisationalUnit.getCreatedTimestamp();
+        this.updatedTimestamp = organisationalUnit.getUpdatedTimestamp();
     }
 
     public OrganisationalUnit() {
@@ -128,7 +137,50 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
         this.agencyToken = agencyToken;
     }
 
+    public LocalDateTime getCreatedTimestamp() {
+        return createdTimestamp;
+    }
+
+    public LocalDateTime getUpdatedTimestamp() {
+        return updatedTimestamp;
+    }
+
+    @PrePersist
+    public void onCreate() {
+        this.createdTimestamp = LocalDateTime.now();
+        this.updatedTimestamp = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedTimestamp = LocalDateTime.now();
+    }
+
     public List<Domain> getDomains() {
         return domains;
+    }
+
+    @JsonIgnore
+    public void addDomain(Domain domain) {
+        this.domains.add(domain);
+    }
+
+    @JsonIgnore
+    public List<OrganisationalUnit> getDescendantsAsFlatList() {
+        List<OrganisationalUnit> flatList = getHierarchyAsFlatList();
+        flatList.remove(0);
+        return flatList;
+    }
+
+    @JsonIgnore
+    public List<OrganisationalUnit> getHierarchyAsFlatList() {
+        ArrayList<OrganisationalUnit> hierarchy = new ArrayList<>(Collections.singletonList(this));
+        this.children.forEach(c -> hierarchy.addAll(c.getHierarchyAsFlatList()));
+        return hierarchy;
+    }
+
+    @JsonIgnore
+    public boolean doesDomainExist(String domain) {
+        return this.domains.stream().anyMatch(d -> d.getDomain().equals(domain));
     }
 }
