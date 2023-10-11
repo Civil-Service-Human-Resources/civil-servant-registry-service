@@ -77,21 +77,21 @@ public class OrganisationalUnitServiceTest {
         // mocking for godfathers children - first generation
         for (int i = 0; i < family.getTopParent().getChildren().size(); i++) {
             String codeOfChildAtIndexI = "god" + i;
-            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildren().get(i));
+            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildrenAsList().get(i));
             when(organisationalUnitRepository.findByCode(eq(codeOfChildAtIndexI))).thenReturn(childAtIndexI);
         }
 
         // mocking for godfather children, child 1s children - second generation
-        for (int i = 0; i < family.getTopParent().getChildren().get(1).getChildren().size(); i++) {
+        for (int i = 0; i < family.getTopParent().getChildrenAsList().get(1).getChildren().size(); i++) {
             String codeOfChildAtIndexI = "grandOne" + i;
-            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildren().get(1).getChildren().get(i));
+            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildrenAsList().get(1).getChildrenAsList().get(i));
             when(organisationalUnitRepository.findByCode(eq(codeOfChildAtIndexI))).thenReturn(childAtIndexI);
         }
 
         // mocking for godfather children, child 2s children - second generation
-        for (int i = 0; i < family.getTopParent().getChildren().get(2).getChildren().size(); i++) {
+        for (int i = 0; i < family.getTopParent().getChildrenAsList().get(2).getChildren().size(); i++) {
             String codeOfChildAtIndexI = "grandTwo" + i;
-            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildren().get(2).getChildren().get(i));
+            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildrenAsList().get(2).getChildrenAsList().get(i));
             when(organisationalUnitRepository.findByCode(eq(codeOfChildAtIndexI))).thenReturn(childAtIndexI);
         }
 

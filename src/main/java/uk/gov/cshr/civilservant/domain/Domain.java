@@ -8,8 +8,8 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -31,7 +31,7 @@ public class Domain implements Serializable {
     private LocalDateTime createdTimestamp;
 
     @ManyToMany(mappedBy = "domains")
-    private List<OrganisationalUnit> organisationalUnits = new ArrayList<>();
+    private Set<OrganisationalUnit> organisationalUnits = new HashSet<>();
 
     public Domain(String domain) {
         this.domain = domain;

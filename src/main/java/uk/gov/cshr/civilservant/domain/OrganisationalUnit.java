@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Entity
 public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit> {
@@ -26,14 +23,14 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     @OneToOne(cascade = {CascadeType.ALL})
     private AgencyToken agencyToken;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
     @JoinTable(
             name = "organisational_unit_domains",
             joinColumns = @JoinColumn(name = "organisational_unit_id" , referencedColumnName = "id"),
     inverseJoinColumns = @JoinColumn(name = "domain_id" , referencedColumnName = "id"),
     foreignKey = @ForeignKey(name = "organisational_unit_id_FK"))
     @OrderBy("domain")
-    private List<Domain> domains = new ArrayList<>();
+    private Set<Domain> domains = new HashSet<>();
 
     @Column(nullable = false)
     private LocalDateTime createdTimestamp;
@@ -88,16 +85,6 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     @Override
     public void setParent(OrganisationalUnit parent) {
         this.parent = parent;
-    }
-
-    @Override
-    public List<OrganisationalUnit> getChildren() {
-        return Collections.checkedList(children, OrganisationalUnit.class);
-    }
-
-    @Override
-    public void setChildren(List<OrganisationalUnit> children) {
-        this.children = Collections.checkedList(children, OrganisationalUnit.class);
     }
 
     public List<String> getPaymentMethods() {
@@ -156,7 +143,7 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
         this.updatedTimestamp = LocalDateTime.now();
     }
 
-    public List<Domain> getDomains() {
+    public Set<Domain> getDomains() {
         return domains;
     }
 

@@ -28,8 +28,8 @@ public class OrganisationalUnitDtoFactory
       organisationalUnitDto.setFormattedName(formatName(organisationalUnit));
     }
     organisationalUnitDto.setHref(repositoryEntityService.getUri(organisationalUnit));
+    organisationalUnitDto.setParentId(organisationalUnit.getParentId());
     if (includeParents && organisationalUnit.hasParent()) {
-      organisationalUnitDto.setParentId(organisationalUnit.getParentId());
       organisationalUnitDto.setParent(create(organisationalUnit.getParent(), true, false));
     }
     organisationalUnitDto.setDomains(organisationalUnit.getDomains().stream().map(DomainDto::new).collect(Collectors.toList()));

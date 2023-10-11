@@ -1,13 +1,11 @@
 package uk.gov.cshr.civilservant.domain;
 
-import java.util.Collections;
-import java.util.List;
-import javax.persistence.Entity;
-
 import lombok.Builder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import javax.persistence.Entity;
 
 @Builder
 @Entity
@@ -26,26 +24,6 @@ public class Profession extends SelfReferencingEntity<Profession> {
   @Override
   public void setParent(Profession parent) {
     this.parent = parent;
-  }
-
-  @Override
-  public List<Profession> getChildren() {
-    return Collections.unmodifiableList(children);
-  }
-
-  @Override
-  public void setChildren(List<Profession> children) {
-    this.children = Collections.unmodifiableList(children);
-  }
-
-  @Override
-  public boolean hasParent() {
-    return parent != null;
-  }
-
-  @Override
-  public boolean hasChildren() {
-    return !children.isEmpty();
   }
 
   @Override

@@ -30,7 +30,7 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
                 get("/v2/organisationalUnits/4")
                         .with(csrf())
         ).andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("parentId").isEmpty())
+                .andExpect(jsonPath("parentId").value("2"))
                 .andExpect(jsonPath("parent").isEmpty())
                 .andExpect(jsonPath("id").value(4))
                 .andExpect(jsonPath("name").value("DH Core"))

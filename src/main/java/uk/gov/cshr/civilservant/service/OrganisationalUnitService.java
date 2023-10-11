@@ -95,7 +95,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
 
     private void getChildren(OrganisationalUnit organisationalUnit, List<OrganisationalUnit> organisationalUnits) {
         if (organisationalUnit.hasChildren()) {
-            List<OrganisationalUnit> listOfChildren = organisationalUnit.getChildren();
+            Set<OrganisationalUnit> listOfChildren = organisationalUnit.getChildren();
             listOfChildren.stream().forEach(childOrganisationalUnit -> getOrganisationalUnitAndChildren(childOrganisationalUnit.getCode(), organisationalUnits));
         }
     }
@@ -191,7 +191,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         list.forEach(org ->
             {
                 if(org.hasChildren()) {
-                    List<OrganisationalUnit> children = org.getChildren();
+                    List<OrganisationalUnit> children = org.getChildrenAsList();
                     children.sort(Comparator.comparing(OrganisationalUnit::getName, String.CASE_INSENSITIVE_ORDER));
                     //Below line is a recursive call which will be called recursively
                     //until there are children as per above if condition.
