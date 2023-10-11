@@ -1,6 +1,7 @@
 package uk.gov.cshr.civilservant.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.util.*;
@@ -30,12 +31,9 @@ public abstract class SelfReferencingEntity<T> implements RegistryEntity {
         return children;
     };
 
+    @JsonIgnore
     public List<T> getChildrenAsList() {
         return new ArrayList<>(getChildren());
-    };
-
-    public void setChildren(Set<T> children) {
-        this.children = children;
     };
 
     public void setChildren(List<T> children) {
