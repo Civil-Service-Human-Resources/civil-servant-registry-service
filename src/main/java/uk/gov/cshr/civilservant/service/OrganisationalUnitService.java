@@ -1,10 +1,14 @@
 package uk.gov.cshr.civilservant.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.cshr.civilservant.controller.v2.models.GetOrganisationalUnitsParams;
+import uk.gov.cshr.civilservant.controller.v2.models.SimplePage;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
@@ -106,8 +110,22 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
 
     public OrganisationalUnitDto getOrganisationalUnit(Long id, boolean includeParents) {
         OrganisationalUnit organisationalUnit = getOrganisationalUnit(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        return dtoFactory.create(organisationalUnit, includeParents, false);
+        return dtoFactory.create(organisationalUnit, includeParents, false, false);
     }
+
+    public SimplePage<OrganisationalUnitDto> getOrganisationalUnits(Pageable pageable, GetOrganisationalUnitsParams params) {
+        Page<OrganisationalUnit> organisationalUnitPage;
+        if (params.getIds().isEmpty()) {
+            organisationalUnitPage = repository.findAll(pageable);
+        } else {
+            organisationalUnitPage = repository.findAllByIdIn(params.getIds(), pageable);
+        }
+        return new SimplePage<>(organisationalUnitPage.getContent()
+                .stream()
+                .map(o -> dtoFactory.create(o, false, false, params.isFetchChildren()))
+                .collect(Collectors.toList()), organisationalUnitPage.getTotalElements(), pageable);
+    }
+
 
     public List<OrganisationalUnit> getOrganisationsNormalised() {
         List<OrganisationalUnit> organisationalUnits = repository.findAllNormalised();

@@ -22,6 +22,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
 
     @Test
+    public void shouldGetOrganisationalUnitWithDomains() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/v2/organisationalUnits/1")
+                                .accept(APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", equalTo(1)))
+                .andExpect(jsonPath("$.name", equalTo("Cabinet Office")))
+                .andExpect(jsonPath("$.code", equalTo("co")))
+                .andExpect(jsonPath("$.domains[0].domain", equalTo("another-domain.co.uk")))
+                .andExpect(jsonPath("$.domains[1].domain", equalTo("cabinetoffice.gov.uk")));
+
+    }
+
+    @Test
+    public void shouldGetMultipleOrganisationalUnits() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/v2/organisationalUnits")
+                                .accept(APPLICATION_JSON)
+                                .param("ids", "2,3"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id", equalTo(2)))
+                .andExpect(jsonPath("$.content[1].id", equalTo(3)));
+
+    }
+
+    @Test
     public void shouldAddNewDomain() throws Exception {
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/organisationalUnits/1/domains")

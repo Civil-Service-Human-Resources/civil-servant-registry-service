@@ -18,6 +18,7 @@ public class OrganisationalUnitDto extends DtoEntity {
     private String code;
     private String abbreviation;
     private AgencyToken agencyToken;
+    private List<OrganisationalUnitDto> children;
     private List<DomainDto> domains;
 
 }

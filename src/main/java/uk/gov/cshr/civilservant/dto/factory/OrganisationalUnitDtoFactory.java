@@ -18,7 +18,8 @@ public class OrganisationalUnitDtoFactory
     this.repositoryEntityService = repositoryEntityService;
   }
 
-  public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit, boolean includeParents, boolean formatName) {
+  public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit,
+                                      boolean includeParents, boolean formatName, boolean includeChildren) {
     OrganisationalUnitDto organisationalUnitDto = new OrganisationalUnitDto();
     organisationalUnitDto.setCode(organisationalUnit.getCode());
     organisationalUnitDto.setName(organisationalUnit.getName());
@@ -30,7 +31,12 @@ public class OrganisationalUnitDtoFactory
     organisationalUnitDto.setHref(repositoryEntityService.getUri(organisationalUnit));
     organisationalUnitDto.setParentId(organisationalUnit.getParentId());
     if (includeParents && organisationalUnit.hasParent()) {
-      organisationalUnitDto.setParent(create(organisationalUnit.getParent(), true, false));
+      organisationalUnitDto.setParent(create(organisationalUnit.getParent(), true, false, false));
+    }
+    if (includeChildren && organisationalUnit.hasChildren()) {
+      organisationalUnitDto.setChildren(organisationalUnit.getChildren().stream().map(
+              o -> create(o, false, false, true)
+      ).collect(Collectors.toList()));
     }
     organisationalUnitDto.setDomains(organisationalUnit.getDomains().stream().map(DomainDto::new).collect(Collectors.toList()));
     organisationalUnitDto.setAgencyToken(organisationalUnit.getAgencyToken());
@@ -39,7 +45,7 @@ public class OrganisationalUnitDtoFactory
   }
 
   public OrganisationalUnitDto create(OrganisationalUnit organisationalUnit) {
-    return this.create(organisationalUnit, false, true);
+    return this.create(organisationalUnit, false, true, false);
   }
 
   /**

@@ -20,7 +20,7 @@ public abstract class SelfReferencingEntity<T> implements RegistryEntity {
     @JsonBackReference
     T parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     Set<T> children = new HashSet<>();
 
     public abstract T getParent();
