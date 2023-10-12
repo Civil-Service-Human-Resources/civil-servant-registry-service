@@ -12,12 +12,12 @@ import javax.validation.constraints.Max;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PageableParams {
-    int pageIndex = 0;
+    int page = 0;
 
     @Max(200)
-    int pageSize = 20;
+    int size = 20;
 
     public Pageable getAsPageable() {
-        return PageRequest.of(pageIndex, pageSize);
+        return PageRequest.of(page, size);
     }
 }

@@ -48,6 +48,18 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
     }
 
     @Test
+    public void shouldGetMultipleOrganisationalUnitsWithPagination() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/v2/organisationalUnits?page=1&size=5")
+                                .accept(APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", equalTo(5)))
+                .andExpect(jsonPath("$.page", equalTo(1)))
+                .andExpect(jsonPath("$.size", equalTo(5)));
+
+    }
+
+    @Test
     public void shouldAddNewDomain() throws Exception {
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/organisationalUnits/1/domains")
