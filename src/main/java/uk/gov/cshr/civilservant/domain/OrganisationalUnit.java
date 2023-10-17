@@ -2,6 +2,7 @@ package uk.gov.cshr.civilservant.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import javax.annotation.PreDestroy;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -136,6 +137,11 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     public void onCreate() {
         this.createdTimestamp = LocalDateTime.now();
         this.updatedTimestamp = LocalDateTime.now();
+    }
+
+    @PreDestroy
+    public void onDelete() {
+        this.domains.clear();
     }
 
     @PreUpdate
