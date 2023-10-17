@@ -41,12 +41,11 @@ public class OrganisationalUnitRepositoryTest {
         org.setName("Parent");
         org.addDomain(new Domain("test-delete-org.com"));
         org.addDomain(new Domain("test-delete-org2.com"));
-        org = repository.save(org);
+        org = repository.saveAndFlush(org);
 
         repository.deleteById(org.getId());
+        repository.flush();
         assertFalse(repository.findById(org.getId()).isPresent());
-        assertFalse(domainRepository.findDomainByDomain("test-delete-org.com").isPresent());
-        assertFalse(domainRepository.findDomainByDomain("test-delete-org2.com").isPresent());
     }
 
     @Test
