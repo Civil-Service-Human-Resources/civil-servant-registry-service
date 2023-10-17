@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import uk.gov.cshr.civilservant.domain.ErrorDto;
 import uk.gov.cshr.civilservant.domain.ErrorDtoFactory;
 import uk.gov.cshr.civilservant.exception.AlreadyExistsException;
+import uk.gov.cshr.civilservant.exception.CodedHttpException;
 import uk.gov.cshr.civilservant.exception.NotFoundException;
 
 import java.util.Collections;
@@ -47,7 +48,15 @@ public class ApiExceptionHandler {
   protected ResponseEntity<ErrorDto> handleAlreadyExistsException(AlreadyExistsException e) {
     LOGGER.error("Resource already exists: ", e);
     ErrorDto error =
-            errorDtoFactory.create(HttpStatus.BAD_REQUEST, Collections.singletonList("Resource already exists"));
+            errorDtoFactory.create(Collections.singletonList("Resource already exists"), e.getApiCode());
+    return ResponseEntity.status(error.getStatus()).body(error);
+  }
+
+  @ExceptionHandler(CodedHttpException.class)
+  protected ResponseEntity<ErrorDto> handleAlreadyExistsException(CodedHttpException e) {
+    LOGGER.error("HTTP exception ", e);
+    ErrorDto error =
+            errorDtoFactory.create(Collections.singletonList(e.getApiCode().getCode().getDescription()), e.getApiCode());
     return ResponseEntity.status(error.getStatus()).body(error);
   }
 }

@@ -16,6 +16,7 @@ import uk.gov.cshr.civilservant.domain.SelfReferencingEntity;
 import uk.gov.cshr.civilservant.dto.*;
 import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
 import uk.gov.cshr.civilservant.exception.*;
+import uk.gov.cshr.civilservant.exception.organisationalUnit.DomainAlreadyExistsException;
 import uk.gov.cshr.civilservant.repository.DomainRepository;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
@@ -225,7 +226,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         Domain domain = domainRepository.findDomainByDomain(domainString)
                 .orElseGet(() -> domainRepository.save(new Domain(domainString)));
         if (organisationalUnit.doesDomainExist(domainString)) {
-            throw new AlreadyExistsException(String.format("Domain '%s' already exists on organisation '%s'",
+            throw new DomainAlreadyExistsException(String.format("Domain '%s' already exists on organisation '%s'",
                     domain.getDomain(), organisationalUnit.getName()));
         }
         organisationalUnit.addDomain(domain);

@@ -1,7 +1,9 @@
 package uk.gov.cshr.civilservant.exception;
 
-public class AlreadyExistsException extends RuntimeException {
-    public AlreadyExistsException(String message) {
-        super(message);
+import uk.gov.cshr.civilservant.exception.apiCodes.ApiCode;
+
+public class AlreadyExistsException extends CodedHttpException {
+    public AlreadyExistsException(String message, ApiCode apiCode) {
+        super(message, apiCode);
     }
 }

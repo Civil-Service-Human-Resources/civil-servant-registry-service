@@ -129,6 +129,20 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
     }
 
     @Test
+    public void shouldNotAddDomainIfInvalidFormat() throws Exception {
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/organisationalUnits/33/domains")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"domain\": \"incorrectFormat\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.apiErrorCode.code", equalTo("OU002")))
+                .andExpect(jsonPath("$.apiErrorCode.description", equalTo("Invalid domain format. Correct format is: 'example.gov.uk'")));
+
+    }
+
+    @Test
     public void shouldNotAddDomainIfOrgAlreadyHasDomain() throws Exception {
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/organisationalUnits/33/domains")
@@ -146,7 +160,9 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
                                 .content("{\"domain\": \"test-four.org\"}"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.apiErrorCode.code", equalTo("OU001")))
+                .andExpect(jsonPath("$.apiErrorCode.description", equalTo("Domain already exists on the organisational unit")));
 
     }
 }
