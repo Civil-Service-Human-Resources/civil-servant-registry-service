@@ -37,8 +37,8 @@ public class OrganisationalUnitRepositoryTest {
     @Test
     public void shouldDeleteDomainsInManyToManyRelationshipOnDelete() {
         OrganisationalUnit org = new OrganisationalUnit();
-        org.setCode("a");
-        org.setName("Parent");
+        org.setCode("org");
+        org.setName("org");
         org.addDomain(new Domain("test-delete-org.com"));
         org.addDomain(new Domain("test-delete-org2.com"));
         org = repository.saveAndFlush(org);
