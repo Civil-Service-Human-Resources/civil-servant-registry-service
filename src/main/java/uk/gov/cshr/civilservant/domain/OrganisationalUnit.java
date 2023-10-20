@@ -158,6 +158,11 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     }
 
     @JsonIgnore
+    public void removeDomain(Domain domain) {
+        this.domains.remove(domain);
+    }
+
+    @JsonIgnore
     public List<OrganisationalUnit> getDescendantsAsFlatList() {
         List<OrganisationalUnit> flatList = getHierarchyAsFlatList();
         flatList.remove(0);
