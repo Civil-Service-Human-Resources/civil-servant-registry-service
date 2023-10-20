@@ -264,7 +264,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
     public BulkUpdate bulkRemoveDomainFromOrganisations(List<OrganisationalUnit> organisationalUnits, Domain domain) {
         ArrayList<OrganisationalUnit> updatedOrgs = new ArrayList<>();
         organisationalUnits.forEach(o -> {
-            if (!o.doesDomainExist(domain.getDomain())) {
+            if (o.doesDomainExist(domain.getDomain())) {
                 log.info(String.format("Domain '%s' does not exist on organisation '%s', adding.", domain.getDomain(), o.getName()));
                 o.removeDomain(domain);
                 updatedOrgs.add(o);
