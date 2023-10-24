@@ -5,13 +5,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
@@ -26,7 +22,6 @@ import uk.gov.cshr.civilservant.service.CivilServantService;
 import uk.gov.cshr.civilservant.service.OrganisationalUnitService;
 import uk.gov.cshr.civilservant.utils.AgencyTokenTestingUtils;
 import uk.gov.cshr.civilservant.utils.JsonUtils;
-import uk.gov.cshr.civilservant.utils.MockMVCFilterOverrider;
 import uk.gov.cshr.civilservant.utils.OrganisationalUnitTestUtils;
 
 import java.util.*;
@@ -40,11 +35,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
 @WithMockUser(username = "user")
-public class OrganisationalUnitControllerTest {
+public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
 
     private static final String WL_DOMAIN = "mydomain.com";
     private static final String NHS_GLASGOW_DOMAIN = "nhsglasgow.gov.uk";
@@ -52,9 +45,6 @@ public class OrganisationalUnitControllerTest {
 
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
-
-    @Autowired
-    private MockMvc mockMvc;
 
     @MockBean
     private OrganisationalUnitService organisationalUnitService;
@@ -71,8 +61,7 @@ public class OrganisationalUnitControllerTest {
     private List<OrganisationalUnit> filteredList;
 
     @Before
-    public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException, CSRSApplicationException {
-        MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
+    public void setUp() throws IllegalAccessException, CSRSApplicationException {
         dto = AgencyTokenTestingUtils.createAgencyTokenDTO();
         completeList = new ArrayList<>(10);
         for(int i=0; i<10; i++) {
