@@ -277,7 +277,8 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         );
     }
 
-    public RemoveDomainFromOrgResponse removeDomainFromOrganisation(Long organisationalUnitId, Long domainId) {
+    public RemoveDomainFromOrgResponse removeDomainFromOrganisation(Long organisationalUnitId, Long domainId,
+                                                                    boolean includeSubOrgs) {
         OrganisationalUnit organisationalUnit = repository.findById(organisationalUnitId).orElseThrow(
                 () -> new NotFoundException(String.format("Organisation with ID '%s' not found", organisationalUnitId)));
         Domain domain = domainRepository.findById(domainId).orElseThrow(
@@ -285,7 +286,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         organisationalUnit.removeDomain(domain);
         repository.saveAndFlush(organisationalUnit);
         RemoveDomainFromOrgResponse response = new RemoveDomainFromOrgResponse(organisationalUnitId, new DomainDto(domain));
-        if (organisationalUnit.hasChildren()) {
+        if (includeSubOrgs && organisationalUnit.hasChildren()) {
             List<OrganisationalUnit> flatList = organisationalUnit.getDescendantsAsFlatList();
             BulkUpdate bulkResponse = bulkRemoveDomainFromOrganisations(flatList, domain);
             response.setUpdatedChildOrganisationIds(bulkResponse.getUpdatedIds());

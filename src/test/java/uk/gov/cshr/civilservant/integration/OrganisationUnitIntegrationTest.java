@@ -169,7 +169,7 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
     }
 
     @Test
-    public void shouldDeleteDomain() throws Exception {
+    public void shouldDeleteDomainAndCascade() throws Exception {
         MvcResult res = mockMvc.perform(
                         MockMvcRequestBuilders.post("/organisationalUnits/31/domains")
                                 .accept(APPLICATION_JSON)
@@ -187,13 +187,41 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
         Integer domainId = JsonPath.read(res.getResponse().getContentAsString(), "$.domain.id");
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete("/organisationalUnits/31/domains/" + domainId))
+                        MockMvcRequestBuilders.delete("/organisationalUnits/31/domains/" + domainId)
+                                .param("includeSubOrgs", "true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.domain.domain", equalTo("test-five.org")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))
                 .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(2)))
                 .andExpect(jsonPath("$.updatedChildOrganisationIds[0]", equalTo(32)))
                 .andExpect(jsonPath("$.updatedChildOrganisationIds[1]", equalTo(33)));
+
+   }
+
+    @Test
+    public void shouldDeleteDomainAndNotCascade() throws Exception {
+        MvcResult res = mockMvc.perform(
+                        MockMvcRequestBuilders.post("/organisationalUnits/31/domains")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"domain\": \"test-six.org\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.domain.domain", equalTo("test-six.org")))
+                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(2)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds[0]", equalTo(32)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds[1]", equalTo(33)))
+                .andExpect(jsonPath("$.skippedChildOrganisationIds", empty()))
+                .andReturn();
+
+        Integer domainId = JsonPath.read(res.getResponse().getContentAsString(), "$.domain.id");
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete("/organisationalUnits/31/domains/" + domainId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.domain.domain", equalTo("test-six.org")))
+                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(0)));
 
     }
 }
