@@ -261,4 +261,40 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         );
     }
 
+    public BulkUpdate bulkRemoveDomainFromOrganisations(List<OrganisationalUnit> organisationalUnits, Domain domain) {
+        ArrayList<OrganisationalUnit> updatedOrgs = new ArrayList<>();
+        organisationalUnits.forEach(o -> {
+            if (o.doesDomainExist(domain.getDomain())) {
+                log.info(String.format("Domain '%s' does not exist on organisation '%s', adding.", domain.getDomain(), o.getName()));
+                o.removeDomain(domain);
+                updatedOrgs.add(o);
+            }
+        });
+        repository.saveAll(updatedOrgs);
+        return new BulkUpdate(
+                updatedOrgs.stream().map(SelfReferencingEntity::getId).collect(Collectors.toList()),
+                Collections.emptyList()
+        );
+    }
+
+    public RemoveDomainFromOrgResponse removeDomainFromOrganisation(Long organisationalUnitId, Long domainId,
+                                                                    boolean includeSubOrgs) {
+        OrganisationalUnit organisationalUnit = repository.findById(organisationalUnitId).orElseThrow(
+                () -> new NotFoundException(String.format("Organisation with ID '%s' not found", organisationalUnitId)));
+        Domain domain = domainRepository.findById(domainId).orElseThrow(
+                () -> new NotFoundException(String.format("Domain with ID '%s' not found", domainId)));
+        organisationalUnit.removeDomain(domain);
+        repository.saveAndFlush(organisationalUnit);
+        RemoveDomainFromOrgResponse response = new RemoveDomainFromOrgResponse(organisationalUnitId, new DomainDto(domain));
+        if (includeSubOrgs && organisationalUnit.hasChildren()) {
+            List<OrganisationalUnit> flatList = organisationalUnit.getDescendantsAsFlatList();
+            BulkUpdate bulkResponse = bulkRemoveDomainFromOrganisations(flatList, domain);
+            response.setUpdatedChildOrganisationIds(bulkResponse.getUpdatedIds());
+        }
+        if (domain.getOrganisationalUnits().isEmpty()) {
+            log.info(String.format("Domain '%s' is no longer assigned to any organisations. Deleting.", domain.getDomain()));
+            domainRepository.delete(domain);
+        }
+        return response;
+    }
 }

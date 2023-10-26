@@ -124,8 +124,18 @@ public class OrganisationalUnitController {
     @PreAuthorize("isAuthenticated()")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
-    public AddDomainToOrgResponse addNewDomain(@PathVariable Long organisationalUnitId, @Valid @RequestBody DomainDto domainDto) {
+    public AddDomainToOrgResponse addNewDomain(@PathVariable Long organisationalUnitId,
+                                               @Valid @RequestBody DomainDto domainDto) {
         return organisationalUnitService.addDomainToOrganisation(organisationalUnitId, domainDto.getDomain());
+    }
+
+    @DeleteMapping("/{organisationalUnitId}/domains/{domainId}")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public RemoveDomainFromOrgResponse removeDomainFromOrganisation(@RequestParam(defaultValue = "false") boolean includeSubOrgs,
+                                                                    @PathVariable Long organisationalUnitId, @PathVariable Long domainId) {
+        return organisationalUnitService.removeDomainFromOrganisation(organisationalUnitId, domainId, includeSubOrgs);
     }
 
     @PostMapping("/{organisationalUnitId}/agencyToken")
