@@ -14,6 +14,7 @@ import uk.gov.cshr.civilservant.controller.CSRSControllerTestBase;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -26,7 +27,7 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
     @Test
     public void shouldGetOrganisationalUnitWithDomains() throws Exception {
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/v2/organisationalUnits/1")
+                        get("/v2/organisationalUnits/1")
                                 .accept(APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", equalTo(1)))
@@ -40,7 +41,7 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
     @Test
     public void shouldGetMultipleOrganisationalUnits() throws Exception {
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/v2/organisationalUnits")
+                        get("/v2/organisationalUnits")
                                 .accept(APPLICATION_JSON)
                                 .param("ids", "2,3"))
                 .andExpect(status().isOk())
@@ -52,7 +53,7 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
     @Test
     public void shouldGetMultipleOrganisationalUnitsWithPagination() throws Exception {
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/v2/organisationalUnits?page=1&size=5")
+                        get("/v2/organisationalUnits?page=1&size=5")
                                 .accept(APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", equalTo(5)))
@@ -196,6 +197,9 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
                 .andExpect(jsonPath("$.updatedChildOrganisationIds[0]", equalTo(32)))
                 .andExpect(jsonPath("$.updatedChildOrganisationIds[1]", equalTo(33)));
 
+        mockMvc.perform(
+                get("/domains/" + domainId)
+        ).andExpect(status().isNotFound());
    }
 
     @Test
