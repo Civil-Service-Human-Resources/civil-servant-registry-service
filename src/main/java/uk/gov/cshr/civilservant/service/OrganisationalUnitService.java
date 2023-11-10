@@ -265,12 +265,13 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         ArrayList<OrganisationalUnit> updatedOrgs = new ArrayList<>();
         organisationalUnits.forEach(o -> {
             if (o.doesDomainExist(domain.getDomain())) {
-                log.info(String.format("Domain '%s' does not exist on organisation '%s', adding.", domain.getDomain(), o.getName()));
+                log.info(String.format("Domain '%s' exists on organisation '%s', removing.", domain.getDomain(), o.getName()));
                 o.removeDomain(domain);
                 updatedOrgs.add(o);
             }
         });
         repository.saveAll(updatedOrgs);
+        repository.flush();
         return new BulkUpdate(
                 updatedOrgs.stream().map(SelfReferencingEntity::getId).collect(Collectors.toList()),
                 Collections.emptyList()
@@ -291,9 +292,11 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
             BulkUpdate bulkResponse = bulkRemoveDomainFromOrganisations(flatList, domain);
             response.setUpdatedChildOrganisationIds(bulkResponse.getUpdatedIds());
         }
-        if (domain.getOrganisationalUnits().isEmpty()) {
+        if (domain.getOrganisationalUnits().size() == 0) {
             log.info(String.format("Domain '%s' is no longer assigned to any organisations. Deleting.", domain.getDomain()));
             domainRepository.delete(domain);
+        } else {
+            log.info(String.format("Domain '%s' is still assigned to %s organisations, not deleting", domain.getDomain(), domain.getOrganisationalUnits().size()));
         }
         return response;
     }

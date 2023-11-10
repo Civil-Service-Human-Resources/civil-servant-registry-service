@@ -11,4 +11,5 @@ import java.util.Optional;
 @RepositoryRestResource
 public interface DomainRepository extends CrudRepository<Domain, Long> {
     Optional<Domain> findDomainByDomain(String domain);
+
 }
