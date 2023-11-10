@@ -12,6 +12,8 @@ import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 import uk.gov.service.notify.NotificationClientException;
 
+import java.util.HashMap;
+
 @Service
 public class LineManagerService {
 
@@ -40,9 +42,19 @@ public class LineManagerService {
     String lineManagerName = defaultIfNull(lineManager.getFullName(), "");
 
     try {
-      notifyService.notify(email, govNotifyLineManagerTemplateId, lineManagerName, learnerName);
+      HashMap<String, String> personalisation = getLineManagerNotificationPersonalisation(lineManagerName, learnerName, identityService.getEmailAddress(civilServant));
+      notifyService.notify(email, govNotifyLineManagerTemplateId, personalisation);
     } catch (NotificationClientException nce) {
       LOGGER.error("Could not send Line Manager notification", nce);
     }
+  }
+
+  private HashMap<String, String> getLineManagerNotificationPersonalisation(String lineManagerName, String learnerName, String learnerEmail){
+    HashMap<String, String> personalisation = new HashMap<>();
+    personalisation.put("lineManagerName", lineManagerName);
+    personalisation.put("learnerName", learnerName);
+    personalisation.put("learnerEmailAddress", learnerEmail);
+
+    return personalisation;
   }
 }

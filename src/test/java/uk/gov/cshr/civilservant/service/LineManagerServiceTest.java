@@ -16,6 +16,8 @@ import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
+import java.util.HashMap;
+
 @RunWith(MockitoJUnitRunner.class)
 public class LineManagerServiceTest {
 
@@ -43,18 +45,29 @@ public class LineManagerServiceTest {
 
     final Identity learnerIdentity = new Identity("uid");
     final CivilServant learner = new CivilServant(learnerIdentity);
-    learner.setFullName("learner");
+    learner.setFullName("Alice Learner");
+
+    when(identityService.getEmailAddress(learner)).thenReturn("alice.learner@domain.com");
 
     final Identity managerIdentity = new Identity("mid");
     final CivilServant manager = new CivilServant(managerIdentity);
-    manager.setFullName("fullName");
+    manager.setFullName("Bob Manager");
 
     final IdentityFromService lineManager = new IdentityFromService();
     lineManager.setUid(managerIdentity.getUid());
-    lineManager.setUsername("manager@domain.com");
+    lineManager.setUsername("bob.manager@domain.com");
 
     lineManagerService.notifyLineManager(learner, manager, "manager@domain.com");
 
-    verify(notifyService).notify("manager@domain.com", null, "fullName", "learner");
+    String expectedLearnerName = "Alice Learner";
+    String expectedLearnerEmail = "alice.learner@domain.com";
+    String expectedLineManagerName = "Bob Manager";
+
+    HashMap<String, String> expectedPersonalisation = new HashMap<>();
+    expectedPersonalisation.put("lineManagerName", expectedLineManagerName);
+    expectedPersonalisation.put("learnerName", expectedLearnerName);
+    expectedPersonalisation.put("learnerEmailAddress", expectedLearnerEmail);
+
+    verify(notifyService).notify("manager@domain.com", null, expectedPersonalisation);
   }
 }
