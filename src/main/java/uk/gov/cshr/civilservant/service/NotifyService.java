@@ -38,4 +38,15 @@ public class NotifyService {
       LOGGER.info("Gov Notify disabled - email {}, name {}, learner {}", email, name, learner);
     }
   }
+
+  public void notify(String email, String templateId, HashMap<String, String> personalisation) throws NotificationClientException {
+    if(enabled){
+      NotificationClient client = new NotificationClient(govNotifyKey);
+      SendEmailResponse response = client.sendEmail(templateId, email, personalisation, "");
+      LOGGER.debug("Line manager notification email: {}", response.getBody());
+    }
+    else{
+      LOGGER.info("Gov Notify disabled - email {}, personalisation {}", email, personalisation.toString());
+    }
+  }
 }
