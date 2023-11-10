@@ -62,13 +62,13 @@ public class LineManagerServiceTest {
     lineManager.setUsername(lineManagerEmail);
 
     HashMap<String, String> expectedPersonalisation = new HashMap<>();
-    expectedPersonalisation.put("lineManagerName", lineManagerEmail);
+    expectedPersonalisation.put("lineManagerName", lineManagerName);
     expectedPersonalisation.put("learnerName", learnerName);
     expectedPersonalisation.put("learnerEmailAddress", learnerEmail);
 
-    lineManagerService.notifyLineManager(learner, manager, "manager@domain.com");
+    lineManagerService.notifyLineManager(learner, manager, lineManagerEmail);
 
-    verify(notifyService).notify("manager@domain.com", null, expectedPersonalisation);
+    verify(notifyService).notify(lineManagerEmail, null, expectedPersonalisation);
   }
 
 }
