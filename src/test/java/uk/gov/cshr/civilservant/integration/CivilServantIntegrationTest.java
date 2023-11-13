@@ -43,17 +43,17 @@ public class CivilServantIntegrationTest extends CSRSControllerTestBase {
 
     @Test
     public void shouldRemoveCivilServantOrganisation() throws Exception {
-        Identity csId = new Identity("uid");
+        Identity csId = new Identity("remove-org");
         identityRepository.save(csId);
         CivilServant cs = new CivilServant(csId);
         OrganisationalUnit org = new OrganisationalUnit();
-        org.setName("name");
-        org.setCode("code");
+        org.setName("remove-org-name");
+        org.setCode("9280");
         organisationalUnitRepository.saveAndFlush(org);
         cs.setOrganisationalUnit(org);
         civilServantRepository.save(cs);
         mockMvc.perform(
-                        post("/civilServants/resource/uid/remove_organisation")
+                        post("/civilServants/resource/remove-org/remove_organisation")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON))
                 .andExpect(status().isOk())
