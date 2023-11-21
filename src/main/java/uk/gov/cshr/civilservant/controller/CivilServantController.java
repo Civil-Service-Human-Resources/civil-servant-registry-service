@@ -1,18 +1,6 @@
 package uk.gov.cshr.civilservant.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.cshr.civilservant.domain.CivilServant;
-import uk.gov.cshr.civilservant.repository.CivilServantRepository;
-import uk.gov.cshr.civilservant.resource.CivilServantResource;
-import uk.gov.cshr.civilservant.resource.factory.CivilServantResourceFactory;
-import uk.gov.cshr.civilservant.service.LineManagerService;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
-
 import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.data.rest.webmvc.RepositoryLinksResource;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
@@ -21,15 +9,23 @@ import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.ResourceProcessor;
 import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import uk.gov.cshr.civilservant.domain.CivilServant;
+import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
+import uk.gov.cshr.civilservant.repository.CivilServantRepository;
+import uk.gov.cshr.civilservant.resource.CivilServantResource;
+import uk.gov.cshr.civilservant.resource.factory.CivilServantResourceFactory;
+import uk.gov.cshr.civilservant.service.LineManagerService;
+import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RepositoryRestController
@@ -118,6 +114,17 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
         civilServantRepository.findByIdentity(uid).ifPresent(civilServant -> civilServantRepository.delete(civilServant));
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/resource/{uid}/remove_organisation")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public void removeOrganisation(@PathVariable("uid") String uid) {
+        log.info(String.format("Removing organisational unit for user %s", uid));
+        CivilServant cs = civilServantRepository.findByIdentity(uid).orElseThrow(CivilServantNotFoundException::new);
+        cs.setOrganisationalUnit(null);
+        civilServantRepository.saveAndFlush(cs);
     }
 
     @GetMapping("/resource/{uid}")
