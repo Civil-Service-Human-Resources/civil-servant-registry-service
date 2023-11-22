@@ -16,6 +16,8 @@ import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
+import java.util.HashMap;
+
 @RunWith(MockitoJUnitRunner.class)
 public class LineManagerServiceTest {
 
@@ -39,22 +41,34 @@ public class LineManagerServiceTest {
   }
 
   @Test
-  public void shouldNotifyLineManager() throws Exception {
+  public void testLineManagerServiceShouldNotifyTheLineManagerWhenNotifyLineManagerIsCalled() throws Exception {
+    String learnerName = "Learner Name";
+    String learnerEmail = "learner.name@domain.com";
+    String lineManagerName = "Linemanager Name";
+    String lineManagerEmail = "linemanager.name@domain.com";
 
     final Identity learnerIdentity = new Identity("uid");
     final CivilServant learner = new CivilServant(learnerIdentity);
-    learner.setFullName("learner");
+    learner.setFullName(learnerName);
+
+    when(identityService.getEmailAddress(learner)).thenReturn(learnerEmail);
 
     final Identity managerIdentity = new Identity("mid");
     final CivilServant manager = new CivilServant(managerIdentity);
-    manager.setFullName("fullName");
+    manager.setFullName(lineManagerName);
 
     final IdentityFromService lineManager = new IdentityFromService();
     lineManager.setUid(managerIdentity.getUid());
-    lineManager.setUsername("manager@domain.com");
+    lineManager.setUsername(lineManagerEmail);
 
-    lineManagerService.notifyLineManager(learner, manager, "manager@domain.com");
+    HashMap<String, String> expectedPersonalisation = new HashMap<>();
+    expectedPersonalisation.put("lineManagerName", lineManagerName);
+    expectedPersonalisation.put("learnerName", learnerName);
+    expectedPersonalisation.put("learnerEmailAddress", learnerEmail);
 
-    verify(notifyService).notify("manager@domain.com", null, "fullName", "learner");
+    lineManagerService.notifyLineManager(learner, manager, lineManagerEmail);
+
+    verify(notifyService).notify(lineManagerEmail, null, expectedPersonalisation);
   }
+
 }

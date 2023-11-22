@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.civilservant.domain.AgencyDomain;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
@@ -26,8 +25,9 @@ import static org.junit.Assert.assertTrue;
 public class AgencyTokenRepositoryTest {
 
     private static final String UID = "uid";
+
     @Autowired
-    private TestEntityManager entityManager;
+    private OrganisationalUnitRepository organisationalUnitRepository;
 
     @Autowired
     private AgencyTokenRepository agencyTokenRepository;
@@ -62,11 +62,7 @@ public class AgencyTokenRepositoryTest {
         ou.setAgencyToken(agencyToken);
         ou.setName("nhs org for test");
         ou.setAbbreviation("NHS");
-        entityManager.persist(ou);
-        entityManager.flush();
-
-        entityManager.persist(agencyToken);
-        entityManager.flush();
+        organisationalUnitRepository.saveAndFlush(ou);
     }
 
     @Test

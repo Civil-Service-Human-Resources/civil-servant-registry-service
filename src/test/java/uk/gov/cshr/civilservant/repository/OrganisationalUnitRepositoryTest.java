@@ -8,6 +8,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
+import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 
 import java.util.ArrayList;
@@ -28,7 +29,24 @@ public class OrganisationalUnitRepositoryTest {
     private OrganisationalUnitRepository repository;
 
     @Autowired
+    private DomainRepository domainRepository;
+
+    @Autowired
     private AgencyTokenRepository agencyTokenRepository;
+
+    @Test
+    public void shouldDeleteDomainsInManyToManyRelationshipOnDelete() {
+        OrganisationalUnit org = new OrganisationalUnit();
+        org.setCode("org");
+        org.setName("org");
+        org.addDomain(new Domain("test-delete-org.com"));
+        org.addDomain(new Domain("test-delete-org2.com"));
+        org = repository.saveAndFlush(org);
+
+        repository.deleteById(org.getId());
+        repository.flush();
+        assertFalse(repository.findById(org.getId()).isPresent());
+    }
 
     @Test
     public void shouldFindOrganisationsWhereNameStartsWith() {
