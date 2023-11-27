@@ -75,8 +75,8 @@ ADD
     `result` VARCHAR(10),
     `description` VARCHAR(1500),
     `number_of_questions` SMALLINT(3) UNSIGNED,
-    `created_on` TIMESTAMP NOT NULL DEFAULT NOW(),
-    `updated_on` TIMESTAMP NOT NULL DEFAULT NOW()
+    `created_on` TIMESTAMP NOT NULL,
+    `updated_on` TIMESTAMP NOT NULL
   );
 
 
