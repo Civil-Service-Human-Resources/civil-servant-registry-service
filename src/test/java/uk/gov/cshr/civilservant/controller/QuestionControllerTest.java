@@ -1,5 +1,23 @@
 package uk.gov.cshr.civilservant.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.cshr.civilservant.dto.AddQuestionDto;
+import uk.gov.cshr.civilservant.dto.QuestionDto;
+import uk.gov.cshr.civilservant.dto.factory.QuestionDtoFactory;
+import uk.gov.cshr.civilservant.exception.QuizServiceException;
+import uk.gov.cshr.civilservant.service.QuestionService;
+import uk.gov.cshr.civilservant.service.QuizBuilder;
+
+import javax.persistence.EntityNotFoundException;
+import java.util.Optional;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -12,31 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Optional;
-import javax.persistence.EntityNotFoundException;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import uk.gov.cshr.civilservant.dto.AddQuestionDto;
-import uk.gov.cshr.civilservant.dto.QuestionDto;
-import uk.gov.cshr.civilservant.dto.factory.QuestionDtoFactory;
-import uk.gov.cshr.civilservant.exception.QuizServiceException;
-import uk.gov.cshr.civilservant.service.QuestionService;
-import uk.gov.cshr.civilservant.service.QuizBuilder;
-import uk.gov.cshr.civilservant.utils.MockMVCFilterOverrider;
-
-@SpringBootTest
-@AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
 @WithMockUser(
     username = "user",
@@ -46,16 +39,10 @@ import uk.gov.cshr.civilservant.utils.MockMVCFilterOverrider;
       "ORGANISATION_REPORTER",
       "PROFESSION_REPORTER"
     })
-public class QuestionControllerTest {
+public class QuestionControllerTest extends CSRSControllerTestBase {
   @Autowired ObjectMapper objectMapper;
   @MockBean QuestionDtoFactory questionDtoFactory;
   @MockBean QuestionService questionService;
-  @Autowired private MockMvc mockMvc;
-
-  @Before
-  public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException {
-    MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy");
-  }
 
   @Test
   public void shouldAddANewQuestionToQuiz() throws Exception {

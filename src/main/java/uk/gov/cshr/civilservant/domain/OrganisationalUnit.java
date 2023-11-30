@@ -1,12 +1,10 @@
 package uk.gov.cshr.civilservant.domain;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Entity
 public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit> {
@@ -25,6 +23,21 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     @OneToOne(cascade = {CascadeType.ALL})
     private AgencyToken agencyToken;
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @JoinTable(
+            name = "organisational_unit_domains",
+            joinColumns = @JoinColumn(name = "organisational_unit_id" , referencedColumnName = "id"),
+    inverseJoinColumns = @JoinColumn(name = "domain_id" , referencedColumnName = "id"),
+    foreignKey = @ForeignKey(name = "organisational_unit_id_FK"))
+    @OrderBy("domain")
+    private Set<Domain> domains = new HashSet<>();
+
+    @Column(nullable = false)
+    private LocalDateTime createdTimestamp;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedTimestamp;
+
     public OrganisationalUnit(OrganisationalUnit organisationalUnit) {
         this.id = organisationalUnit.getId();
         this.code = organisationalUnit.getCode();
@@ -34,6 +47,9 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
         this.abbreviation = organisationalUnit.getAbbreviation();
         this.setPaymentMethods(organisationalUnit.getPaymentMethods());
         this.agencyToken = organisationalUnit.agencyToken;
+        this.domains = organisationalUnit.getDomains();
+        this.createdTimestamp = organisationalUnit.getCreatedTimestamp();
+        this.updatedTimestamp = organisationalUnit.getUpdatedTimestamp();
     }
 
     public OrganisationalUnit() {
@@ -71,16 +87,6 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
         this.parent = parent;
     }
 
-    @Override
-    public List<OrganisationalUnit> getChildren() {
-        return Collections.checkedList(children, OrganisationalUnit.class);
-    }
-
-    @Override
-    public void setChildren(List<OrganisationalUnit> children) {
-        this.children = Collections.checkedList(children, OrganisationalUnit.class);
-    }
-
     public List<String> getPaymentMethods() {
         if (null == paymentMethods || paymentMethods.isEmpty()) {
             return Collections.emptyList();
@@ -116,5 +122,62 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
 
     public void setAgencyToken(AgencyToken agencyToken) {
         this.agencyToken = agencyToken;
+    }
+
+    public LocalDateTime getCreatedTimestamp() {
+        return createdTimestamp;
+    }
+
+    public LocalDateTime getUpdatedTimestamp() {
+        return updatedTimestamp;
+    }
+
+    @PrePersist
+    public void onCreate() {
+        this.createdTimestamp = LocalDateTime.now();
+        this.updatedTimestamp = LocalDateTime.now();
+    }
+
+    @PreRemove
+    public void onDelete() {
+        this.domains.clear();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedTimestamp = LocalDateTime.now();
+    }
+
+    public Set<Domain> getDomains() {
+        return domains;
+    }
+
+    @JsonIgnore
+    public void addDomain(Domain domain) {
+        this.domains.add(domain);
+    }
+
+    @JsonIgnore
+    public void removeDomain(Domain domain) {
+        this.domains.remove(domain);
+    }
+
+    @JsonIgnore
+    public List<OrganisationalUnit> getDescendantsAsFlatList() {
+        List<OrganisationalUnit> flatList = getHierarchyAsFlatList();
+        flatList.remove(0);
+        return flatList;
+    }
+
+    @JsonIgnore
+    public List<OrganisationalUnit> getHierarchyAsFlatList() {
+        ArrayList<OrganisationalUnit> hierarchy = new ArrayList<>(Collections.singletonList(this));
+        this.children.forEach(c -> hierarchy.addAll(c.getHierarchyAsFlatList()));
+        return hierarchy;
+    }
+
+    @JsonIgnore
+    public boolean doesDomainExist(String domain) {
+        return this.domains.stream().anyMatch(d -> d.getDomain().equals(domain));
     }
 }

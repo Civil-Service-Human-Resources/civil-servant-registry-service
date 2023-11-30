@@ -68,3 +68,7 @@ agencyToken:
   capacity:
     max: ${AGENCY_TOKEN_MAX_CAPACITY:1500}
     min: ${AGENCY_TOKEN_MIN_CAPACITY:1}
+
+domains:
+  validation:
+    regex: ${DOMAIN_VALIDATION_REGEX:^([\w-]+\.)+[\w-]{2,4}$}

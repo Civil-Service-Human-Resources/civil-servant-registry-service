@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class OrganisationalUnitDto extends DtoEntity {
@@ -16,5 +18,7 @@ public class OrganisationalUnitDto extends DtoEntity {
     private String code;
     private String abbreviation;
     private AgencyToken agencyToken;
+    private List<OrganisationalUnitDto> children;
+    private List<DomainDto> domains;
 
 }
