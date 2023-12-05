@@ -204,7 +204,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         return repository.findById(id);
     }
 
-    public OrganisationalUnit getAndThrowIfNotFound(Long id) {
+    public OrganisationalUnit getOrThrowIfNotFound(Long id) {
         return repository.findById(id).orElseThrow(
                 () -> new OrganisationalUnitNotFoundException(id));
     }
@@ -295,7 +295,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
 
     public RemoveDomainFromOrgResponse removeDomainFromOrganisation(Long organisationalUnitId, Long domainId,
                                                                     boolean includeSubOrgs) {
-        OrganisationalUnit organisationalUnit = getAndThrowIfNotFound(organisationalUnitId);
+        OrganisationalUnit organisationalUnit = getOrThrowIfNotFound(organisationalUnitId);
         Domain domain = domainRepository.findById(domainId).orElseThrow(
                 () -> new NotFoundException(String.format("Domain with ID '%s' not found", domainId)));
         List<OrganisationalUnit> orgsForUpdate = Lists.newArrayList(organisationalUnit);
