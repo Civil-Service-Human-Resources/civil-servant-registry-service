@@ -44,7 +44,7 @@ public class IdentityServiceStub {
     public static void stubPostRemoveReportingAccess(List<String> uids, BatchProcessResponse response) {
         RemoveReportingAccessInput uidsObj = new RemoveReportingAccessInput(uids);
         stubFor(
-                WireMock.post(urlPathEqualTo("/api/identities/remove_reporting_roles"))
+                WireMock.post(urlPathEqualTo("/api/identities/remove-reporting-roles"))
                         .withHeader("Authorization", equalTo("Bearer " + token))
                         .withRequestBody(equalTo(asJsonString(uidsObj)))
                         .willReturn(aResponse()
