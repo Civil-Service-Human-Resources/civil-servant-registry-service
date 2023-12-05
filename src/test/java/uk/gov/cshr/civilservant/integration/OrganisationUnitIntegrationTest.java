@@ -14,7 +14,7 @@ import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.repository.DomainRepository;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
 import uk.gov.cshr.civilservant.service.OrganisationalUnitService;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -179,8 +179,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     @Test
     public void shouldDeleteDomainAndCascade() throws Exception {
         stubPostClientToken();
-        IdentityFromService identity = new IdentityFromService("learner", "learner@cabinetoffice.gov.uk", Collections.singleton("LEARNER"));
-        Map<String, IdentityFromService> responseMap = new HashMap<String, IdentityFromService>() {{
+        IdentityDTO identity = new IdentityDTO("learner", "learner@cabinetoffice.gov.uk", Collections.singleton("LEARNER"));
+        Map<String, IdentityDTO> responseMap = new HashMap<String, IdentityDTO>() {{
             put("learner", identity);
         }};
         stubGetIdentitiesMap(Collections.singletonList("learner"), responseMap);
@@ -199,8 +199,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     @Test
     public void shouldDeleteDomainAndCascadeAndRemoveOrganisationFromUser() throws Exception {
         stubPostClientToken();
-        IdentityFromService identity = new IdentityFromService("learner", "learner@cabinetoffice.gov.uk", Collections.singleton("LEARNER"));
-        Map<String, IdentityFromService> responseMap = new HashMap<String, IdentityFromService>() {{
+        IdentityDTO identity = new IdentityDTO("learner", "learner@cabinetoffice.gov.uk", Collections.singleton("LEARNER"));
+        Map<String, IdentityDTO> responseMap = new HashMap<String, IdentityDTO>() {{
             put("learner", identity);
         }};
         stubGetIdentitiesMap(Collections.singletonList("learner"), responseMap);

@@ -19,7 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.cshr.civilservant.dto.IdentityAgencyResponseDTO;
 import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 import uk.gov.cshr.civilservant.service.identity.model.AgencyTokenCapacityUsed;
 
@@ -77,32 +77,32 @@ public class IdentityServiceTest {
     @Test
     public void shouldReturnFoundIdentities() {
 
-        IdentityFromService identity = new IdentityFromService();
+        IdentityDTO identity = new IdentityDTO();
         identity.setUid("uid");
         identity.setUsername("shouldReturnUriStringFromOrg@domain.com");
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(IDENTITY_API_URL)
                 .queryParam("emailAddress", identity.getUsername());
 
-        when(restOperations.getForObject(builder.toUriString(), IdentityFromService.class)).thenReturn(identity);
+        when(restOperations.getForObject(builder.toUriString(), IdentityDTO.class)).thenReturn(identity);
 
-        IdentityFromService foundIdentity = identityService.findByEmail(identity.getUsername());
+        IdentityDTO foundIdentity = identityService.findByEmail(identity.getUsername());
         assertThat(foundIdentity.getUsername(), equalTo("shouldReturnUriStringFromOrg@domain.com"));
     }
 
     @Test
     public void shouldNotReturnNotFoundIdentities() {
 
-        IdentityFromService identity = new IdentityFromService();
+        IdentityDTO identity = new IdentityDTO();
         identity.setUid("uid");
         identity.setUsername("shouldReturnUriStringFromOrg@domain.com");
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(IDENTITY_API_URL)
                 .queryParam("emailAddress", identity.getUsername());
 
-        when(restOperations.getForObject(builder.toUriString(), IdentityFromService.class)).thenReturn(null);
+        when(restOperations.getForObject(builder.toUriString(), IdentityDTO.class)).thenReturn(null);
 
-        IdentityFromService foundIdentity = identityService.findByEmail(identity.getUsername());
+        IdentityDTO foundIdentity = identityService.findByEmail(identity.getUsername());
         assertNull(foundIdentity);
     }
 

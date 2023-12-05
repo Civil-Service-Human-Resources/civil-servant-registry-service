@@ -80,16 +80,16 @@ public class IdentityService {
         });
     }
 
-    public IdentityFromService findByEmail(String email) {
+    public IdentityDTO findByEmail(String email) {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(identityAPIUrl)
                 .queryParam("emailAddress", email);
 
         log.debug(" Checking email {}", email);
-        IdentityFromService identity;
+        IdentityDTO identity;
 
         try {
-            identity = restOperations.getForObject(builder.toUriString(), IdentityFromService.class);
+            identity = restOperations.getForObject(builder.toUriString(), IdentityDTO.class);
         } catch (HttpClientErrorException http) {
             if (http.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return null; // we kind of have to assume 403 is email not found rather than service not there ...
@@ -102,15 +102,15 @@ public class IdentityService {
     }
 
 
-    public Map<String, IdentityFromService> getIdentitiesMap(List<String> uids) {
+    public Map<String, IdentityDTO> getIdentitiesMap(List<String> uids) {
         List<String> failedUids = new ArrayList<>();
-        Map<String, IdentityFromService> uidsMap = new HashMap<>();
+        Map<String, IdentityDTO> uidsMap = new HashMap<>();
         Lists.partition(uids, 50).forEach(batch -> {
             String uidsBatchString = String.join(",", uids);
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(mapForUidsUrl)
                     .queryParam("uids", uidsBatchString);
             RequestEntity<Void> req = new RequestEntity<>(HttpMethod.GET, builder.build().toUri());
-            Map<String, IdentityFromService> resp = restOperations.exchange(req, new ParameterizedTypeReference<Map<String, IdentityFromService>>() {}).getBody();
+            Map<String, IdentityDTO> resp = restOperations.exchange(req, new ParameterizedTypeReference<Map<String, IdentityDTO>>() {}).getBody();
             if (resp == null) {
                 log.error(String.format("Null response when removing admin access from uids: %s", batch));
                 failedUids.addAll(batch);
@@ -125,11 +125,11 @@ public class IdentityService {
         return uidsMap;
     }
 
-    public IdentityFromService getIdentityFromService(String uid) {
+    public IdentityDTO getIdentityFromService(String uid) {
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(identityAPIUrl)
                 .queryParam("uid", uid);
-            return restOperations.getForObject(builder.toUriString(), IdentityFromService.class);
+            return restOperations.getForObject(builder.toUriString(), IdentityDTO.class);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return null;
@@ -142,7 +142,7 @@ public class IdentityService {
     public String getEmailAddress(CivilServant civilServant) {
 
         log.debug("Getting email address for civil servant {}", civilServant);
-        IdentityFromService identity = getIdentityFromService(civilServant.getIdentity().getUid());
+        IdentityDTO identity = getIdentityFromService(civilServant.getIdentity().getUid());
         if (identity != null) {
             return identity.getUsername();
         }

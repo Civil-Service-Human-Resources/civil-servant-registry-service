@@ -11,7 +11,7 @@ import uk.gov.cshr.civilservant.exception.civilServant.InvalidUserOrganisationEx
 import uk.gov.cshr.civilservant.exception.organisationalUnit.OrganisationalUnitNotFoundException;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.Collections;
@@ -50,7 +50,7 @@ public class CivilServantService {
                 return cs;
         }
         String uid = cs.getIdentity().getUid();
-        IdentityFromService identity = identityService.getIdentityFromService(uid);
+        IdentityDTO identity = identityService.getIdentityFromService(uid);
         if (identity != null) {
             OrganisationalUnit organisationalUnit = organisationalUnitRepository.findById(organisationalUnitId)
                     .orElseThrow(() -> new OrganisationalUnitNotFoundException(organisationalUnitId));

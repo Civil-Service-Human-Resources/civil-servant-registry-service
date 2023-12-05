@@ -18,7 +18,7 @@ import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
 import uk.gov.cshr.civilservant.resource.CivilServantResource;
 import uk.gov.cshr.civilservant.resource.factory.CivilServantResourceFactory;
 import uk.gov.cshr.civilservant.service.LineManagerService;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.Optional;
@@ -65,7 +65,7 @@ public class CivilServantControllerTest extends CSRSControllerTestBase {
     @Test
     public void shouldReturnNotProcessableIfNoDetailForLoggedInUser() throws Exception {
 
-        when(lineManagerService.checkLineManager("learner@domain.com")).thenReturn(new IdentityFromService());
+        when(lineManagerService.checkLineManager("learner@domain.com")).thenReturn(new IdentityDTO());
 
         mockMvc.perform(
                 patch("/civilServants/manager?email=learner@domain.com").with(csrf())
@@ -77,7 +77,7 @@ public class CivilServantControllerTest extends CSRSControllerTestBase {
     @Test
     public void shouldReturnBadRequestIfSettingLineManagerToYourself() throws Exception {
 
-        IdentityFromService lineManager = new IdentityFromService();
+        IdentityDTO lineManager = new IdentityDTO();
         lineManager.setUid("myuid");
 
         when(lineManagerService.checkLineManager("learner@domain.com")).thenReturn(lineManager);
@@ -98,7 +98,7 @@ public class CivilServantControllerTest extends CSRSControllerTestBase {
     public void shouldReturnOkAndUpdateCivilServant() throws Exception {
         String lineManagerEmail = "manager@domain.com";
 
-        IdentityFromService lineManagerIdentity = new IdentityFromService();
+        IdentityDTO lineManagerIdentity = new IdentityDTO();
         lineManagerIdentity.setUid("mid");
 
         lineManagerIdentity.setUsername(lineManagerEmail);

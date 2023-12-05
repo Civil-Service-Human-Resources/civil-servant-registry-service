@@ -9,7 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.config.IntegrationTestUserConfig;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.model.BatchProcessResponse;
 import uk.gov.cshr.civilservant.utils.CustomAuthentication;
 
@@ -49,7 +49,7 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     public void shouldThrowExceptionWhenUpdatingCivilServantToIncorrectOrganisation() throws Exception {
         stubPostClientToken();
-        stubGetIdentityWithUid("learner", new IdentityFromService(
+        stubGetIdentityWithUid("learner", new IdentityDTO(
                 "learner", "learner@domain.com", new HashSet<>(Collections.singletonList("LEARNER"))
         ));
         mockMvc.perform(
@@ -68,7 +68,7 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     public void shouldUpdateRestrictedCivilServantsOrganisation() throws Exception {
         stubPostClientToken();
-        stubGetIdentityWithUid("learner", new IdentityFromService(
+        stubGetIdentityWithUid("learner", new IdentityDTO(
                 "learner", "learner@cabinetoffice.gov.uk", new HashSet<>(Collections.singletonList("LEARNER"))
         ));
         stubPostRemoveReportingAccess(Collections.singletonList("learner"),
@@ -87,7 +87,7 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     public void shouldUpdateUnrestrictedCivilServantsOrganisation() throws Exception {
         stubPostClientToken();
-        stubGetIdentityWithUid("learner", new IdentityFromService(
+        stubGetIdentityWithUid("learner", new IdentityDTO(
                 "learner", "learner@cabinetoffice.gov.uk", new HashSet<>(Collections.singletonList("UNRESTRICTED_ORGANISATION"))
         ));
         mockMvc.perform(

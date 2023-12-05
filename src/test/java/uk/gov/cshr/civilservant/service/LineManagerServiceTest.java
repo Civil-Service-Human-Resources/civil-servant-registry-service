@@ -1,10 +1,5 @@
 package uk.gov.cshr.civilservant.service;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -13,8 +8,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.cshr.civilservant.domain.CivilServant;
 import uk.gov.cshr.civilservant.domain.Identity;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class LineManagerServiceTest {
@@ -29,7 +29,7 @@ public class LineManagerServiceTest {
 
   @Test
   public void shouldFindExistingIdentity() {
-    when(identityService.findByEmail("learner@domain.com")).thenReturn(new IdentityFromService());
+    when(identityService.findByEmail("learner@domain.com")).thenReturn(new IdentityDTO());
     assertNotNull(lineManagerService.checkLineManager("learner@domain.com"));
   }
 
@@ -49,7 +49,7 @@ public class LineManagerServiceTest {
     final CivilServant manager = new CivilServant(managerIdentity);
     manager.setFullName("fullName");
 
-    final IdentityFromService lineManager = new IdentityFromService();
+    final IdentityDTO lineManager = new IdentityDTO();
     lineManager.setUid(managerIdentity.getUid());
     lineManager.setUsername("manager@domain.com");
 

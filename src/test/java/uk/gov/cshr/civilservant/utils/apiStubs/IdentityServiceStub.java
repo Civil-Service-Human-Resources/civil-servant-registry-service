@@ -1,7 +1,7 @@
 package uk.gov.cshr.civilservant.utils.apiStubs;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.model.BatchProcessResponse;
 import uk.gov.cshr.civilservant.service.identity.model.RemoveReportingAccessInput;
 
@@ -14,7 +14,7 @@ import static uk.gov.cshr.civilservant.utils.JsonUtils.asJsonString;
 public class IdentityServiceStub {
 
     private final static String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJyZWFkIiwid3JpdGUiXSwiZXhwIjoxNzAxMzQ5NTU3LCJhdXRob3JpdGllcyI6WyJDTElFTlQiXSwianRpIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiY2xpZW50X2lkIjoiY2xpZW50In0.RJ8z56PjIoqd1C_8F_M9L5F3K1u_s83IujEcze2h6Zo";
-    public static void stubGetIdentityWithUid(String uid, IdentityFromService response) {
+    public static void stubGetIdentityWithUid(String uid, IdentityDTO response) {
         stubFor(
                 WireMock.get(urlPathEqualTo("/api/identities"))
                         .withHeader("Authorization", equalTo("Bearer " + token))
@@ -53,7 +53,7 @@ public class IdentityServiceStub {
         );
     }
 
-    public static void stubGetIdentitiesMap(List<String> uids, Map<String, IdentityFromService> response) {
+    public static void stubGetIdentitiesMap(List<String> uids, Map<String, IdentityDTO> response) {
         String uidsBatchString = String.join(",", uids);
         stubFor(
                 WireMock.get(urlPathEqualTo("/api/identities/map-for-uids"))

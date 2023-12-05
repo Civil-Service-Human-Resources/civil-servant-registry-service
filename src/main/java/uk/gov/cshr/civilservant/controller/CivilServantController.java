@@ -22,7 +22,7 @@ import uk.gov.cshr.civilservant.resource.CivilServantResource;
 import uk.gov.cshr.civilservant.resource.factory.CivilServantResourceFactory;
 import uk.gov.cshr.civilservant.service.CivilServantService;
 import uk.gov.cshr.civilservant.service.LineManagerService;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +91,7 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
 
         if (optionalCivilServant.isPresent()) {
 
-            IdentityFromService lineManagerIdentity = lineManagerService.checkLineManager(email);
+            IdentityDTO lineManagerIdentity = lineManagerService.checkLineManager(email);
             if (lineManagerIdentity == null) {
                 log.debug("Line manager email address not found in identity-service.");
                 return ResponseEntity.notFound().build();

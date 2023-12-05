@@ -12,7 +12,7 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class IdentityFromService {
+public class IdentityDTO {
 
   private String uid;
   private String username;

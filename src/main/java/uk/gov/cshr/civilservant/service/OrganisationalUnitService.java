@@ -22,7 +22,7 @@ import uk.gov.cshr.civilservant.exception.organisationalUnit.OrganisationalUnitN
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.repository.DomainRepository;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.*;
@@ -305,10 +305,10 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         BulkUpdate<OrganisationalUnit> bulkResponse = bulkRemoveDomainFromOrganisations(orgsForUpdate, domain);
         List<CivilServant> civilServants = bulkResponse.getUpdated().stream().flatMap(o -> o.getCivilServants().stream()).collect(Collectors.toList());
         log.info(String.format("Found %s civil servants in the selected departments", civilServants.size()));
-        Map<String, IdentityFromService> affectedIdentities = identityService.getIdentitiesMap(
+        Map<String, IdentityDTO> affectedIdentities = identityService.getIdentitiesMap(
                 civilServants.stream().map(cs -> cs.getIdentity().getUid()).collect(Collectors.toList()));
         civilServants = civilServants.stream().filter(cs -> {
-            IdentityFromService i = affectedIdentities.get(cs.getIdentity().getUid());
+            IdentityDTO i = affectedIdentities.get(cs.getIdentity().getUid());
             return i != null && i.getEmailDomain().equals(domain.getDomain());
         }).collect(Collectors.toList());
         log.info(String.format("%s civil servants in the selected departments have the domain '%s'. Removing their department",

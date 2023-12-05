@@ -1,16 +1,16 @@
 package uk.gov.cshr.civilservant.service;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.civilservant.domain.CivilServant;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 import uk.gov.service.notify.NotificationClientException;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 @Service
 public class LineManagerService {
@@ -30,7 +30,7 @@ public class LineManagerService {
     this.notifyService = notifyService;
   }
 
-  public IdentityFromService checkLineManager(String email) {
+  public IdentityDTO checkLineManager(String email) {
     return identityService.findByEmail(email);
   }
 
