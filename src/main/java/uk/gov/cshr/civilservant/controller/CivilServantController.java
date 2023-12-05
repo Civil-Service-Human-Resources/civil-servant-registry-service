@@ -24,7 +24,6 @@ import uk.gov.cshr.civilservant.service.CivilServantService;
 import uk.gov.cshr.civilservant.service.LineManagerService;
 import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -66,7 +65,7 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Resource<CivilServantResource>> get(Principal p) {
+    public ResponseEntity<Resource<CivilServantResource>> get() {
         log.debug("Getting civil servant details for logged in user");
 
         return civilServantRepository.findByPrincipal().map(
