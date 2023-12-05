@@ -1,5 +1,6 @@
 package uk.gov.cshr.civilservant.service;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,15 +11,18 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.cshr.civilservant.controller.v2.models.GetOrganisationalUnitsParams;
 import uk.gov.cshr.civilservant.controller.v2.models.SimplePage;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
+import uk.gov.cshr.civilservant.domain.CivilServant;
 import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
-import uk.gov.cshr.civilservant.domain.SelfReferencingEntity;
 import uk.gov.cshr.civilservant.dto.*;
 import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
 import uk.gov.cshr.civilservant.exception.*;
 import uk.gov.cshr.civilservant.exception.organisationalUnit.DomainAlreadyExistsException;
+import uk.gov.cshr.civilservant.exception.organisationalUnit.OrganisationalUnitNotFoundException;
+import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.repository.DomainRepository;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
+import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.*;
@@ -32,17 +36,20 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
     private final OrganisationalUnitRepository repository;
     private final OrganisationalUnitDtoFactory dtoFactory;
     private final DomainRepository domainRepository;
+    private final CivilServantRepository civilServantRepository;
     private final AgencyTokenService agencyTokenService;
     private final IdentityService identityService;
 
     public OrganisationalUnitService(OrganisationalUnitRepository organisationalUnitRepository,
                                      OrganisationalUnitDtoFactory organisationalUnitDtoFactory,
-                                     DomainRepository domainRepository, AgencyTokenService agencyTokenService,
+                                     DomainRepository domainRepository,
+                                     CivilServantRepository civilServantRepository, AgencyTokenService agencyTokenService,
                                      IdentityService identityService) {
         super(organisationalUnitRepository, organisationalUnitDtoFactory);
         this.repository = organisationalUnitRepository;
         this.dtoFactory = organisationalUnitDtoFactory;
         this.domainRepository = domainRepository;
+        this.civilServantRepository = civilServantRepository;
         this.agencyTokenService = agencyTokenService;
         this.identityService = identityService;
     }
@@ -134,6 +141,15 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         return organisationalUnits;
     }
 
+    public void deleteOrganisationalUnit(Long organisatonalUnitId) {
+        OrganisationalUnit organisationalUnit = repository.findById(organisatonalUnitId).orElseThrow(() -> new OrganisationalUnitNotFoundException(organisatonalUnitId));
+        List<OrganisationalUnit> list = organisationalUnit.getHierarchyAsFlatList();
+        List<String> affectedUids = list.stream()
+                .map(OrganisationalUnit::getCivilServants).flatMap(List::stream)
+                .map(cs -> cs.getIdentity().getUid()).collect(Collectors.toList());
+        identityService.removeReportingAccess(affectedUids);
+    }
+
     public OrganisationalUnit setAgencyToken(OrganisationalUnit organisationalUnit, AgencyToken agencyToken) {
         if (organisationalUnit.getAgencyToken() != null) {
             throw new TokenAlreadyExistsException(organisationalUnit.getId().toString());
@@ -188,6 +204,11 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         return repository.findById(id);
     }
 
+    public OrganisationalUnit getAndThrowIfNotFound(Long id) {
+        return repository.findById(id).orElseThrow(
+                () -> new OrganisationalUnitNotFoundException(id));
+    }
+
     public AgencyTokenResponseDto getAgencyToken(Long organisationalUnitId) throws CSRSApplicationException {
         AgencyToken agencyToken = getOrganisationalUnit(organisationalUnitId)
                 .map(OrganisationalUnit::getAgencyToken)
@@ -222,7 +243,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
 
     public AddDomainToOrgResponse addDomainToOrganisation(Long organisationalUnitId, String domainString) {
         OrganisationalUnit organisationalUnit = repository.findById(organisationalUnitId).orElseThrow(
-                () -> new NotFoundException(String.format("Organisation with ID '%s' not found", organisationalUnitId)));
+                () -> new OrganisationalUnitNotFoundException(organisationalUnitId));
         Domain domain = domainRepository.findDomainByDomain(domainString)
                 .orElseGet(() -> domainRepository.save(new Domain(domainString)));
         if (organisationalUnit.doesDomainExist(domainString)) {
@@ -234,70 +255,74 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         AddDomainToOrgResponse response = new AddDomainToOrgResponse(organisationalUnitId, new DomainDto(domain));
         if (organisationalUnit.hasChildren()) {
             List<OrganisationalUnit> flatList = organisationalUnit.getDescendantsAsFlatList();
-            BulkUpdate bulkResponse = bulkAddDomainToOrganisations(flatList, domain);
+            BulkUpdate<OrganisationalUnit> bulkResponse = bulkAddDomainToOrganisations(flatList, domain);
             response.setUpdatedChildOrganisationIds(bulkResponse.getUpdatedIds());
             response.setSkippedChildOrganisationIds(bulkResponse.getSkippedIds());
         }
         return response;
     }
 
-    public BulkUpdate bulkAddDomainToOrganisations(List<OrganisationalUnit> organisationalUnits, Domain domain) {
-        ArrayList<OrganisationalUnit> updatedOrgs = new ArrayList<>();
-        ArrayList<Long> skippedOrgIds = new ArrayList<>();
+    public BulkUpdate<OrganisationalUnit> bulkAddDomainToOrganisations(List<OrganisationalUnit> organisationalUnits, Domain domain) {
+        BulkUpdate<OrganisationalUnit> res = new BulkUpdate<>();
         organisationalUnits.forEach(o -> {
             if (o.doesDomainExist(domain.getDomain())) {
                 log.info(String.format("Domain '%s' already exists on organisation '%s', skipping.", domain.getDomain(), o.getName()));
-                skippedOrgIds.add(o.getId());
+                res.getSkipped().add(o);
             } else {
                 log.info(String.format("Domain '%s' does not exist on organisation '%s', adding.", domain.getDomain(), o.getName()));
                 o.addDomain(domain);
-                updatedOrgs.add(o);
+                res.getUpdated().add(o);
             }
         });
-        repository.saveAll(updatedOrgs);
-        return new BulkUpdate(
-                updatedOrgs.stream().map(SelfReferencingEntity::getId).collect(Collectors.toList()),
-                skippedOrgIds
-        );
+        repository.saveAll(res.getUpdated());
+        return res;
     }
 
-    public BulkUpdate bulkRemoveDomainFromOrganisations(List<OrganisationalUnit> organisationalUnits, Domain domain) {
-        ArrayList<OrganisationalUnit> updatedOrgs = new ArrayList<>();
+    public BulkUpdate<OrganisationalUnit> bulkRemoveDomainFromOrganisations(List<OrganisationalUnit> organisationalUnits, Domain domain) {
+        BulkUpdate<OrganisationalUnit> res = new BulkUpdate<>();
+        log.info(String.format("Attempting to remove domain '%s' from %s organisations", domain.getDomain(), organisationalUnits.size()));
         organisationalUnits.forEach(o -> {
             if (o.doesDomainExist(domain.getDomain())) {
                 log.info(String.format("Domain '%s' exists on organisation '%s', removing.", domain.getDomain(), o.getName()));
                 o.removeDomain(domain);
-                updatedOrgs.add(o);
+                res.getUpdated().add(o);
             }
         });
-        repository.saveAll(updatedOrgs);
+        repository.saveAll(res.getUpdated());
         repository.flush();
-        return new BulkUpdate(
-                updatedOrgs.stream().map(SelfReferencingEntity::getId).collect(Collectors.toList()),
-                Collections.emptyList()
-        );
+        return res;
     }
 
     public RemoveDomainFromOrgResponse removeDomainFromOrganisation(Long organisationalUnitId, Long domainId,
                                                                     boolean includeSubOrgs) {
-        OrganisationalUnit organisationalUnit = repository.findById(organisationalUnitId).orElseThrow(
-                () -> new NotFoundException(String.format("Organisation with ID '%s' not found", organisationalUnitId)));
+        OrganisationalUnit organisationalUnit = getAndThrowIfNotFound(organisationalUnitId);
         Domain domain = domainRepository.findById(domainId).orElseThrow(
                 () -> new NotFoundException(String.format("Domain with ID '%s' not found", domainId)));
-        organisationalUnit.removeDomain(domain);
-        repository.saveAndFlush(organisationalUnit);
-        RemoveDomainFromOrgResponse response = new RemoveDomainFromOrgResponse(organisationalUnitId, new DomainDto(domain));
+        List<OrganisationalUnit> orgsForUpdate = Lists.newArrayList(organisationalUnit);
         if (includeSubOrgs && organisationalUnit.hasChildren()) {
-            List<OrganisationalUnit> flatList = organisationalUnit.getDescendantsAsFlatList();
-            BulkUpdate bulkResponse = bulkRemoveDomainFromOrganisations(flatList, domain);
-            response.setUpdatedChildOrganisationIds(bulkResponse.getUpdatedIds());
+            orgsForUpdate.addAll(organisationalUnit.getDescendantsAsFlatList());
         }
+        BulkUpdate<OrganisationalUnit> bulkResponse = bulkRemoveDomainFromOrganisations(orgsForUpdate, domain);
+        List<CivilServant> civilServants = bulkResponse.getUpdated().stream().flatMap(o -> o.getCivilServants().stream()).collect(Collectors.toList());
+        log.info(String.format("Found %s civil servants in the selected departments", civilServants.size()));
+        Map<String, IdentityFromService> affectedIdentities = identityService.getIdentitiesMap(
+                civilServants.stream().map(cs -> cs.getIdentity().getUid()).collect(Collectors.toList()));
+        civilServants = civilServants.stream().filter(cs -> {
+            IdentityFromService i = affectedIdentities.get(cs.getIdentity().getUid());
+            return i != null && i.getEmailDomain().equals(domain.getDomain());
+        }).collect(Collectors.toList());
+        log.info(String.format("%s civil servants in the selected departments have the domain '%s'. Removing their department",
+                civilServants.size(), domain.getDomain()));
+        civilServants.forEach(cs -> {
+            cs.setOrganisationalUnit(null);
+            civilServantRepository.saveAndFlush(cs);
+        });
         if (domain.getOrganisationalUnits().size() == 0) {
             log.info(String.format("Domain '%s' is no longer assigned to any organisations. Deleting.", domain.getDomain()));
             domainRepository.delete(domain);
         } else {
             log.info(String.format("Domain '%s' is still assigned to %s organisations, not deleting", domain.getDomain(), domain.getOrganisationalUnits().size()));
         }
-        return response;
+        return RemoveDomainFromOrgResponse.fromBulkUpdate(organisationalUnitId, new DomainDto(domain), bulkResponse);
     }
 }

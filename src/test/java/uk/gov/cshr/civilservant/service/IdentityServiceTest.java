@@ -5,8 +5,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.*;
-import org.springframework.beans.factory.annotation.Value;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Captor;
+import org.mockito.Mock;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
@@ -16,7 +18,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.cshr.civilservant.dto.IdentityAgencyResponseDTO;
 import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
-import uk.gov.cshr.civilservant.exception.NoOrganisationsFoundException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
@@ -40,10 +41,13 @@ public class IdentityServiceTest {
     private static final String USER_UID = "myuseruid";
 
     private static final String IDENTITY_API_URL = "http://localhost/identity";
+    private String MAP_FOR_UIDS_URL = "http://localhost:8080/api/api/identities";
 
     private String AGENCY_TOKEN_URL = "http://localhost:8080/agency/{agencyTokenUid}";
 
     private String IDENTITY_AGENCY_TOKEN_URL = "http://localhost:8080/identity/agency/";
+
+    private String REMOVE_REPORTING_ACCESS_URL = "http://localhost:8080/api/identities/remove_reportng_access";
 
     private IdentityService identityService;
 
@@ -66,7 +70,8 @@ public class IdentityServiceTest {
     @Before
     public void setup() {
         initMocks(this);
-        identityService = new IdentityService(restOperations, IDENTITY_API_URL, AGENCY_TOKEN_URL, IDENTITY_AGENCY_TOKEN_URL);
+        identityService = new IdentityService(restOperations, IDENTITY_API_URL, MAP_FOR_UIDS_URL, AGENCY_TOKEN_URL,
+                IDENTITY_AGENCY_TOKEN_URL, REMOVE_REPORTING_ACCESS_URL);
     }
 
     @Test

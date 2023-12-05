@@ -1,28 +1,53 @@
 package uk.gov.cshr.civilservant.integration;
 
-import com.jayway.jsonpath.JsonPath;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import uk.gov.cshr.civilservant.controller.CSRSControllerTestBase;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.cshr.civilservant.domain.CivilServant;
+import uk.gov.cshr.civilservant.dto.AddDomainToOrgResponse;
+import uk.gov.cshr.civilservant.repository.CivilServantRepository;
+import uk.gov.cshr.civilservant.repository.DomainRepository;
+import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
+import uk.gov.cshr.civilservant.service.OrganisationalUnitService;
+import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.cshr.civilservant.utils.apiStubs.IdentityServiceStub.stubGetIdentitiesMap;
+import static uk.gov.cshr.civilservant.utils.apiStubs.IdentityServiceStub.stubPostClientToken;
 
-@SpringBootTest
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
+@SpringBootTest
+@Transactional
 @WithMockUser(username = "user")
-public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
+public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
+
+    @Autowired
+    private OrganisationalUnitRepository organisationalUnitRepository;
+
+    @Autowired
+    private CivilServantRepository civilServantRepository;
+
+    @Autowired
+    private DomainRepository domainRepository;
+
+    @Autowired
+    private OrganisationalUnitService organisationalUnitService;
 
     @Test
     public void shouldGetOrganisationalUnitWithDomains() throws Exception {
@@ -65,7 +90,7 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
     @Test
     public void shouldAddNewDomain() throws Exception {
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/organisationalUnits/1/domains")
+                        post("/organisationalUnits/1/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
                                 .content("{\"domain\": \"test.org\"}"))
@@ -80,7 +105,7 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
     @Test
     public void shouldAddNewDomainAndCascade() throws Exception {
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/organisationalUnits/31/domains")
+                        post("/organisationalUnits/31/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
                                 .content("{\"domain\": \"test-two.org\"}"))
@@ -96,19 +121,10 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
 
     @Test
     public void shouldAddNewDomainAndNotCascade() throws Exception {
-        mockMvc.perform(
-                        MockMvcRequestBuilders.post("/organisationalUnits/33/domains")
-                                .accept(APPLICATION_JSON)
-                                .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test-three.org\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.domain.domain", equalTo("test-three.org")))
-                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(33)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds", empty()))
-                .andExpect(jsonPath("$.skippedChildOrganisationIds", empty()));
+        organisationalUnitService.addDomainToOrganisation(33L, "test-three.org");
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/organisationalUnits/32/domains")
+                        post("/organisationalUnits/32/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
                                 .content("{\"domain\": \"test-three.org\"}"))
@@ -123,7 +139,7 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
     @Test
     public void shouldNotAddDomainIfOrgDoesNotExist() throws Exception {
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/organisationalUnits/900/domains")
+                        post("/organisationalUnits/900/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
                                 .content("{\"domain\": \"test.org\"}"))
@@ -135,7 +151,7 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
     public void shouldNotAddDomainIfInvalidFormat() throws Exception {
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/organisationalUnits/33/domains")
+                        post("/organisationalUnits/33/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
                                 .content("{\"domain\": \"incorrectFormat\"}"))
@@ -147,19 +163,10 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
 
     @Test
     public void shouldNotAddDomainIfOrgAlreadyHasDomain() throws Exception {
-        mockMvc.perform(
-                        MockMvcRequestBuilders.post("/organisationalUnits/33/domains")
-                                .accept(APPLICATION_JSON)
-                                .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test-four.org\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.domain.domain", equalTo("test-four.org")))
-                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(33)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds", empty()))
-                .andExpect(jsonPath("$.skippedChildOrganisationIds", empty()));
+        organisationalUnitService.addDomainToOrganisation(33L, "test-four.org");
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/organisationalUnits/33/domains")
+                        post("/organisationalUnits/33/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
                                 .content("{\"domain\": \"test-four.org\"}"))
@@ -171,61 +178,53 @@ public class OrganisationUnitIntegrationTest extends CSRSControllerTestBase {
 
     @Test
     public void shouldDeleteDomainAndCascade() throws Exception {
-        MvcResult res = mockMvc.perform(
-                        MockMvcRequestBuilders.post("/organisationalUnits/31/domains")
-                                .accept(APPLICATION_JSON)
-                                .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test-five.org\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.domain.domain", equalTo("test-five.org")))
-                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(2)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds[0]", equalTo(32)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds[1]", equalTo(33)))
-                .andExpect(jsonPath("$.skippedChildOrganisationIds", empty()))
-                .andReturn();
-
-        Integer domainId = JsonPath.read(res.getResponse().getContentAsString(), "$.domain.id");
-
+        stubPostClientToken();
+        IdentityFromService identity = new IdentityFromService("learner", "learner@cabinetoffice.gov.uk", Collections.singleton("LEARNER"));
+        Map<String, IdentityFromService> responseMap = new HashMap<String, IdentityFromService>() {{
+            put("learner", identity);
+        }};
+        stubGetIdentitiesMap(Collections.singletonList("learner"), responseMap);
+        CivilServant cs = civilServantRepository.findByIdentity("learner").get();
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete("/organisationalUnits/31/domains/" + domainId)
+                        delete("/organisationalUnits/2/domains/1")
                                 .param("includeSubOrgs", "true"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.domain.domain", equalTo("test-five.org")))
-                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(2)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds[0]", equalTo(32)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds[1]", equalTo(33)));
-
-        mockMvc.perform(
-                get("/domains/" + domainId)
-        ).andExpect(status().isNotFound());
+                .andExpect(jsonPath("$.domain.domain", equalTo("cabinetoffice.gov.uk")))
+                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(2)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(1)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds[0]", equalTo(4)));
+        assertFalse(cs.getOrganisationalUnit().isPresent());
    }
 
     @Test
-    public void shouldDeleteDomainAndNotCascade() throws Exception {
-        MvcResult res = mockMvc.perform(
-                        MockMvcRequestBuilders.post("/organisationalUnits/31/domains")
-                                .accept(APPLICATION_JSON)
-                                .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test-six.org\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.domain.domain", equalTo("test-six.org")))
-                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(2)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds[0]", equalTo(32)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds[1]", equalTo(33)))
-                .andExpect(jsonPath("$.skippedChildOrganisationIds", empty()))
-                .andReturn();
-
-        Integer domainId = JsonPath.read(res.getResponse().getContentAsString(), "$.domain.id");
-
+    public void shouldDeleteDomainAndCascadeAndRemoveOrganisationFromUser() throws Exception {
+        stubPostClientToken();
+        IdentityFromService identity = new IdentityFromService("learner", "learner@cabinetoffice.gov.uk", Collections.singleton("LEARNER"));
+        Map<String, IdentityFromService> responseMap = new HashMap<String, IdentityFromService>() {{
+            put("learner", identity);
+        }};
+        stubGetIdentitiesMap(Collections.singletonList("learner"), responseMap);
+        CivilServant cs = civilServantRepository.findByIdentity("learner").get();
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete("/organisationalUnits/31/domains/" + domainId))
+                        delete("/organisationalUnits/2/domains/1")
+                                .param("includeSubOrgs", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.domain.domain", equalTo("cabinetoffice.gov.uk")))
+                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(2)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(1)))
+                .andExpect(jsonPath("$.updatedChildOrganisationIds[0]", equalTo(4)));
+        assertFalse(cs.getOrganisationalUnit().isPresent());
+    }
+
+    @Test
+    public void shouldDeleteDomainAndNotCascade() throws Exception {
+        AddDomainToOrgResponse resp = organisationalUnitService.addDomainToOrganisation(31L, "test-six.org");
+        mockMvc.perform(
+                        delete("/organisationalUnits/31/domains/" + resp.getDomain().getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.domain.domain", equalTo("test-six.org")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))
                 .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(0)));
-
     }
+
 }

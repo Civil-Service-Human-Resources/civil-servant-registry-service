@@ -1,27 +1,26 @@
 package uk.gov.cshr.civilservant.service.identity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.util.HashSet;
+import java.util.Set;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class IdentityFromService {
 
   private String uid;
-
   private String username;
+  private Set<String> roles = new HashSet<>();
 
-  public String getUid() {
-    return uid;
-  }
-
-  public void setUid(String uid) {
-    this.uid = uid;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
+  @JsonIgnore
+  public String getEmailDomain() {
+    return username.split("@")[1];
   }
 
   @Override

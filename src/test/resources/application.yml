@@ -39,9 +39,9 @@ logging:
     com.zaxxer.hikari: INFO
 
 oauth:
-  clientId: ${CLIENT_ID:9fbd4ae2-2db3-44c7-9544-88e80255b56e}
-  clientSecret: ${CLIENT_SECRET:test}
-  serviceUrl: ${OAUTH_SERVICE_URL:http://localhost:8080}
+  clientId: client
+  clientSecret: test
+  serviceUrl: http://localhost:9000
   checkTokenEndpointUrl: "${oauth.serviceUrl}/oauth/check_token"
   tokenUrl: "${oauth.serviceUrl}/oauth/token"
   maxTotalConnections: 200
@@ -51,7 +51,9 @@ oauth:
 
 identity:
   identityAPIUrl: "${oauth.serviceUrl}/api/identities"
+  mapForUidsUrl: "${identity.identityAPIUrl}/map-for-uids"
   agencyTokenUrl: "${oauth.serviceUrl}/agency/{agencyTokenUid}"
+  removeReportingRolesUrl: "${identity.identityAPIUrl}/remove_reporting_roles"
   identityAgencyTokenUrl: "${oauth.serviceUrl}/api/identity/agency/"
 
 govNotify:

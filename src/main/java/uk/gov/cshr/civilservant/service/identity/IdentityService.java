@@ -1,12 +1,13 @@
 package uk.gov.cshr.civilservant.service.identity;
 
-import java.util.Objects;
-import java.util.Optional;
-
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,10 @@ import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.service.exception.UserNotFoundException;
 import uk.gov.cshr.civilservant.service.identity.model.AgencyTokenCapacityUsed;
+import uk.gov.cshr.civilservant.service.identity.model.BatchProcessResponse;
+import uk.gov.cshr.civilservant.service.identity.model.RemoveReportingAccessInput;
+
+import java.util.*;
 
 @Slf4j
 @Service
@@ -28,19 +33,51 @@ public class IdentityService {
     private OAuth2RestOperations restOperations;
 
     private String identityAPIUrl;
-
+    private final String mapForUidsUrl;
     private String identityAgencyTokenUrl;
+    private final String removeReportingAccessUrl;
 
     private final UriComponentsBuilder agencyTokenUrlBuilder;
 
     @Autowired
     public IdentityService(OAuth2RestOperations restOperations, @Value("${identity.identityAPIUrl}") String identityAPIUrl,
+                           @Value("${identity.mapForUidsUrl}") String mapForUidsUrl,
                            @Value("${identity.agencyTokenUrl}") String agencyTokenUrl,
-                           @Value("${identity.identityAgencyTokenUrl}") String identityAgencyTokenUrl) {
+                           @Value("${identity.identityAgencyTokenUrl}") String identityAgencyTokenUrl,
+                           @Value("${identity.removeReportingRolesUrl}") String removeReportingAccessUrl) {
         this.restOperations = restOperations;
         this.identityAPIUrl = identityAPIUrl;
+        this.mapForUidsUrl = mapForUidsUrl;
         this.identityAgencyTokenUrl = identityAgencyTokenUrl;
         this.agencyTokenUrlBuilder = UriComponentsBuilder.fromHttpUrl(agencyTokenUrl);
+        this.removeReportingAccessUrl = removeReportingAccessUrl;
+    }
+
+    public void removeReportingAccess(List<String> uids) {
+        log.info(String.format("Removing reporting access from %s users", uids.size()));
+        List<String> failedUids = new ArrayList<>();
+        Lists.partition(uids, 50).forEach(batch -> {
+           try {
+               RemoveReportingAccessInput batchObject = new RemoveReportingAccessInput(batch);
+               BatchProcessResponse resp = restOperations.postForObject(removeReportingAccessUrl, batchObject, BatchProcessResponse.class);
+               if (resp != null) {
+                   failedUids.addAll(resp.getFailedIds());
+                   if (!resp.getSuccessfulIds().isEmpty()) {
+                       log.info(String.format("Removed reporting access from the following users: %s", resp.getSuccessfulIds()));
+                   }
+                   if (!failedUids.isEmpty()) {
+                       log.error(String.format("Failed to remove admin access from the following users %s", failedUids));
+                       throw new RuntimeException(String.format("Failed to remove admin access from %s users", failedUids.size()));
+                   }
+               } else {
+                   log.error(String.format("Null response when removing admin access from uids: %s", batch));
+                   failedUids.addAll(batch);
+               }
+           } catch (HttpClientErrorException http) {
+               log.error(String.format("Error when removing admin access from uids: %s. %s", batch, http));
+               failedUids.addAll(batch);
+           }
+        });
     }
 
     public IdentityFromService findByEmail(String email) {
@@ -64,17 +101,35 @@ public class IdentityService {
         return identity;
     }
 
-    public String getEmailAddress(CivilServant civilServant) {
 
-        log.debug("Getting email address for civil servant {}", civilServant);
+    public Map<String, IdentityFromService> getIdentitiesMap(List<String> uids) {
+        List<String> failedUids = new ArrayList<>();
+        Map<String, IdentityFromService> uidsMap = new HashMap<>();
+        Lists.partition(uids, 50).forEach(batch -> {
+            String uidsBatchString = String.join(",", uids);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(mapForUidsUrl)
+                    .queryParam("uids", uidsBatchString);
+            RequestEntity<Void> req = new RequestEntity<>(HttpMethod.GET, builder.build().toUri());
+            Map<String, IdentityFromService> resp = restOperations.exchange(req, new ParameterizedTypeReference<Map<String, IdentityFromService>>() {}).getBody();
+            if (resp == null) {
+                log.error(String.format("Null response when removing admin access from uids: %s", batch));
+                failedUids.addAll(batch);
+            } else {
+                uidsMap.putAll(resp);
+            }
+        });
+        if (!failedUids.isEmpty()) {
+            log.error(String.format("Failed to get the following users: %s", failedUids));
+            throw new RuntimeException(String.format("Failed to get %s users", failedUids.size()));
+        }
+        return uidsMap;
+    }
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(identityAPIUrl)
-                .queryParam("uid", civilServant.getIdentity().getUid());
-
-        IdentityFromService identity;
-
+    public IdentityFromService getIdentityFromService(String uid) {
         try {
-            identity = restOperations.getForObject(builder.toUriString(), IdentityFromService.class);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(identityAPIUrl)
+                .queryParam("uid", uid);
+            return restOperations.getForObject(builder.toUriString(), IdentityFromService.class);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return null;
@@ -82,6 +137,12 @@ public class IdentityService {
             throw new UserNotFoundException(e);
         }
 
+    }
+
+    public String getEmailAddress(CivilServant civilServant) {
+
+        log.debug("Getting email address for civil servant {}", civilServant);
+        IdentityFromService identity = getIdentityFromService(civilServant.getIdentity().getUid());
         if (identity != null) {
             return identity.getUsername();
         }

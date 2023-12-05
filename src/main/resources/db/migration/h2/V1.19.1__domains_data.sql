@@ -8,4 +8,5 @@ INSERT INTO organisational_unit_domains (organisational_unit_id, domain_id) VALU
 (1, 3),
 (4, 2),
 (2, 1),
+(4, 1),
 (2, 3);

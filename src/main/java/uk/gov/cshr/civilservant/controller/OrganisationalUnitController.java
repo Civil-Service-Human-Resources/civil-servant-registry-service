@@ -129,6 +129,14 @@ public class OrganisationalUnitController {
         return organisationalUnitService.addDomainToOrganisation(organisationalUnitId, domainDto.getDomain());
     }
 
+    @DeleteMapping("/{organisationalUnitId}")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteOrganisation(@PathVariable Long organisationalUnitId) {
+        organisationalUnitService.deleteOrganisationalUnit(organisationalUnitId);
+    }
+
     @DeleteMapping("/{organisationalUnitId}/domains/{domainId}")
     @PreAuthorize("isAuthenticated()")
     @ResponseBody
