@@ -50,7 +50,7 @@ public class CivilServantService {
                 return cs;
         }
         String uid = cs.getIdentity().getUid();
-        IdentityDTO identity = identityService.getIdentityFromService(uid);
+        IdentityDTO identity = identityService.getidentity(uid);
         if (identity != null) {
             OrganisationalUnit organisationalUnit = organisationalUnitRepository.findById(organisationalUnitId)
                     .orElseThrow(() -> new OrganisationalUnitNotFoundException(organisationalUnitId));

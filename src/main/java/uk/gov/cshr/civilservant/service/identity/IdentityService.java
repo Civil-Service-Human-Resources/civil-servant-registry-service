@@ -125,7 +125,7 @@ public class IdentityService {
         return uidsMap;
     }
 
-    public IdentityDTO getIdentityFromService(String uid) {
+    public IdentityDTO getidentity(String uid) {
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(identityAPIUrl)
                 .queryParam("uid", uid);
@@ -142,7 +142,7 @@ public class IdentityService {
     public String getEmailAddress(CivilServant civilServant) {
 
         log.debug("Getting email address for civil servant {}", civilServant);
-        IdentityDTO identity = getIdentityFromService(civilServant.getIdentity().getUid());
+        IdentityDTO identity = getidentity(civilServant.getIdentity().getUid());
         if (identity != null) {
             return identity.getUsername();
         }
