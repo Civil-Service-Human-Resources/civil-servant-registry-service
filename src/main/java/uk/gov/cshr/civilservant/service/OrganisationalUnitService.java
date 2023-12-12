@@ -141,15 +141,6 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         return organisationalUnits;
     }
 
-    public void deleteOrganisationalUnit(Long organisatonalUnitId) {
-        OrganisationalUnit organisationalUnit = repository.findById(organisatonalUnitId).orElseThrow(() -> new OrganisationalUnitNotFoundException(organisatonalUnitId));
-        List<OrganisationalUnit> list = organisationalUnit.getHierarchyAsFlatList();
-        List<String> affectedUids = list.stream()
-                .map(OrganisationalUnit::getCivilServants).flatMap(List::stream)
-                .map(cs -> cs.getIdentity().getUid()).collect(Collectors.toList());
-        identityService.removeReportingAccess(affectedUids);
-    }
-
     public OrganisationalUnit setAgencyToken(OrganisationalUnit organisationalUnit, AgencyToken agencyToken) {
         if (organisationalUnit.getAgencyToken() != null) {
             throw new TokenAlreadyExistsException(organisationalUnit.getId().toString());
