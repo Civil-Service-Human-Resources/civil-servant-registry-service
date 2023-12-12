@@ -54,7 +54,7 @@ oauth:
 
 identity:
   identityAPIUrl: "${oauth.serviceUrl}/api/identities"
-  mapForUidsUrl: "${oauth.identityAPIUrl}/map-for-uids"
+  mapForUidsUrl: "${identity.identityAPIUrl}/map-for-uids"
   removeReportingRolesUrl: "${identity.identityAPIUrl}/remove-reporting-roles"
   agencyTokenUrl: "${oauth.serviceUrl}/agency/{agencyTokenUid}"
   identityAgencyTokenUrl: "${oauth.serviceUrl}/api/identity/agency/"
