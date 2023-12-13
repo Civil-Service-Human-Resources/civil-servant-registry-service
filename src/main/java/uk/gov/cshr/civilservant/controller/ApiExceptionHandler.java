@@ -56,7 +56,7 @@ public class ApiExceptionHandler {
   protected ResponseEntity<ErrorDto> handleAlreadyExistsException(CodedHttpException e) {
     LOGGER.error("HTTP exception ", e);
     ErrorDto error =
-            errorDtoFactory.create(Collections.singletonList(e.getApiCode().getCode().getDescription()), e.getApiCode());
+            errorDtoFactory.create(Collections.singletonList(e.getMessage()), e.getApiCode());
     return ResponseEntity.status(error.getStatus()).body(error);
   }
 }
