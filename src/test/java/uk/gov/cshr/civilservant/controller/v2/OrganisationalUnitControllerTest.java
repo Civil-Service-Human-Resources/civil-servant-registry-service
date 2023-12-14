@@ -36,7 +36,8 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
                 .andExpect(jsonPath("name").value("DH Core"))
                 .andExpect(jsonPath("code").value("D21"))
                 .andExpect(jsonPath("abbreviation").value("DHC"))
-                .andExpect(jsonPath("domains[0].domain").value("some-domain.com"));
+                .andExpect(jsonPath("domains[0].domain").value("cabinetoffice.gov.uk"))
+                .andExpect(jsonPath("domains[1].domain").value("some-domain.com"));
     }
 
     @Test
@@ -52,7 +53,8 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
                 .andExpect(jsonPath("name").value("DH Core"))
                 .andExpect(jsonPath("code").value("D21"))
                 .andExpect(jsonPath("abbreviation").value("DHC"))
-                .andExpect(jsonPath("domains[0].domain").value("some-domain.com"))
+                .andExpect(jsonPath("domains[0].domain").value("cabinetoffice.gov.uk"))
+                .andExpect(jsonPath("domains[1].domain").value("some-domain.com"))
                 .andExpect(jsonPath("parent.domains[0].domain").value("another-domain.co.uk"))
                 .andExpect(jsonPath("parent.domains[1].domain").value("cabinetoffice.gov.uk"));
     }

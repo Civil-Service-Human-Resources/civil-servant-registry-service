@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class UpdateOrganisationDTO {
-    private String organisation;
+    private Long organisationalUnitId;
 }
