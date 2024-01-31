@@ -1,3 +1,8 @@
+database:
+  host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
+  name: ${DATABASE_NAME:identity}
+  use-ssl: ${DATABASE_USESSL:false}
+  
 spring:
   rest:
       detection-strategy: annotated
@@ -18,10 +23,6 @@ spring:
         dialect: uk.gov.cshr.civilservant.config.CustomMySqlDialect
         show_sql: false
         format_sql: false
-  database:
-    host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
-    name: ${DATABASE_NAME:identity}
-    use-ssl: ${DATABASE_USESSL:false}
   datasource:
     url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
     username: ${DATASOURCE_USERNAME:username}
