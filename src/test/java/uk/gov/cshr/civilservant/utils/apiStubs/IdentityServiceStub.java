@@ -6,7 +6,6 @@ import uk.gov.cshr.civilservant.service.identity.model.BatchProcessResponse;
 import uk.gov.cshr.civilservant.service.identity.model.RemoveReportingAccessInput;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static uk.gov.cshr.civilservant.utils.JsonUtils.asJsonString;
@@ -53,15 +52,4 @@ public class IdentityServiceStub {
         );
     }
 
-    public static void stubGetIdentitiesMap(List<String> uids, Map<String, IdentityDTO> response) {
-        String uidsBatchString = String.join(",", uids);
-        stubFor(
-                WireMock.get(urlPathEqualTo("/api/identities/map-for-uids"))
-                        .withHeader("Authorization", equalTo("Bearer " + token))
-                        .withQueryParam("uids", equalTo(uidsBatchString))
-                        .willReturn(aResponse()
-                                .withHeader("Content-Type", "application/json")
-                                .withBody(asJsonString(response)))
-        );
-    }
 }
