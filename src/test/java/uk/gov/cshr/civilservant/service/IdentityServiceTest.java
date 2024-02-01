@@ -70,7 +70,7 @@ public class IdentityServiceTest {
     @Before
     public void setup() {
         initMocks(this);
-        identityService = new IdentityService(restOperations, IDENTITY_API_URL, MAP_FOR_UIDS_URL, AGENCY_TOKEN_URL,
+        identityService = new IdentityService(restOperations, IDENTITY_API_URL, AGENCY_TOKEN_URL,
                 IDENTITY_AGENCY_TOKEN_URL, REMOVE_REPORTING_ACCESS_URL);
     }
 

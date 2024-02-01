@@ -16,6 +16,7 @@ import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,6 +40,20 @@ public class CivilServantService {
             return cs.getIdentity().getUid();
         }
         throw new CivilServantNotFoundException();
+    }
+
+    public Optional<CivilServant> performLogin(IdentityDTO identity) {
+        return civilServantRepository.findByPrincipal()
+            .map(cs -> {
+                String csDomain = identity.getEmailDomain();
+                cs.getOrganisationalUnit().ifPresent(o -> {
+                    if(!o.doesDomainExist(csDomain)) {
+                        cs.setOrganisationalUnit(null);
+                        civilServantRepository.saveAndFlush(cs);
+                    }
+                });
+                return cs;
+            });
     }
 
     public CivilServant updateMyOrganisationalUnit(Long organisationalUnitId) {
