@@ -1,6 +1,6 @@
 database:
   host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
-  name: ${DATABASE_NAME:identity}
+  name: ${DATABASE_NAME:csrs}
   use-ssl: ${DATABASE_USESSL:false}
   
 spring:
