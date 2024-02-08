@@ -1,10 +1,5 @@
 package uk.gov.cshr.civilservant.service;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -13,8 +8,15 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.cshr.civilservant.domain.CivilServant;
 import uk.gov.cshr.civilservant.domain.Identity;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class LineManagerServiceTest {
@@ -29,7 +31,7 @@ public class LineManagerServiceTest {
 
   @Test
   public void shouldFindExistingIdentity() {
-    when(identityService.findByEmail("learner@domain.com")).thenReturn(new IdentityFromService());
+    when(identityService.findByEmail("learner@domain.com")).thenReturn(new IdentityDTO());
     assertNotNull(lineManagerService.checkLineManager("learner@domain.com"));
   }
 
@@ -39,22 +41,34 @@ public class LineManagerServiceTest {
   }
 
   @Test
-  public void shouldNotifyLineManager() throws Exception {
+  public void testLineManagerServiceShouldNotifyTheLineManagerWhenNotifyLineManagerIsCalled() throws Exception {
+    String learnerName = "Learner Name";
+    String learnerEmail = "learner.name@domain.com";
+    String lineManagerName = "Linemanager Name";
+    String lineManagerEmail = "linemanager.name@domain.com";
 
     final Identity learnerIdentity = new Identity("uid");
     final CivilServant learner = new CivilServant(learnerIdentity);
-    learner.setFullName("learner");
+    learner.setFullName(learnerName);
+
+    when(identityService.getEmailAddress(learner)).thenReturn(learnerEmail);
 
     final Identity managerIdentity = new Identity("mid");
     final CivilServant manager = new CivilServant(managerIdentity);
-    manager.setFullName("fullName");
+    manager.setFullName(lineManagerName);
 
-    final IdentityFromService lineManager = new IdentityFromService();
+    final IdentityDTO lineManager = new IdentityDTO();
     lineManager.setUid(managerIdentity.getUid());
-    lineManager.setUsername("manager@domain.com");
+    lineManager.setUsername(lineManagerEmail);
 
-    lineManagerService.notifyLineManager(learner, manager, "manager@domain.com");
+    HashMap<String, String> expectedPersonalisation = new HashMap<>();
+    expectedPersonalisation.put("lineManagerName", lineManagerName);
+    expectedPersonalisation.put("learnerName", learnerName);
+    expectedPersonalisation.put("learnerEmailAddress", learnerEmail);
 
-    verify(notifyService).notify("manager@domain.com", null, "fullName", "learner");
+    lineManagerService.notifyLineManager(learner, manager, lineManagerEmail);
+
+    verify(notifyService).notify(lineManagerEmail, null, expectedPersonalisation);
   }
+
 }

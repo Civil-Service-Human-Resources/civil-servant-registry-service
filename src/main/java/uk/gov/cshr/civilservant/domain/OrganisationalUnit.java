@@ -38,6 +38,9 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     @Column(nullable = false)
     private LocalDateTime updatedTimestamp;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "organisationalUnit")
+    private List<CivilServant> civilServants;
+
     public OrganisationalUnit(OrganisationalUnit organisationalUnit) {
         this.id = organisationalUnit.getId();
         this.code = organisationalUnit.getCode();
@@ -48,6 +51,7 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
         this.setPaymentMethods(organisationalUnit.getPaymentMethods());
         this.agencyToken = organisationalUnit.agencyToken;
         this.domains = organisationalUnit.getDomains();
+        this.civilServants = organisationalUnit.getCivilServants();
         this.createdTimestamp = organisationalUnit.getCreatedTimestamp();
         this.updatedTimestamp = organisationalUnit.getUpdatedTimestamp();
     }
@@ -179,5 +183,10 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     @JsonIgnore
     public boolean doesDomainExist(String domain) {
         return this.domains.stream().anyMatch(d -> d.getDomain().equals(domain));
+    }
+
+    @JsonIgnore
+    public List<CivilServant> getCivilServants() {
+        return this.civilServants;
     }
 }

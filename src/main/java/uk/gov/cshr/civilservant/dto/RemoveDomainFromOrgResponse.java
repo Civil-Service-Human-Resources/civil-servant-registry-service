@@ -2,19 +2,24 @@ package uk.gov.cshr.civilservant.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
 public class RemoveDomainFromOrgResponse {
     Long primaryOrganisationId;
     DomainDto domain;
-    List<Long> updatedChildOrganisationIds = Collections.emptyList();
+    List<Long> updatedChildOrganisationIds;
 
-    public RemoveDomainFromOrgResponse(Long primaryOrganisationId, DomainDto domain) {
-        this.primaryOrganisationId = primaryOrganisationId;
-        this.domain = domain;
+    public static RemoveDomainFromOrgResponse fromBulkUpdate(Long primaryOrganisationId, DomainDto domain,
+                                                             BulkUpdate<OrganisationalUnit> bulkUpdate) {
+        return new RemoveDomainFromOrgResponse(primaryOrganisationId, domain, bulkUpdate
+                .getUpdatedIds()
+                .stream().filter(id -> !Objects.equals(id, primaryOrganisationId))
+                .collect(Collectors.toList()));
     }
 }

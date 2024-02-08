@@ -600,7 +600,7 @@ public class OrganisationalUnitServiceTest {
         orgUnit3.setId(3L);
         List<OrganisationalUnit> orgs = Arrays.asList(orgUnit, orgUnit2, orgUnit3);
 
-        BulkUpdate resp = organisationalUnitService.bulkAddDomainToOrganisations(orgs, domain);
+        BulkUpdate<OrganisationalUnit> resp = organisationalUnitService.bulkAddDomainToOrganisations(orgs, domain);
         assertEquals(resp.getSkippedIds().size(), 1);
         assertEquals(resp.getUpdatedIds().size(), 2);
         assertEquals(2L, resp.getSkippedIds().get(0).longValue());

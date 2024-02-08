@@ -1,18 +1,6 @@
 package uk.gov.cshr.civilservant.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.cshr.civilservant.domain.CivilServant;
-import uk.gov.cshr.civilservant.repository.CivilServantRepository;
-import uk.gov.cshr.civilservant.resource.CivilServantResource;
-import uk.gov.cshr.civilservant.resource.factory.CivilServantResourceFactory;
-import uk.gov.cshr.civilservant.service.LineManagerService;
-import uk.gov.cshr.civilservant.service.identity.IdentityFromService;
-
 import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.data.rest.webmvc.RepositoryLinksResource;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
@@ -21,15 +9,25 @@ import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.ResourceProcessor;
 import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import uk.gov.cshr.civilservant.domain.CivilServant;
+import uk.gov.cshr.civilservant.dto.UpdateOrganisationDTO;
+import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
+import uk.gov.cshr.civilservant.repository.CivilServantRepository;
+import uk.gov.cshr.civilservant.resource.CivilServantResource;
+import uk.gov.cshr.civilservant.resource.factory.CivilServantResourceFactory;
+import uk.gov.cshr.civilservant.service.CivilServantService;
+import uk.gov.cshr.civilservant.service.LineManagerService;
+import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RepositoryRestController
@@ -40,16 +38,18 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
     private final LineManagerService lineManagerService;
 
     private final CivilServantRepository civilServantRepository;
+    private final CivilServantService civilServantService;
 
     private final RepositoryEntityLinks repositoryEntityLinks;
 
     private final CivilServantResourceFactory civilServantResourceFactory;
 
     public CivilServantController(LineManagerService lineManagerService, CivilServantRepository civilServantRepository,
-                                  RepositoryEntityLinks repositoryEntityLinks,
+                                  CivilServantService civilServantService, RepositoryEntityLinks repositoryEntityLinks,
                                   CivilServantResourceFactory civilServantResourceFactory) {
         this.lineManagerService = lineManagerService;
         this.civilServantRepository = civilServantRepository;
+        this.civilServantService = civilServantService;
         this.repositoryEntityLinks = repositoryEntityLinks;
         this.civilServantResourceFactory = civilServantResourceFactory;
     }
@@ -73,6 +73,15 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PatchMapping("/me/organisationalUnit")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseBody
+    public Resource<CivilServantResource> patchOrganisation(@RequestBody UpdateOrganisationDTO updateOrganisationDTO) {
+        log.debug("Updating organisational unit for logged in user");
+        CivilServant cs = civilServantService.updateMyOrganisationalUnit(updateOrganisationDTO.getOrganisationalUnitId());
+        return civilServantResourceFactory.create(cs);
+    }
+
     @PatchMapping("/manager")
     @PreAuthorize("isAuthenticated()")
     @Transactional
@@ -82,7 +91,7 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
 
         if (optionalCivilServant.isPresent()) {
 
-            IdentityFromService lineManagerIdentity = lineManagerService.checkLineManager(email);
+            IdentityDTO lineManagerIdentity = lineManagerService.checkLineManager(email);
             if (lineManagerIdentity == null) {
                 log.debug("Line manager email address not found in identity-service.");
                 return ResponseEntity.notFound().build();
@@ -118,6 +127,17 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
         civilServantRepository.findByIdentity(uid).ifPresent(civilServant -> civilServantRepository.delete(civilServant));
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/resource/{uid}/remove_organisation")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public void removeOrganisation(@PathVariable("uid") String uid) {
+        log.info(String.format("Removing organisational unit for user %s", uid));
+        CivilServant cs = civilServantRepository.findByIdentity(uid).orElseThrow(CivilServantNotFoundException::new);
+        cs.setOrganisationalUnit(null);
+        civilServantRepository.saveAndFlush(cs);
     }
 
     @GetMapping("/resource/{uid}")
