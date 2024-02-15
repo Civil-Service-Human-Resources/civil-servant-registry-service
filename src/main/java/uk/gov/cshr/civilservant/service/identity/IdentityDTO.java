@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 @Data
@@ -20,7 +21,7 @@ public class IdentityDTO {
 
   @JsonIgnore
   public String getEmailDomain() {
-    return username.split("@")[1];
+    return username.split("@")[1].toLowerCase(Locale.ROOT);
   }
 
   @Override
