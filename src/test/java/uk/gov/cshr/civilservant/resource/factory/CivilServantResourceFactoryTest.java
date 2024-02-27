@@ -82,7 +82,8 @@ public class CivilServantResourceFactoryTest {
         assertTrue(resource.getLinks().contains(professionLink));
 
         assertEquals(fullName, content.getFullName());
-        assertEquals(grade, content.getGrade());
+        assertEquals(grade.getCode(), content.getGrade().getCode());
+        assertEquals(grade.getName(), content.getGrade().getName());
         assertEquals(interests, content.getInterests());
         assertEquals(lineManagerName, content.getLineManagerName());
         assertEquals(lineManagerEmail, content.getLineManagerEmailAddress());
