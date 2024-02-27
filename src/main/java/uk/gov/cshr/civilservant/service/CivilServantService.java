@@ -75,8 +75,6 @@ public class CivilServantService {
                 boolean valid = organisationalUnitService.isDomainValidForOrganisation(organisationalUnitId, userDomain);
                 if (valid) {
                     cs.setOrganisationalUnit(organisationalUnit);
-                    log.info("User is not an unrestricted organisaton user; removing user's admin roles");
-                    identityService.removeReportingAccess(Collections.singletonList(uid));
                 } else {
                     throw new InvalidUserOrganisationException(String.format("User domain '%s' does not exist on organisation '%s' or any associated agency tokens",
                         userDomain, organisationalUnitId));
