@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.civilservant.domain.CivilServant;
+import uk.gov.cshr.civilservant.dto.CivilServantProfileDto;
 import uk.gov.cshr.civilservant.dto.UpdateOrganisationDTO;
 import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
@@ -155,6 +156,14 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
         return civilServantRepository.findByIdentity(uid).map(
                 civilServant -> ResponseEntity.ok(civilServantResourceFactory.create(civilServant)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/resource/{uid}/profile")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public CivilServantProfileDto getFullProfileByUid(@PathVariable("uid") String uid) {
+        return civilServantService.getFullProfile(uid);
     }
 
     @GetMapping("/organisation/{code}")
