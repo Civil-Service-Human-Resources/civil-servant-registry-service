@@ -13,7 +13,7 @@ public class CivilServantProfileDto {
     private String uid;
     private GradeDto grade;
     private ProfessionDto profession;
-    private OrganisationalUnitDto organisationalUnitDto;
+    private OrganisationalUnitDto organisationalUnit;
     private Collection<String> departmentHierarchy;
 
 }
