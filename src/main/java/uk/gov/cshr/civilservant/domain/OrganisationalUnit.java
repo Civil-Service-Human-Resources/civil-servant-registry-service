@@ -181,8 +181,19 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     }
 
     @JsonIgnore
-    public boolean doesDomainExist(String domain) {
+    public boolean doesDomainExistInAgencyToken(String domain) {
+        return this.agencyToken != null && this.agencyToken.getAgencyDomains().stream().map(AgencyDomain::getDomain)
+                .anyMatch(d -> d.equals(domain));
+    }
+
+    @JsonIgnore
+    public boolean doesDomainExistInLinkedDomains(String domain) {
         return this.domains.stream().anyMatch(d -> d.getDomain().equals(domain));
+    }
+
+    @JsonIgnore
+    public boolean doesDomainExist(String domain) {
+        return doesDomainExistInLinkedDomains(domain) || doesDomainExistInAgencyToken(domain);
     }
 
     @JsonIgnore
