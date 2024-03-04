@@ -7,14 +7,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.cshr.civilservant.domain.AgencyDomain;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -33,6 +31,46 @@ public class OrganisationalUnitRepositoryTest {
 
     @Autowired
     private AgencyTokenRepository agencyTokenRepository;
+
+    @Test
+    public void shouldGetOrganisationalUnitsWithDomain() {
+        Domain d = domainRepository.save(new Domain("test-find-by-domain.com"));
+        OrganisationalUnit org = new OrganisationalUnit();
+        org.setCode("org");
+        org.setName("org");
+        org.addDomain(d);
+        repository.saveAndFlush(org);
+        OrganisationalUnit org2 = new OrganisationalUnit();
+        org2.setCode("org2");
+        org2.setName("org2");
+        org2.addDomain(d);
+        repository.saveAndFlush(org2);
+
+        List<OrganisationalUnit> result = repository.findByDomain("test-find-by-domain.com");
+        assertEquals(2, result.size());
+        assertEquals("org", result.get(0).getCode());
+        assertEquals("org2", result.get(1).getCode());
+    }
+
+    @Test
+    public void shouldGetOrganisationalUnitsWithAgencyDomain() {
+        AgencyDomain ad = new AgencyDomain("agency-domain.com");
+        OrganisationalUnit org = new OrganisationalUnit();
+        org.setCode("org");
+        org.setName("org");
+        org.setAgencyToken(new AgencyToken("token","uid", 10, Collections.singleton(ad)));
+        repository.saveAndFlush(org);
+        OrganisationalUnit org2 = new OrganisationalUnit();
+        org2.setCode("org2");
+        org2.setName("org2");
+        org2.setAgencyToken(new AgencyToken("token2","uid2", 10, Collections.singleton(ad)));
+        repository.saveAndFlush(org2);
+
+        List<OrganisationalUnit> result = repository.findByAgencyDomain("agency-domain.com");
+        assertEquals(2, result.size());
+        assertEquals("org", result.get(0).getCode());
+        assertEquals("org2", result.get(1).getCode());
+    }
 
     @Test
     public void shouldDeleteDomainsInManyToManyRelationshipOnDelete() {
