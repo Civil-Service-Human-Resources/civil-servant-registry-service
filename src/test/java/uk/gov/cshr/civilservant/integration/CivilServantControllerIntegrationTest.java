@@ -59,7 +59,7 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
                                 .with(authentication(learner))
                                 .content("{\"organisationalUnitId\": 1}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors[0]", equalTo("User domain 'domain.com' does not exist on organisation '1', valid domains are: Linked domains: [another-domain.co.uk, cabinetoffice.gov.uk] | Agency domains: [mydomain.com, example.com]")))
+                .andExpect(jsonPath("$.errors[0]", equalTo("User domain 'domain.com' does not exist on organisation '1' or any associated agency tokens")))
                 .andExpect(jsonPath("$.apiErrorCode.code", equalTo("CS001")))
                 .andExpect(jsonPath("$.apiErrorCode.description", equalTo("Civil servant email domain does not match organisation")));
 
