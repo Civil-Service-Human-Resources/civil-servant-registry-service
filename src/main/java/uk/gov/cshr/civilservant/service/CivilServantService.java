@@ -9,6 +9,7 @@ import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
 import uk.gov.cshr.civilservant.exception.UserNotFoundException;
 import uk.gov.cshr.civilservant.exception.civilServant.InvalidUserOrganisationException;
 import uk.gov.cshr.civilservant.exception.organisationalUnit.OrganisationalUnitNotFoundException;
+import uk.gov.cshr.civilservant.repository.AgencyTokenRepository;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
@@ -25,6 +26,7 @@ public class CivilServantService {
     private final CivilServantRepository civilServantRepository;
     private final IdentityService identityService;
     private final OrganisationalUnitService organisationalUnitService;
+    private final AgencyTokenRepository agencyTokenRepository;
 
     public String getCivilServantUid() {
         CivilServant cs = civilServantRepository.findByPrincipal()
@@ -39,12 +41,14 @@ public class CivilServantService {
         return civilServantRepository.findByPrincipal()
             .map(cs -> {
                 String csDomain = identity.getEmailDomain();
-                cs.getOrganisationalUnit().ifPresent(o -> {
-                    if(!o.doesDomainExist(csDomain)) {
-                        cs.setOrganisationalUnit(null);
-                        civilServantRepository.saveAndFlush(cs);
-                    }
-                });
+                if (!agencyTokenRepository.existsByDomain(csDomain)) {
+                    cs.getOrganisationalUnit().ifPresent(o -> {
+                        if(!o.doesDomainExist(csDomain)) {
+                            cs.setOrganisationalUnit(null);
+                            civilServantRepository.saveAndFlush(cs);
+                        }
+                    });
+                }
                 return cs;
             });
     }

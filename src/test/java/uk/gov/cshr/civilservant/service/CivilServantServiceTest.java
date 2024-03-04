@@ -12,6 +12,7 @@ import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.Identity;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
+import uk.gov.cshr.civilservant.repository.AgencyTokenRepository;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 
@@ -29,6 +30,8 @@ public class CivilServantServiceTest {
 
     @Mock
     private CivilServantRepository civilServantRepository;
+    @Mock
+    private AgencyTokenRepository agencyTokenRepository;
 
     @InjectMocks
     private CivilServantService classUnderTest;
@@ -38,6 +41,7 @@ public class CivilServantServiceTest {
 
     @Test
     public void shouldPerformCsrsLoginCheckAndDeleteOrganisation() {
+        when(agencyTokenRepository.existsByDomain("civil-service.gov.uk")).thenReturn(false);
         IdentityDTO dto = new IdentityDTO("1", "CS@cs.gov.uk", Collections.singleton("ROLE"));
         OrganisationalUnit ou = new OrganisationalUnit();
         Domain domain = new Domain("civil-service.gov.uk");
