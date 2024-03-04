@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit> {
@@ -181,19 +182,37 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
     }
 
     @JsonIgnore
+    public Collection<String> getAgencyDomains() {
+        Collection<String> domains = Collections.emptyList();
+        if (this.agencyToken != null) {
+            domains = this.agencyToken.getAgencyDomains().stream().map(AgencyDomain::getDomain).collect(Collectors.toList());
+        }
+        return domains;
+    }
+
+    @JsonIgnore
+    public Collection<String> getDomainStrings() {
+        return this.domains.stream().map(Domain::getDomain).collect(Collectors.toList());
+    }
+
+    @JsonIgnore
     public boolean doesDomainExistInAgencyToken(String domain) {
-        return this.agencyToken != null && this.agencyToken.getAgencyDomains().stream().map(AgencyDomain::getDomain)
-                .anyMatch(d -> d.equals(domain));
+        return getAgencyDomains().contains(domain);
     }
 
     @JsonIgnore
     public boolean doesDomainExistInLinkedDomains(String domain) {
-        return this.domains.stream().anyMatch(d -> d.getDomain().equals(domain));
+        return getDomainStrings().contains(domain);
     }
 
     @JsonIgnore
     public boolean doesDomainExist(String domain) {
         return doesDomainExistInLinkedDomains(domain) || doesDomainExistInAgencyToken(domain);
+    }
+
+    @JsonIgnore
+    public String getValidDomainsString() {
+        return String.format("Linked domains: %s | Agency domains: %s", getDomainStrings(), getAgencyDomains());
     }
 
     @JsonIgnore

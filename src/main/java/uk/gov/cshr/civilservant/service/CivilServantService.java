@@ -3,7 +3,6 @@ package uk.gov.cshr.civilservant.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.civilservant.domain.CivilServant;
-import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
 import uk.gov.cshr.civilservant.exception.UserNotFoundException;
@@ -17,7 +16,6 @@ import uk.gov.cshr.civilservant.service.identity.IdentityService;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -79,7 +77,7 @@ public class CivilServantService {
                 identityService.removeReportingAccess(Collections.singletonList(uid));
             } else {
                 throw new InvalidUserOrganisationException(String.format("User domain '%s' does not exist on organisation '%s', valid domains are: %s",
-                        userDomain, organisationalUnitId, organisationalUnit.getDomains().stream().map(Domain::getDomain).collect(Collectors.toList())));
+                        userDomain, organisationalUnitId, organisationalUnit.getValidDomainsString()));
             }
             civilServantRepository.saveAndFlush(cs);
         } else {
