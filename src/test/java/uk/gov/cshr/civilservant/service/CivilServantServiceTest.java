@@ -41,7 +41,6 @@ public class CivilServantServiceTest {
 
     @Test
     public void shouldPerformCsrsLoginCheckAndDeleteOrganisation() {
-        when(agencyTokenRepository.existsByDomain("civil-service.gov.uk")).thenReturn(false);
         IdentityDTO dto = new IdentityDTO("1", "CS@cs.gov.uk", Collections.singleton("ROLE"));
         OrganisationalUnit ou = new OrganisationalUnit();
         Domain domain = new Domain("civil-service.gov.uk");
