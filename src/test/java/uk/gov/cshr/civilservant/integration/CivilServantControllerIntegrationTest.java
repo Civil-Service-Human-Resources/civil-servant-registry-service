@@ -85,6 +85,25 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void shouldUpdateRestrictedCivilServantsOrganisationCaseInsensitive() throws Exception {
+        stubPostClientToken();
+        stubGetIdentityWithUid("learner", new IdentityDTO(
+                "learner", "learner@CABINETOFFICE.gov.uk", new HashSet<>(Collections.singletonList("LEARNER"))
+        ));
+        stubPostRemoveReportingAccess(Collections.singletonList("learner"),
+                new BatchProcessResponse(Collections.singletonList("learner"), Collections.emptyList()));
+        mockMvc.perform(
+                        patch("/civilServants/me/organisationalUnit")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .with(authentication(learner))
+                                .content("{\"organisationalUnitId\": 2}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.organisationalUnit.id", equalTo(2)));
+
+    }
+
+    @Test
     public void shouldUpdateRestrictedCivilServantsAgencyOrganisation() throws Exception {
         stubPostClientToken();
         stubGetIdentityWithUid("learner", new IdentityDTO(
