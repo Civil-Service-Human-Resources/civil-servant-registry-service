@@ -29,7 +29,6 @@ public class CivilServantService {
     private final IdentityService identityService;
     private final OrganisationalUnitService organisationalUnitService;
     private final AgencyTokenRepository agencyTokenRepository;
-    private final OrganisationalUnitRepository organisationalUnitRepository;
     private final CivilServantProfileDtoFactory civilServantProfileDtoFactory;
 
     public String getCivilServantUid() {
