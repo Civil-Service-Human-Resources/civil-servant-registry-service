@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.civilservant.domain.CivilServant;
-import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.CivilServantProfileDto;
 import uk.gov.cshr.civilservant.dto.factory.CivilServantProfileDtoFactory;
@@ -12,15 +11,14 @@ import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
 import uk.gov.cshr.civilservant.exception.UserNotFoundException;
 import uk.gov.cshr.civilservant.exception.civilServant.InvalidUserOrganisationException;
 import uk.gov.cshr.civilservant.exception.organisationalUnit.OrganisationalUnitNotFoundException;
+import uk.gov.cshr.civilservant.repository.AgencyTokenRepository;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
-import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -29,6 +27,8 @@ public class CivilServantService {
 
     private final CivilServantRepository civilServantRepository;
     private final IdentityService identityService;
+    private final OrganisationalUnitService organisationalUnitService;
+    private final AgencyTokenRepository agencyTokenRepository;
     private final OrganisationalUnitRepository organisationalUnitRepository;
     private final CivilServantProfileDtoFactory civilServantProfileDtoFactory;
 
@@ -45,12 +45,14 @@ public class CivilServantService {
         return civilServantRepository.findByPrincipal()
             .map(cs -> {
                 String csDomain = identity.getEmailDomain();
-                cs.getOrganisationalUnit().ifPresent(o -> {
-                    if(!o.doesDomainExist(csDomain)) {
-                        cs.setOrganisationalUnit(null);
-                        civilServantRepository.saveAndFlush(cs);
-                    }
-                });
+                if (!agencyTokenRepository.existsByDomain(csDomain)) {
+                    cs.getOrganisationalUnit().ifPresent(o -> {
+                        if(!o.doesDomainExist(csDomain)) {
+                            cs.setOrganisationalUnit(null);
+                            civilServantRepository.saveAndFlush(cs);
+                        }
+                    });
+                }
                 return cs;
             });
     }
@@ -72,19 +74,23 @@ public class CivilServantService {
         String uid = cs.getIdentity().getUid();
         IdentityDTO identity = identityService.getidentity(uid);
         if (identity != null) {
-            OrganisationalUnit organisationalUnit = organisationalUnitRepository.findById(organisationalUnitId)
+            OrganisationalUnit organisationalUnit = organisationalUnitService.getOrganisationalUnit(organisationalUnitId)
                     .orElseThrow(() -> new OrganisationalUnitNotFoundException(organisationalUnitId));
-            String userDomain = identity.getEmailDomain();
             if (identity.getRoles().contains("UNRESTRICTED_ORGANISATION")) {
                 log.info("User is an unrestricted organisaton user");
                 cs.setOrganisationalUnit(organisationalUnit);
-            } else if (organisationalUnit.doesDomainExist(userDomain)) {
-                cs.setOrganisationalUnit(organisationalUnit);
-                log.info("User is not an unrestricted organisaton user; removing user's admin roles");
-                identityService.removeReportingAccess(Collections.singletonList(uid));
             } else {
-                throw new InvalidUserOrganisationException(String.format("User domain '%s' does not exist on organisation '%s', valid domains are: %s",
-                        userDomain, organisationalUnitId, organisationalUnit.getDomains().stream().map(Domain::getDomain).collect(Collectors.toList())));
+                String userDomain = identity.getEmailDomain();
+                log.info("Checking domain against organisations");
+                boolean valid = organisationalUnitService.isDomainValidForOrganisation(organisationalUnitId, userDomain);
+                if (valid) {
+                    cs.setOrganisationalUnit(organisationalUnit);
+                    log.info("User is not an unrestricted organisaton user; removing user's admin roles");
+                    identityService.removeReportingAccess(Collections.singletonList(uid));
+                } else {
+                    throw new InvalidUserOrganisationException(String.format("User domain '%s' does not exist on organisation '%s' or any associated agency tokens",
+                        userDomain, organisationalUnitId));
+                }
             }
             civilServantRepository.saveAndFlush(cs);
         } else {
@@ -93,5 +99,4 @@ public class CivilServantService {
         }
         return cs;
     }
-
 }

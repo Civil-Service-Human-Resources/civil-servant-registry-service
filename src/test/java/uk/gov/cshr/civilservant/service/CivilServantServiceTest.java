@@ -12,6 +12,7 @@ import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.Identity;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
+import uk.gov.cshr.civilservant.repository.AgencyTokenRepository;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 
@@ -29,6 +30,8 @@ public class CivilServantServiceTest {
 
     @Mock
     private CivilServantRepository civilServantRepository;
+    @Mock
+    private AgencyTokenRepository agencyTokenRepository;
 
     @InjectMocks
     private CivilServantService classUnderTest;

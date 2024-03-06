@@ -41,5 +41,17 @@ public interface OrganisationalUnitRepository extends SelfReferencingEntityRepos
     @Override
     List<OrganisationalUnit> findAll();
 
+    @Query("select ou " +
+            "from OrganisationalUnit ou " +
+            "join ou.domains d " +
+            "where d.domain = ?1")
+    List<OrganisationalUnit> findByDomain(String domain);
+
+    @Query("select ou " +
+            "from OrganisationalUnit ou " +
+            "join ou.agencyToken.agencyDomains d " +
+            "where d.domain = ?1")
+    List<OrganisationalUnit> findByAgencyDomain(String domain);
+
     Page<OrganisationalUnit> findAllByIdIn(Iterable<Long> ids, Pageable pageable);
 }

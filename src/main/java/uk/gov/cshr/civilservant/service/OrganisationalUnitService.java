@@ -18,7 +18,6 @@ import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
 import uk.gov.cshr.civilservant.exception.*;
 import uk.gov.cshr.civilservant.exception.organisationalUnit.DomainAlreadyExistsException;
 import uk.gov.cshr.civilservant.exception.organisationalUnit.OrganisationalUnitNotFoundException;
-import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.repository.DomainRepository;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
@@ -34,22 +33,33 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
     private final OrganisationalUnitRepository repository;
     private final OrganisationalUnitDtoFactory dtoFactory;
     private final DomainRepository domainRepository;
-    private final CivilServantRepository civilServantRepository;
     private final AgencyTokenService agencyTokenService;
     private final IdentityService identityService;
 
     public OrganisationalUnitService(OrganisationalUnitRepository organisationalUnitRepository,
                                      OrganisationalUnitDtoFactory organisationalUnitDtoFactory,
                                      DomainRepository domainRepository,
-                                     CivilServantRepository civilServantRepository, AgencyTokenService agencyTokenService,
+                                     AgencyTokenService agencyTokenService,
                                      IdentityService identityService) {
         super(organisationalUnitRepository, organisationalUnitDtoFactory);
         this.repository = organisationalUnitRepository;
         this.dtoFactory = organisationalUnitDtoFactory;
         this.domainRepository = domainRepository;
-        this.civilServantRepository = civilServantRepository;
         this.agencyTokenService = agencyTokenService;
         this.identityService = identityService;
+    }
+
+    public boolean isDomainValidForOrganisation(Long organisationalUnitId, String domain) {
+        log.info(String.format("Checking if domain %s is valid for organisation %s", domain, organisationalUnitId));
+        boolean valid = repository.findByDomain(domain)
+                .stream().map(OrganisationalUnit::getId).distinct().anyMatch(o -> o.equals(organisationalUnitId));
+        if (!valid) {
+            log.info("Domain is not valid for regular domains; checking agency domains");
+            valid = repository.findByAgencyDomain(domain).stream()
+                    .flatMap(o -> o.getHierarchyAsFlatList().stream())
+                    .map(OrganisationalUnit::getId).distinct().anyMatch(o -> o.equals(organisationalUnitId));
+        }
+        return valid;
     }
 
     public List<OrganisationalUnit> getOrganisationWithParents(String code) {
