@@ -63,7 +63,6 @@ oauth:
 
 identity:
   identityAPIUrl: "${oauth.serviceUrl}/api/identities"
-  removeReportingRolesUrl: "${identity.identityAPIUrl}/remove-reporting-roles"
   agencyTokenUrl: "${oauth.serviceUrl}/agency/{agencyTokenUid}"
   identityAgencyTokenUrl: "${oauth.serviceUrl}/api/identity/agency/"
 
