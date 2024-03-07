@@ -4,10 +4,7 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
@@ -24,30 +21,28 @@ import uk.gov.cshr.civilservant.service.identity.model.AgencyTokenCapacityUsed;
 import uk.gov.cshr.civilservant.service.identity.model.BatchProcessResponse;
 import uk.gov.cshr.civilservant.service.identity.model.RemoveReportingAccessInput;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
 public class IdentityService {
 
     private OAuth2RestOperations restOperations;
-
     private String identityAPIUrl;
-    private final String mapForUidsUrl;
     private String identityAgencyTokenUrl;
     private final String removeReportingAccessUrl;
-
     private final UriComponentsBuilder agencyTokenUrlBuilder;
 
     @Autowired
     public IdentityService(OAuth2RestOperations restOperations, @Value("${identity.identityAPIUrl}") String identityAPIUrl,
-                           @Value("${identity.mapForUidsUrl}") String mapForUidsUrl,
                            @Value("${identity.agencyTokenUrl}") String agencyTokenUrl,
                            @Value("${identity.identityAgencyTokenUrl}") String identityAgencyTokenUrl,
                            @Value("${identity.removeReportingRolesUrl}") String removeReportingAccessUrl) {
         this.restOperations = restOperations;
         this.identityAPIUrl = identityAPIUrl;
-        this.mapForUidsUrl = mapForUidsUrl;
         this.identityAgencyTokenUrl = identityAgencyTokenUrl;
         this.agencyTokenUrlBuilder = UriComponentsBuilder.fromHttpUrl(agencyTokenUrl);
         this.removeReportingAccessUrl = removeReportingAccessUrl;
@@ -99,30 +94,6 @@ public class IdentityService {
         }
 
         return identity;
-    }
-
-
-    public Map<String, IdentityDTO> getIdentitiesMap(List<String> uids) {
-        List<String> failedUids = new ArrayList<>();
-        Map<String, IdentityDTO> uidsMap = new HashMap<>();
-        Lists.partition(uids, 50).forEach(batch -> {
-            String uidsBatchString = String.join(",", uids);
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(mapForUidsUrl)
-                    .queryParam("uids", uidsBatchString);
-            RequestEntity<Void> req = new RequestEntity<>(HttpMethod.GET, builder.build().toUri());
-            Map<String, IdentityDTO> resp = restOperations.exchange(req, new ParameterizedTypeReference<Map<String, IdentityDTO>>() {}).getBody();
-            if (resp == null) {
-                log.error(String.format("Null response when removing admin access from uids: %s", batch));
-                failedUids.addAll(batch);
-            } else {
-                uidsMap.putAll(resp);
-            }
-        });
-        if (!failedUids.isEmpty()) {
-            log.error(String.format("Failed to get the following users: %s", failedUids));
-            throw new RuntimeException(String.format("Failed to get %s users", failedUids.size()));
-        }
-        return uidsMap;
     }
 
     public IdentityDTO getidentity(String uid) {

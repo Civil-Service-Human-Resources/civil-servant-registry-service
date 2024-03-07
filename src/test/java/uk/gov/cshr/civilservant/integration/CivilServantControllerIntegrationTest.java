@@ -59,7 +59,7 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
                                 .with(authentication(learner))
                                 .content("{\"organisationalUnitId\": 1}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors[0]", equalTo("User domain 'domain.com' does not exist on organisation '1', valid domains are: [another-domain.co.uk, cabinetoffice.gov.uk]")))
+                .andExpect(jsonPath("$.errors[0]", equalTo("User domain 'domain.com' does not exist on organisation '1' or any associated agency tokens")))
                 .andExpect(jsonPath("$.apiErrorCode.code", equalTo("CS001")))
                 .andExpect(jsonPath("$.apiErrorCode.description", equalTo("Civil servant email domain does not match organisation")));
 
@@ -100,6 +100,25 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
                                 .content("{\"organisationalUnitId\": 2}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.organisationalUnit.id", equalTo(2)));
+
+    }
+
+    @Test
+    public void shouldUpdateRestrictedCivilServantsAgencyOrganisation() throws Exception {
+        stubPostClientToken();
+        stubGetIdentityWithUid("learner", new IdentityDTO(
+                "learner", "learner@mydomain.com", new HashSet<>(Collections.singletonList("LEARNER"))
+        ));
+        stubPostRemoveReportingAccess(Collections.singletonList("learner"),
+                new BatchProcessResponse(Collections.singletonList("learner"), Collections.emptyList()));
+        mockMvc.perform(
+                        patch("/civilServants/me/organisationalUnit")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .with(authentication(learner))
+                                .content("{\"organisationalUnitId\": 1}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.organisationalUnit.id", equalTo(1)));
 
     }
 
