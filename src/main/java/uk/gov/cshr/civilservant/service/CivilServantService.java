@@ -14,7 +14,6 @@ import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 

@@ -2,10 +2,6 @@ package uk.gov.cshr.civilservant.utils.apiStubs;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
-import uk.gov.cshr.civilservant.service.identity.model.BatchProcessResponse;
-import uk.gov.cshr.civilservant.service.identity.model.RemoveReportingAccessInput;
-
-import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static uk.gov.cshr.civilservant.utils.JsonUtils.asJsonString;
@@ -37,18 +33,6 @@ public class IdentityServiceStub {
                                         "    \"scope\": \"read write\",\n" +
                                         "    \"jti\": \"00000000-0000-0000-0000-000000000000\"\n" +
                                         "}"))
-        );
-    }
-    
-    public static void stubPostRemoveReportingAccess(List<String> uids, BatchProcessResponse response) {
-        RemoveReportingAccessInput uidsObj = new RemoveReportingAccessInput(uids);
-        stubFor(
-                WireMock.post(urlPathEqualTo("/api/identities/remove-reporting-roles"))
-                        .withHeader("Authorization", equalTo("Bearer " + token))
-                        .withRequestBody(equalTo(asJsonString(uidsObj)))
-                        .willReturn(aResponse()
-                                .withHeader("Content-Type", "application/json")
-                                .withBody(asJsonString(response)))
         );
     }
 
