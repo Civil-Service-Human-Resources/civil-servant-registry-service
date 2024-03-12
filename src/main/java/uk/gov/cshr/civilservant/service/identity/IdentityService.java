@@ -1,8 +1,6 @@
 package uk.gov.cshr.civilservant.service.identity;
 
-import java.util.Objects;
-import java.util.Optional;
-
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,39 +18,73 @@ import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.service.exception.UserNotFoundException;
 import uk.gov.cshr.civilservant.service.identity.model.AgencyTokenCapacityUsed;
+import uk.gov.cshr.civilservant.service.identity.model.BatchProcessResponse;
+import uk.gov.cshr.civilservant.service.identity.model.RemoveReportingAccessInput;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
 public class IdentityService {
 
     private OAuth2RestOperations restOperations;
-
     private String identityAPIUrl;
-
     private String identityAgencyTokenUrl;
-
+    private final String removeReportingAccessUrl;
     private final UriComponentsBuilder agencyTokenUrlBuilder;
 
     @Autowired
     public IdentityService(OAuth2RestOperations restOperations, @Value("${identity.identityAPIUrl}") String identityAPIUrl,
                            @Value("${identity.agencyTokenUrl}") String agencyTokenUrl,
-                           @Value("${identity.identityAgencyTokenUrl}") String identityAgencyTokenUrl) {
+                           @Value("${identity.identityAgencyTokenUrl}") String identityAgencyTokenUrl,
+                           @Value("${identity.removeReportingRolesUrl}") String removeReportingAccessUrl) {
         this.restOperations = restOperations;
         this.identityAPIUrl = identityAPIUrl;
         this.identityAgencyTokenUrl = identityAgencyTokenUrl;
         this.agencyTokenUrlBuilder = UriComponentsBuilder.fromHttpUrl(agencyTokenUrl);
+        this.removeReportingAccessUrl = removeReportingAccessUrl;
     }
 
-    public IdentityFromService findByEmail(String email) {
+    public void removeReportingAccess(List<String> uids) {
+        log.info(String.format("Removing reporting access from %s users", uids.size()));
+        List<String> failedUids = new ArrayList<>();
+        Lists.partition(uids, 50).forEach(batch -> {
+           try {
+               RemoveReportingAccessInput batchObject = new RemoveReportingAccessInput(batch);
+               BatchProcessResponse resp = restOperations.postForObject(removeReportingAccessUrl, batchObject, BatchProcessResponse.class);
+               if (resp != null) {
+                   failedUids.addAll(resp.getFailedIds());
+                   if (!resp.getSuccessfulIds().isEmpty()) {
+                       log.info(String.format("Removed reporting access from the following users: %s", resp.getSuccessfulIds()));
+                   }
+                   if (!failedUids.isEmpty()) {
+                       log.error(String.format("Failed to remove admin access from the following users %s", failedUids));
+                       throw new RuntimeException(String.format("Failed to remove admin access from %s users", failedUids.size()));
+                   }
+               } else {
+                   log.error(String.format("Null response when removing admin access from uids: %s", batch));
+                   failedUids.addAll(batch);
+               }
+           } catch (HttpClientErrorException http) {
+               log.error(String.format("Error when removing admin access from uids: %s. %s", batch, http));
+               failedUids.addAll(batch);
+           }
+        });
+    }
+
+    public IdentityDTO findByEmail(String email) {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(identityAPIUrl)
                 .queryParam("emailAddress", email);
 
         log.debug(" Checking email {}", email);
-        IdentityFromService identity;
+        IdentityDTO identity;
 
         try {
-            identity = restOperations.getForObject(builder.toUriString(), IdentityFromService.class);
+            identity = restOperations.getForObject(builder.toUriString(), IdentityDTO.class);
         } catch (HttpClientErrorException http) {
             if (http.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return null; // we kind of have to assume 403 is email not found rather than service not there ...
@@ -64,17 +96,11 @@ public class IdentityService {
         return identity;
     }
 
-    public String getEmailAddress(CivilServant civilServant) {
-
-        log.debug("Getting email address for civil servant {}", civilServant);
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(identityAPIUrl)
-                .queryParam("uid", civilServant.getIdentity().getUid());
-
-        IdentityFromService identity;
-
+    public IdentityDTO getidentity(String uid) {
         try {
-            identity = restOperations.getForObject(builder.toUriString(), IdentityFromService.class);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(identityAPIUrl)
+                .queryParam("uid", uid);
+            return restOperations.getForObject(builder.toUriString(), IdentityDTO.class);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return null;
@@ -82,6 +108,12 @@ public class IdentityService {
             throw new UserNotFoundException(e);
         }
 
+    }
+
+    public String getEmailAddress(CivilServant civilServant) {
+
+        log.debug("Getting email address for civil servant {}", civilServant);
+        IdentityDTO identity = getidentity(civilServant.getIdentity().getUid());
         if (identity != null) {
             return identity.getUsername();
         }

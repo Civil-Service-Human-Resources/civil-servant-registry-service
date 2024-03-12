@@ -39,7 +39,7 @@ public class FamilyOrganisationUnits {
     }
 
     public List<OrganisationalUnit> getParentsChildren(){
-        return this.family.get(0).getChildren();
+        return this.family.get(0).getChildrenAsList();
     }
 
     public List<OrganisationalUnit> getParentsChildrenChildren(int godFatherChildIndex){
@@ -47,7 +47,7 @@ public class FamilyOrganisationUnits {
             return new ArrayList<OrganisationalUnit>();
         }
 
-        return getParentsChildren().get(godFatherChildIndex).getChildren();
+        return getParentsChildren().get(godFatherChildIndex).getChildrenAsList();
     }
 
     private List<OrganisationalUnit> buildOutsiders() {
@@ -100,15 +100,15 @@ public class FamilyOrganisationUnits {
 
         // godfathers child one children - second level
         List<OrganisationalUnit> godfathersChildOneChildren = buildGodFathersChildOneChildren();
-        headOfFamily.getChildren().get(1).setChildren(godfathersChildOneChildren);
+        headOfFamily.getChildrenAsList().get(1).setChildren(godfathersChildOneChildren);
         // set the parent of godfathersChildOneChildren to be godfathersChildOne
-        headOfFamily.getChildren().get(1).getChildren().forEach(c -> c.setParent(headOfFamily.getChildren().get(1)));
+        headOfFamily.getChildrenAsList().get(1).getChildren().forEach(c -> c.setParent(headOfFamily.getChildrenAsList().get(1)));
 
         // godfathers child two children - second level
         List<OrganisationalUnit> godfathersChildTwoChildren = buildGodFathersChildTwoChildren();
-        headOfFamily.getChildren().get(2).setChildren(godfathersChildTwoChildren);
+        headOfFamily.getChildrenAsList().get(2).setChildren(godfathersChildTwoChildren);
         // set the parent of godfathersChildTwoChildren to be godfathersChildTwo
-        headOfFamily.getChildren().get(2).getChildren().forEach(c -> c.setParent(headOfFamily.getChildren().get(2)));
+        headOfFamily.getChildrenAsList().get(2).getChildren().forEach(c -> c.setParent(headOfFamily.getChildrenAsList().get(2)));
 
         return theFamily;
     }

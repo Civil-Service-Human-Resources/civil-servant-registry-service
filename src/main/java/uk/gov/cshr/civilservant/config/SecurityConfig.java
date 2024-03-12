@@ -45,8 +45,9 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
     public void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-            .anyRequest()
-            .permitAll();
+                .antMatchers("/actuator/health").permitAll()
+                .antMatchers("/domains").authenticated()
+            .anyRequest().permitAll();
     }
 
     @Bean

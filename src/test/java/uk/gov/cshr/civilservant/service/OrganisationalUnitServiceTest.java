@@ -8,14 +8,14 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.cshr.civilservant.domain.AgencyDomain;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
+import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
-import uk.gov.cshr.civilservant.dto.AgencyDomainDTO;
-import uk.gov.cshr.civilservant.dto.AgencyTokenResponseDto;
-import uk.gov.cshr.civilservant.dto.OrganisationalUnitDto;
+import uk.gov.cshr.civilservant.dto.*;
 import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
 import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
 import uk.gov.cshr.civilservant.exception.NoOrganisationsFoundException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
+import uk.gov.cshr.civilservant.repository.DomainRepository;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 import uk.gov.cshr.civilservant.utils.AgencyTokenTestingUtils;
@@ -44,6 +44,8 @@ public class OrganisationalUnitServiceTest {
     public ExpectedException expectedException = ExpectedException.none();
     @Mock
     private OrganisationalUnitRepository organisationalUnitRepository;
+    @Mock
+    private DomainRepository domainRepository;
     @Mock
     private OrganisationalUnitDtoFactory organisationalUnitDtoFactory;
     @Mock
@@ -75,21 +77,21 @@ public class OrganisationalUnitServiceTest {
         // mocking for godfathers children - first generation
         for (int i = 0; i < family.getTopParent().getChildren().size(); i++) {
             String codeOfChildAtIndexI = "god" + i;
-            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildren().get(i));
+            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildrenAsList().get(i));
             when(organisationalUnitRepository.findByCode(eq(codeOfChildAtIndexI))).thenReturn(childAtIndexI);
         }
 
         // mocking for godfather children, child 1s children - second generation
-        for (int i = 0; i < family.getTopParent().getChildren().get(1).getChildren().size(); i++) {
+        for (int i = 0; i < family.getTopParent().getChildrenAsList().get(1).getChildren().size(); i++) {
             String codeOfChildAtIndexI = "grandOne" + i;
-            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildren().get(1).getChildren().get(i));
+            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildrenAsList().get(1).getChildrenAsList().get(i));
             when(organisationalUnitRepository.findByCode(eq(codeOfChildAtIndexI))).thenReturn(childAtIndexI);
         }
 
         // mocking for godfather children, child 2s children - second generation
-        for (int i = 0; i < family.getTopParent().getChildren().get(2).getChildren().size(); i++) {
+        for (int i = 0; i < family.getTopParent().getChildrenAsList().get(2).getChildren().size(); i++) {
             String codeOfChildAtIndexI = "grandTwo" + i;
-            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildren().get(2).getChildren().get(i));
+            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildrenAsList().get(2).getChildrenAsList().get(i));
             when(organisationalUnitRepository.findByCode(eq(codeOfChildAtIndexI))).thenReturn(childAtIndexI);
         }
 
@@ -537,6 +539,74 @@ public class OrganisationalUnitServiceTest {
         when(organisationalUnitRepository.findByCode(eq("NHSGOVAN"))).thenReturn(optNhsGovan);
 
         return Optional.of(greaterGlasgowNHS);
+    }
+
+    @Test
+    public void shouldAddExistingDomainToSingleOrganisationalUnit() {
+        OrganisationalUnit orgUnit = new OrganisationalUnit();
+        Optional<OrganisationalUnit> optionalOrganisationalUnit = Optional.of(orgUnit);
+        when(organisationalUnitRepository.findById(eq(1L))).thenReturn(optionalOrganisationalUnit);
+        Domain domain = new Domain("test.com");
+        domain.setId(1L);
+        Optional<Domain> optionalDomain = Optional.of(domain);
+        when(domainRepository.findDomainByDomain(domain.getDomain())).thenReturn(optionalDomain);
+
+        AddDomainToOrgResponse resp = organisationalUnitService.addDomainToOrganisation(1L, "test.com");
+        assertEquals(1L, resp.getPrimaryOrganisationId().longValue());
+        assertEquals(1L, resp.getDomain().getId().longValue());
+        assertEquals("test.com", resp.getDomain().getDomain());
+        assertTrue(resp.getSkippedChildOrganisationIds().isEmpty());
+        assertTrue(resp.getUpdatedChildOrganisationIds().isEmpty());
+
+        verify(organisationalUnitRepository, times(1)).saveAndFlush(orgUnit);
+    }
+
+    @Test
+    public void shouldCreateDomainAndAddToOrganisationalUnitAndDescendants() {
+        OrganisationalUnit orgUnit1 = new OrganisationalUnit();
+        orgUnit1.setId(1L);
+        OrganisationalUnit orgUnit2 = new OrganisationalUnit();
+        orgUnit2.setId(2L);
+        OrganisationalUnit orgUnit3 = new OrganisationalUnit();
+        orgUnit3.setId(3L);
+        orgUnit3.setChildren(Arrays.asList(orgUnit2, orgUnit1));
+        when(organisationalUnitRepository.findById(orgUnit3.getId())).thenReturn(Optional.of(orgUnit3));
+        Domain domain = new Domain("new.com");
+        domain.setId(1L);
+        when(domainRepository.findDomainByDomain("new.com")).thenReturn(Optional.empty());
+        when(domainRepository.save(any())).thenReturn(domain);
+
+        AddDomainToOrgResponse resp = organisationalUnitService.addDomainToOrganisation(orgUnit3.getId(), "new.com");
+        assertEquals(3L, resp.getPrimaryOrganisationId().longValue());
+        assertEquals(1L, resp.getDomain().getId().longValue());
+        assertEquals("new.com", resp.getDomain().getDomain());
+        assertTrue(resp.getSkippedChildOrganisationIds().isEmpty());
+        assertEquals(2, resp.getUpdatedChildOrganisationIds().size());
+
+        verify(organisationalUnitRepository, times(1)).saveAndFlush(orgUnit3);
+        verify(organisationalUnitRepository, times(1)).saveAll(any());
+    }
+
+    @Test
+    public void shouldAddDomainToOrganisationalUnitsInBulk() {
+        Domain domain = new Domain("new.com");
+        domain.setId(1L);
+        OrganisationalUnit orgUnit = new OrganisationalUnit();
+        orgUnit.setId(1L);
+        OrganisationalUnit orgUnit2 = new OrganisationalUnit();
+        orgUnit2.setId(2L);
+        orgUnit2.addDomain(domain);
+        OrganisationalUnit orgUnit3 = new OrganisationalUnit();
+        orgUnit3.setId(3L);
+        List<OrganisationalUnit> orgs = Arrays.asList(orgUnit, orgUnit2, orgUnit3);
+
+        BulkUpdate<OrganisationalUnit> resp = organisationalUnitService.bulkAddDomainToOrganisations(orgs, domain);
+        assertEquals(resp.getSkippedIds().size(), 1);
+        assertEquals(resp.getUpdatedIds().size(), 2);
+        assertEquals(2L, resp.getSkippedIds().get(0).longValue());
+        assertEquals(1L, resp.getUpdatedIds().get(0).longValue());
+        assertEquals(3L, resp.getUpdatedIds().get(1).longValue());
+        verify(organisationalUnitRepository, times(1)).saveAll(any());
     }
 
 }

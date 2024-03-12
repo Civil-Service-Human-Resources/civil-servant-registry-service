@@ -1,10 +1,10 @@
 package uk.gov.cshr.civilservant.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @MappedSuperclass
 public abstract class SelfReferencingEntity<T> implements RegistryEntity {
@@ -20,16 +20,25 @@ public abstract class SelfReferencingEntity<T> implements RegistryEntity {
     @JsonBackReference
     T parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
-    List<T> children = new ArrayList<>();
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    Set<T> children = new HashSet<>();
 
     public abstract T getParent();
 
     public abstract void setParent(T parent);
 
-    public abstract List<T> getChildren();
+    public Set<T> getChildren() {
+        return children;
+    };
 
-    public abstract void setChildren(List<T> children);
+    @JsonIgnore
+    public List<T> getChildrenAsList() {
+        return new ArrayList<>(getChildren());
+    };
+
+    public void setChildren(List<T> children) {
+        this.children = new LinkedHashSet<>(children);
+    }
 
     public boolean hasParent() {
         return parent != null;
@@ -55,4 +64,5 @@ public abstract class SelfReferencingEntity<T> implements RegistryEntity {
     public void setName(String name) {
         this.name = name;
     }
+
 }
