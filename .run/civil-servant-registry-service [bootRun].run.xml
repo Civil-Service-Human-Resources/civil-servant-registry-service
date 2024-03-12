@@ -8,11 +8,17 @@
                     <entry key="CLIENT_ID" value="9fbd4ae2-2db3-44c7-9544-88e80255b56e" />
                     <entry key="CLIENT_SECRET" value="test" />
                     <entry key="DATA_RETENTION_WINDOW_SKILLS_DAYS" value="1095" />
-                    <entry key="DATASOURCE" value="jdbc:mysql://localhost:3306/csrs?user=root&amp;password=password&amp;useSSL=false" />
+<!--                <entry key="DATASOURCE" value="${database.host}/${database.name}?user=${datasource.username}&amp;password=${datasource.password}&amp;useSSL=${database.use-ssl}" />-->
+                    <env name="DATABASE_HOST" value="jdbc:mysql://localhost:3306" />
+                    <env name="DATABASE_NAME" value="csrs" />
+                    <env name="DATABASE_USESSL" value="false" />
+                    <env name="DATASOURCE_PASSWORD" value="password" />
+                    <env name="DATASOURCE_URL" value="${database.host}/${database.name}?useSSL=${database.use-ssl}&amp;requireSSL=false" />
+                    <env name="DATASOURCE_USERNAME" value="root" />
                     <entry key="DOMAIN_VALIDATION_REGEX" value="^([\w-]+\.)+[\w-]{2,6}$" />
-                    <entry key="GOV_NOTIFY_API_KEY" value="changeme" />
-                    <entry key="GOV_NOTIFY_ENABLED" value="false" />
-                    <entry key="GOV_NOTIFY_LINEMANAGER_TEMPLATE_ID" value="changeme" />
+                    <entry key="GOV_NOTIFY_API_KEY" value="test-22877568-4bca-40f9-8f54-8bf7922583cf-e2f80f22-e3de-4007-9ce2-b50a2b5785b7" />
+                    <entry key="GOV_NOTIFY_ENABLED" value="true" />
+                    <entry key="GOV_NOTIFY_LINEMANAGER_TEMPLATE_ID" value="52052be1-b468-40ad-a161-cb5e4f034d4f" />
                     <entry key="jwt_key" value="bJwXRAslLzOtPywnCqBbQujKBKki44LB" />
                     <entry key="OAUTH_CHECK_TOKEN_ENDPOINT" value="/oauth2/introspect" />
                     <entry key="OAUTH_SERVICE_URL" value="http://localhost:9005" />
