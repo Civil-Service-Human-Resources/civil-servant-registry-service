@@ -16,9 +16,9 @@
                     <entry key="DATASOURCE_URL" value="${database.host}/${database.name}?useSSL=${database.use-ssl}&amp;requireSSL=false" />
                     <entry key="DATASOURCE_USERNAME" value="root" />
                     <entry key="DOMAIN_VALIDATION_REGEX" value="^([\w-]+\.)+[\w-]{2,6}$" />
-                    <entry key="GOV_NOTIFY_API_KEY" value="test-22877568-4bca-40f9-8f54-8bf7922583cf-e2f80f22-e3de-4007-9ce2-b50a2b5785b7" />
-                    <entry key="GOV_NOTIFY_ENABLED" value="true" />
-                    <entry key="GOV_NOTIFY_LINEMANAGER_TEMPLATE_ID" value="52052be1-b468-40ad-a161-cb5e4f034d4f" />
+                    <entry key="GOV_NOTIFY_API_KEY" value="changeme" />
+                    <entry key="GOV_NOTIFY_ENABLED" value="false" />
+                    <entry key="GOV_NOTIFY_LINEMANAGER_TEMPLATE_ID" value="changeme" />
                     <entry key="jwt_key" value="bJwXRAslLzOtPywnCqBbQujKBKki44LB" />
                     <entry key="OAUTH_CHECK_TOKEN_ENDPOINT" value="/oauth2/introspect" />
                     <entry key="OAUTH_SERVICE_URL" value="http://localhost:9005" />
