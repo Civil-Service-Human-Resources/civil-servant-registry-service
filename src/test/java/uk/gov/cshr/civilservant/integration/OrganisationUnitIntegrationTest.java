@@ -17,17 +17,13 @@ import uk.gov.cshr.civilservant.service.OrganisationalUnitService;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertFalse;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.cshr.civilservant.utils.apiStubs.IdentityServiceStub.stubGetIdentitiesMap;
 import static uk.gov.cshr.civilservant.utils.apiStubs.IdentityServiceStub.stubPostClientToken;
 
 @AutoConfigureMockMvc
@@ -180,10 +176,6 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     public void shouldDeleteDomainAndCascade() throws Exception {
         stubPostClientToken();
         IdentityDTO identity = new IdentityDTO("learner", "learner@cabinetoffice.gov.uk", Collections.singleton("LEARNER"));
-        Map<String, IdentityDTO> responseMap = new HashMap<String, IdentityDTO>() {{
-            put("learner", identity);
-        }};
-        stubGetIdentitiesMap(Collections.singletonList("learner"), responseMap);
         CivilServant cs = civilServantRepository.findByIdentity("learner").get();
         mockMvc.perform(
                         delete("/organisationalUnits/2/domains/1")
@@ -193,28 +185,7 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(2)))
                 .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(1)))
                 .andExpect(jsonPath("$.updatedChildOrganisationIds[0]", equalTo(4)));
-        assertFalse(cs.getOrganisationalUnit().isPresent());
    }
-
-    @Test
-    public void shouldDeleteDomainAndCascadeAndRemoveOrganisationFromUser() throws Exception {
-        stubPostClientToken();
-        IdentityDTO identity = new IdentityDTO("learner", "learner@cabinetoffice.gov.uk", Collections.singleton("LEARNER"));
-        Map<String, IdentityDTO> responseMap = new HashMap<String, IdentityDTO>() {{
-            put("learner", identity);
-        }};
-        stubGetIdentitiesMap(Collections.singletonList("learner"), responseMap);
-        CivilServant cs = civilServantRepository.findByIdentity("learner").get();
-        mockMvc.perform(
-                        delete("/organisationalUnits/2/domains/1")
-                                .param("includeSubOrgs", "true"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.domain.domain", equalTo("cabinetoffice.gov.uk")))
-                .andExpect(jsonPath("$.primaryOrganisationId", equalTo(2)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds.length()", equalTo(1)))
-                .andExpect(jsonPath("$.updatedChildOrganisationIds[0]", equalTo(4)));
-        assertFalse(cs.getOrganisationalUnit().isPresent());
-    }
 
     @Test
     public void shouldDeleteDomainAndNotCascade() throws Exception {

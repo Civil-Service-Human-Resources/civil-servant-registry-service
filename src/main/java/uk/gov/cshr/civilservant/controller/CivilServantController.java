@@ -73,6 +73,15 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PostMapping("/me/login")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Resource<CivilServantResource>> performLogin(@RequestBody IdentityDTO dto) {
+        log.debug("Checking civil servant login details & fetching the profile");
+        return civilServantService.performLogin(dto).map(
+                        civilServant -> ResponseEntity.ok(civilServantResourceFactory.create(civilServant)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PatchMapping("/me/organisationalUnit")
     @PreAuthorize("isAuthenticated()")
     @ResponseBody
