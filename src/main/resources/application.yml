@@ -47,6 +47,10 @@ logging:
   level:
     root: ${ROOT_LOGGING_LEVEL:INFO}
     com.zaxxer.hikari: INFO
+    uk:
+      gov:
+        cshr:
+          civilservant: ${CGCC_LOGGING_LEVEL:DEBUG}
 
 oauth:
   clientId: ${CLIENT_ID:9fbd4ae2-2db3-44c7-9544-88e80255b56e}

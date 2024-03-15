@@ -24,6 +24,7 @@
                     <entry key="OAUTH_SERVICE_URL" value="http://localhost:9005" />
                     <entry key="OAUTH_TOKEN_ENDPOINT" value="/oauth2/token" />
                     <entry key="ROOT_LOGGING_LEVEL" value="INFO" />
+                    <entry key="CGCC_LOGGING_LEVEL" value="DEBUG" />
                 </map>
             </option>
             <option name="executionName" />
