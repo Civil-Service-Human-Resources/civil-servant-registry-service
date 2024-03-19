@@ -31,7 +31,6 @@ spring:
         dialect: uk.gov.cshr.civilservant.config.CustomMySqlDialect
         show_sql: false
         format_sql: false
-        enable_lazy_load_no_trans: true
   h2:
     console:
       enabled: true
