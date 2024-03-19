@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.civilservant.domain.CivilServant;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
+import uk.gov.cshr.civilservant.dto.CivilServantProfileDto;
+import uk.gov.cshr.civilservant.dto.factory.CivilServantProfileDtoFactory;
 import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
 import uk.gov.cshr.civilservant.exception.UserNotFoundException;
 import uk.gov.cshr.civilservant.exception.civilServant.InvalidUserOrganisationException;
@@ -26,6 +28,7 @@ public class CivilServantService {
     private final IdentityService identityService;
     private final OrganisationalUnitService organisationalUnitService;
     private final AgencyTokenRepository agencyTokenRepository;
+    private final CivilServantProfileDtoFactory civilServantProfileDtoFactory;
 
     public String getCivilServantUid() {
         CivilServant cs = civilServantRepository.findByPrincipal()
@@ -50,6 +53,12 @@ public class CivilServantService {
                 }
                 return cs;
             });
+    }
+
+    public CivilServantProfileDto getFullProfile(String uid) {
+        IdentityDTO identityDTO = identityService.getidentity(uid);
+        CivilServant civilServant = civilServantRepository.findByIdentity(uid).orElseThrow(CivilServantNotFoundException::new);
+        return civilServantProfileDtoFactory.create(civilServant, identityDTO);
     }
 
     public CivilServant updateMyOrganisationalUnit(Long organisationalUnitId) {
