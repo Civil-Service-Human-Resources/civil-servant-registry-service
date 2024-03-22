@@ -14,7 +14,6 @@ import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -57,9 +56,9 @@ public class CivilServantService {
         CivilServant cs = civilServantRepository.findByPrincipal()
                 .orElseThrow(CivilServantNotFoundException::new);
         if (cs.getOrganisationalUnit().isPresent() &&
-            Objects.equals(cs.getOrganisationalUnit().get().getId(), organisationalUnitId)) {
-                log.warn(String.format("Civil servant '%s' tried to update to their current organisational unit (%s). Aborting.", cs.getId(), organisationalUnitId));
-                return cs;
+                Objects.equals(cs.getOrganisationalUnit().get().getId(), organisationalUnitId)) {
+            log.warn(String.format("Civil servant '%s' tried to update to their current organisational unit (%s). Aborting.", cs.getId(), organisationalUnitId));
+            return cs;
         }
         String uid = cs.getIdentity().getUid();
         IdentityDTO identity = identityService.getidentity(uid);
@@ -75,11 +74,9 @@ public class CivilServantService {
                 boolean valid = organisationalUnitService.isDomainValidForOrganisation(organisationalUnitId, userDomain);
                 if (valid) {
                     cs.setOrganisationalUnit(organisationalUnit);
-                    log.info("User is not an unrestricted organisaton user; removing user's admin roles");
-                    identityService.removeReportingAccess(Collections.singletonList(uid));
                 } else {
                     throw new InvalidUserOrganisationException(String.format("User domain '%s' does not exist on organisation '%s' or any associated agency tokens",
-                        userDomain, organisationalUnitId));
+                            userDomain, organisationalUnitId));
                 }
             }
             civilServantRepository.saveAndFlush(cs);

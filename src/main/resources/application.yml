@@ -2,8 +2,16 @@ database:
   host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
   name: ${DATABASE_NAME:csrs}
   use-ssl: ${DATABASE_USESSL:false}
-  
 spring:
+  datasource:
+    url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
+    username: ${DATASOURCE_USERNAME:root}
+    password: ${DATASOURCE_PASSWORD:my-secret-pw}
+    platform: mysql
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   rest:
       detection-strategy: annotated
   jackson:
@@ -23,16 +31,6 @@ spring:
         dialect: uk.gov.cshr.civilservant.config.CustomMySqlDialect
         show_sql: false
         format_sql: false
-  datasource:
-    url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
-    username: ${DATASOURCE_USERNAME:username}
-    password: ${DATASOURCE_PASSWORD:my-secret-pw}
-    platform: mysql
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
   h2:
     console:
       enabled: true
@@ -67,12 +65,11 @@ oauth:
 
 identity:
   identityAPIUrl: "${oauth.serviceUrl}/api/identities"
-  removeReportingRolesUrl: "${identity.identityAPIUrl}/remove-reporting-roles"
   agencyTokenUrl: "${oauth.serviceUrl}/agency/{agencyTokenUid}"
   identityAgencyTokenUrl: "${oauth.serviceUrl}/api/identity/agency/"
 
 govNotify:
-  enabled: ${GOV_NOTIFY_ENABLED:false}
+  enabled: ${GOV_NOTIFY_ENABLED:true}
   key: ${GOV_NOTIFY_API_KEY:changeme}
   template:
     lineManager: ${GOV_NOTIFY_LINEMANAGER_TEMPLATE_ID:changeme}
@@ -90,23 +87,3 @@ domains:
   validation:
     regex: ${DOMAIN_VALIDATION_REGEX:^([\w-]+\.)+[\w-]{2,6}$}
 
----
-
-spring:
-  profiles: test, production
-  datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/csrs?user=root&password=password&useSSL=false}
-    platform: mysql
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-  jpa:
-    properties:
-      hibernate:
-        dialect: uk.gov.cshr.civilservant.config.CustomMySqlDialect
-        enable_lazy_load_no_trans: true
-
-govNotify:
-  enabled: ${GOV_NOTIFY_ENABLED:true}
