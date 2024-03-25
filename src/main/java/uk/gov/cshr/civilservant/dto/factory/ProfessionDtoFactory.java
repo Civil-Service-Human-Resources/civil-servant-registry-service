@@ -14,13 +14,17 @@ public class ProfessionDtoFactory extends DtoFactory<ProfessionDto, Profession> 
     this.repositoryEntityService = repositoryEntityService;
   }
 
-  public ProfessionDto create(Profession profession) {
+  public ProfessionDto createSimple(Profession profession) {
     ProfessionDto professionDto = new ProfessionDto();
+    professionDto.setId(profession.getId());
     professionDto.setName(profession.getName());
+    return professionDto;
+  }
+
+  public ProfessionDto create(Profession profession) {
+    ProfessionDto professionDto = createSimple(profession);
     professionDto.setFormattedName(formatName(profession));
     professionDto.setHref(repositoryEntityService.getUri(profession));
-    professionDto.setId(profession.getId());
-
     return professionDto;
   }
 
