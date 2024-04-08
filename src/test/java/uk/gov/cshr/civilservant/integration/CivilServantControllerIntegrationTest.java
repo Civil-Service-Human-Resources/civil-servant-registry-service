@@ -41,6 +41,7 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.fullName", equalTo("Learner")))
                 .andExpect(jsonPath("$.organisationalUnit.id", equalTo(2)))
+                .andExpect(jsonPath("$.grade.id", equalTo(1)))
                 .andExpect(jsonPath("$.profession.id", equalTo(1)))
                 .andExpect(jsonPath("$.identity.uid", equalTo("learner")));
 

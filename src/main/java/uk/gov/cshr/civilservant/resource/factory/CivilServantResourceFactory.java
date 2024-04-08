@@ -1,14 +1,14 @@
 package uk.gov.cshr.civilservant.resource.factory;
 
-import java.util.Optional;
-
+import org.springframework.hateoas.Resource;
+import org.springframework.stereotype.Component;
 import uk.gov.cshr.civilservant.domain.CivilServant;
+import uk.gov.cshr.civilservant.dto.GradeDto;
 import uk.gov.cshr.civilservant.dto.OrgCodeDTO;
 import uk.gov.cshr.civilservant.resource.CivilServantResource;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
-import org.springframework.hateoas.Resource;
-import org.springframework.stereotype.Component;
+import java.util.Optional;
 
 @Component
 public class CivilServantResourceFactory {
@@ -27,7 +27,7 @@ public class CivilServantResourceFactory {
         civilServantResource.setFullName(civilServant.getFullName());
 
         if (civilServant.getGrade().isPresent()) {
-            civilServantResource.setGrade(civilServant.getGrade().get());
+            civilServantResource.setGrade(GradeDto.fromGrade(civilServant.getGrade().get()));
         }
 
         if (civilServant.getOrganisationalUnit().isPresent()) {
@@ -65,7 +65,7 @@ public class CivilServantResourceFactory {
         CivilServantResource civilServantResource = new CivilServantResource();
 
         if (civilServant.getGrade().isPresent()) {
-            civilServantResource.setGrade(civilServant.getGrade().get());
+            civilServantResource.setGrade(GradeDto.fromGrade(civilServant.getGrade().get()));
         }
 
         if (civilServant.getOrganisationalUnit().isPresent()) {
