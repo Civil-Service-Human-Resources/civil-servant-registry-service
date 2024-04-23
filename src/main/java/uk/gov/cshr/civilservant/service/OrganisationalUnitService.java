@@ -138,7 +138,7 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         }
         return new SimplePage<>(organisationalUnitPage.getContent()
                 .stream()
-                .map(o -> dtoFactory.create(o, false, false, params.isFetchChildren()))
+                .map(o -> dtoFactory.create(o, false, params.isFormatName(), params.isFetchChildren()))
                 .collect(Collectors.toList()), organisationalUnitPage.getTotalElements(), pageable);
     }
 

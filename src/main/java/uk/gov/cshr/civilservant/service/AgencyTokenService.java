@@ -1,6 +1,7 @@
 package uk.gov.cshr.civilservant.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.AgencyTokenResponseDto;
@@ -34,6 +35,7 @@ public class AgencyTokenService {
         return agencyTokenRepository.findAllByDomain(domain);
     }
 
+    @Transactional
     public Optional<AgencyToken> getAgencyTokenByDomainTokenCodeAndOrg(String domain, String token, String code) {
 
         Optional<AgencyToken> agencyToken = agencyTokenRepository.findByDomainAndToken(domain, token);
