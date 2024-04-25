@@ -45,7 +45,7 @@ public class CivilServantService {
                 String csDomain = identity.getEmailDomain();
                 if (!agencyTokenRepository.existsByDomain(csDomain)) {
                     cs.getOrganisationalUnit().ifPresent(o -> {
-                        if(!o.doesDomainExist(csDomain)) {
+                        if(!o.doesDomainExist(csDomain) && !identity.isUnrestrictedOrganisation()) {
                             cs.setOrganisationalUnit(null);
                             civilServantRepository.saveAndFlush(cs);
                         }

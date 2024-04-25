@@ -20,8 +20,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +37,20 @@ public class CivilServantServiceTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
+
+    @Test
+    public void shouldPerformCsrsLoginCheckAndRetainOrganisation() {
+        IdentityDTO dto = new IdentityDTO("1", "CS@cs.gov.uk", Collections.singleton("UNRESTRICTED_ORGANISATION"));
+        OrganisationalUnit ou = new OrganisationalUnit();
+        Domain domain = new Domain("civil-service.gov.uk");
+        ou.addDomain(domain);
+        Identity identity = new Identity("1");
+        CivilServant cs = new CivilServant(identity);
+        cs.setOrganisationalUnit(ou);
+        when(civilServantRepository.findByPrincipal()).thenReturn(Optional.of(cs));
+        Optional<CivilServant> resultOpt = classUnderTest.performLogin(dto);
+        assertTrue(resultOpt.get().getOrganisationalUnit().isPresent());
+    }
 
     @Test
     public void shouldPerformCsrsLoginCheckAndDeleteOrganisation() {
