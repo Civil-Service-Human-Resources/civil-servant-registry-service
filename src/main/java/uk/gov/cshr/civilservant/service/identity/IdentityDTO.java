@@ -28,4 +28,8 @@ public class IdentityDTO {
   public String toString() {
     return new ToStringBuilder(this).append("uid", uid).toString();
   }
+
+  public boolean isUnrestrictedOrganisation() {
+    return roles.contains("UNRESTRICTED_ORGANISATION");
+  }
 }
