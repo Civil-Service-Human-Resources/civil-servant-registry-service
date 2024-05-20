@@ -3,6 +3,7 @@ package uk.gov.cshr.civilservant.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.CivilServant;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.CivilServantProfileDto;
@@ -55,6 +56,7 @@ public class CivilServantService {
             });
     }
 
+    @Transactional
     public CivilServantProfileDto getFullProfile(String uid) {
         IdentityDTO identityDTO = identityService.getidentity(uid);
         CivilServant civilServant = civilServantRepository.findByIdentity(uid).orElseThrow(CivilServantNotFoundException::new);
