@@ -37,7 +37,7 @@ public class ProfessionControllerTest extends CSRSControllerTestBase{
     parent1.setChildren(Arrays.asList(child1, child2));
     Profession parent2 = new Profession("Parent Two");
 
-    when(professionService.getParents()).thenReturn(Arrays.asList(parent1, parent2));
+    when(professionService.getTree()).thenReturn(Arrays.asList(parent1, parent2));
 
     mockMvc
         .perform(get("/professions/tree").accept(MediaType.APPLICATION_JSON))

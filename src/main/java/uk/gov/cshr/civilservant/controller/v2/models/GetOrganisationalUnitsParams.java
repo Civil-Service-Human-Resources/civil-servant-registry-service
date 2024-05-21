@@ -14,4 +14,5 @@ public class GetOrganisationalUnitsParams {
 
     List<Long> ids = Collections.emptyList();
     boolean fetchChildren = false;
+    boolean formatName = false;
 }

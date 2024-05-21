@@ -47,8 +47,6 @@ public class IdentityServiceTest {
 
     private String IDENTITY_AGENCY_TOKEN_URL = "http://localhost:8080/identity/agency/";
 
-    private String REMOVE_REPORTING_ACCESS_URL = "http://localhost:8080/api/identities/remove_reportng_access";
-
     private IdentityService identityService;
 
     private String EXPECTED_AGENCY_TOKEN_URL = "http://localhost:8080/agency/123";
@@ -71,7 +69,7 @@ public class IdentityServiceTest {
     public void setup() {
         initMocks(this);
         identityService = new IdentityService(restOperations, IDENTITY_API_URL, AGENCY_TOKEN_URL,
-                IDENTITY_AGENCY_TOKEN_URL, REMOVE_REPORTING_ACCESS_URL);
+                IDENTITY_AGENCY_TOKEN_URL);
     }
 
     @Test
