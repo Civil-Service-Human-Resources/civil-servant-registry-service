@@ -1,22 +1,11 @@
 package uk.gov.cshr.civilservant.controller;
 
-import static org.springframework.http.ResponseEntity.ok;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
-import javax.validation.Valid;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.civilservant.domain.Profession;
 import uk.gov.cshr.civilservant.domain.Quiz;
@@ -27,6 +16,17 @@ import uk.gov.cshr.civilservant.dto.factory.QuizDtoFactory;
 import uk.gov.cshr.civilservant.exception.QuizServiceException;
 import uk.gov.cshr.civilservant.mapping.RoleMapping;
 import uk.gov.cshr.civilservant.service.QuizService;
+
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.http.ResponseEntity.ok;
 
 @Slf4j
 @RestController
