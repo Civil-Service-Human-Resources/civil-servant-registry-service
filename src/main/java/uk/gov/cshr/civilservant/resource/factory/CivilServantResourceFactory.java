@@ -2,7 +2,9 @@ package uk.gov.cshr.civilservant.resource.factory;
 
 import org.springframework.hateoas.Resource;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.CivilServant;
+import uk.gov.cshr.civilservant.domain.Grade;
 import uk.gov.cshr.civilservant.dto.GradeDto;
 import uk.gov.cshr.civilservant.dto.OrgCodeDTO;
 import uk.gov.cshr.civilservant.resource.CivilServantResource;
@@ -20,6 +22,7 @@ public class CivilServantResourceFactory {
         this.linkFactory = linkFactory;
     }
 
+    @Transactional
     public Resource<CivilServantResource> create(CivilServant civilServant) {
 
         CivilServantResource civilServantResource = new CivilServantResource();
@@ -27,7 +30,8 @@ public class CivilServantResourceFactory {
         civilServantResource.setFullName(civilServant.getFullName());
 
         if (civilServant.getGrade().isPresent()) {
-            civilServantResource.setGrade(GradeDto.fromGrade(civilServant.getGrade().get()));
+            Grade grade = civilServant.getGrade().get();
+            civilServantResource.setGrade(GradeDto.fromGrade(grade));
         }
 
         if (civilServant.getOrganisationalUnit().isPresent()) {
@@ -65,7 +69,8 @@ public class CivilServantResourceFactory {
         CivilServantResource civilServantResource = new CivilServantResource();
 
         if (civilServant.getGrade().isPresent()) {
-            civilServantResource.setGrade(GradeDto.fromGrade(civilServant.getGrade().get()));
+            Grade grade = civilServant.getGrade().get();
+            civilServantResource.setGrade(GradeDto.fromGrade(grade));
         }
 
         if (civilServant.getOrganisationalUnit().isPresent()) {
