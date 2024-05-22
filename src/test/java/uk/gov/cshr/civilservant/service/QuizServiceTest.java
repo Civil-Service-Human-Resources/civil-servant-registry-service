@@ -47,8 +47,6 @@ public class QuizServiceTest {
 
   @Mock ProfessionRepository professionRepository;
 
-  @Mock ProfessionService professionService;
-
   @Mock ObjectMapper objectMapper;
 
   @InjectMocks QuizService quizService;
@@ -237,8 +235,8 @@ public class QuizServiceTest {
     QuizDto quizDTO = QuizBuilder.buildQuizDTO().get();
 
     // When
-    when(professionService.getWithId(anyLong()))
-        .thenReturn(Profession.builder().build());
+    when(professionRepository.findById(anyLong()))
+        .thenReturn(Optional.of(Profession.builder().build()));
     when(quizRepository.findFirstByProfessionIdAndStatusIsNot(anyLong(), any()))
         .thenReturn(Optional.empty());
     when(quizRepository.save(any())).thenReturn(quiz);

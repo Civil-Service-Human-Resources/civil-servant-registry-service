@@ -15,6 +15,7 @@ import uk.gov.cshr.civilservant.dto.factory.QuizResultDtoFactory;
 import uk.gov.cshr.civilservant.exception.ProfessionNotFoundException;
 import uk.gov.cshr.civilservant.exception.QuizNotFoundException;
 import uk.gov.cshr.civilservant.exception.QuizServiceException;
+import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
 import uk.gov.cshr.civilservant.repository.ProfessionRepository;
 import uk.gov.cshr.civilservant.repository.QuizRepository;
 import uk.gov.cshr.civilservant.repository.QuizResultRepository;
@@ -39,7 +40,7 @@ public class QuizService {
   private QuestionService questionService;
   private QuizRepository quizRepository;
   private ProfessionRepository professionRepository;
-  private ProfessionService professionService;
+  private OrganisationalUnitRepository organisationalUnitRepository;
   private QuizResultRepository quizResultRepository;
   private QuizDtoFactory quizDtoFactory;
   private QuizResultDtoFactory quizResultDtoFactory;
@@ -47,21 +48,22 @@ public class QuizService {
 
   @Autowired
   public QuizService(
-          QuizRepository quizRepository,
-          QuizDtoFactory quizDtoFactory,
-          ProfessionRepository professionRepository,
-          QuestionService questionService,
-          QuizResultRepository quizResultRepository,
-          AnswerDtoFactory answerDtoFactory,
-          ProfessionService professionService, QuizResultDtoFactory quizResultDtoFactory,
-          ObjectMapper objectMapper) {
+      QuizRepository quizRepository,
+      QuizDtoFactory quizDtoFactory,
+      ProfessionRepository professionRepository,
+      OrganisationalUnitRepository organisationalUnitRepository,
+      QuestionService questionService,
+      QuizResultRepository quizResultRepository,
+      AnswerDtoFactory answerDtoFactory,
+      QuizResultDtoFactory quizResultDtoFactory,
+      ObjectMapper objectMapper) {
     this.quizRepository = quizRepository;
     this.quizDtoFactory = quizDtoFactory;
     this.professionRepository = professionRepository;
+    this.organisationalUnitRepository = organisationalUnitRepository;
     this.questionService = questionService;
     this.quizResultRepository = quizResultRepository;
     this.answerDtoFactory = answerDtoFactory;
-    this.professionService = professionService;
     this.quizResultDtoFactory = quizResultDtoFactory;
     this.objectMapper = objectMapper;
   }
@@ -111,16 +113,20 @@ public class QuizService {
   public QuizDto create(Long professionId) throws ProfessionNotFoundException {
     Optional<QuizDto> quizDto = getQuizByProfessionId(professionId);
     if (!quizDto.isPresent()) {
-      Profession profession = professionService.getWithId(professionId);
+      Optional<Profession> profession = professionRepository.findById(professionId);
+      if (!profession.isPresent()) {
+        throw new ProfessionNotFoundException(
+            String.format("Error creating quiz for non existent profession : %d", professionId));
+      }
       return quizDtoFactory.create(
           quizRepository.save(
               Quiz.builder()
                   .status(Status.DRAFT)
-                  .profession(profession)
+                  .profession(profession.get())
                   .description("")
                   .createdOn(LocalDateTime.now())
                   .updatedOn(LocalDateTime.now())
-                  .name("Quiz for " + profession.getName())
+                  .name("Quiz for " + profession.get().getName())
                   .numberOfQuestions(0)
                   .build()));
     }
