@@ -1,19 +1,5 @@
 package uk.gov.cshr.civilservant.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import javax.persistence.EntityNotFoundException;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +20,20 @@ import uk.gov.cshr.civilservant.repository.ProfessionRepository;
 import uk.gov.cshr.civilservant.repository.QuizRepository;
 import uk.gov.cshr.civilservant.repository.QuizResultRepository;
 
+import javax.persistence.EntityNotFoundException;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 @RunWith(MockitoJUnitRunner.class)
 public class QuizServiceTest {
 
@@ -46,6 +46,8 @@ public class QuizServiceTest {
   @Mock QuizDtoFactory quizDtoFactory;
 
   @Mock ProfessionRepository professionRepository;
+
+  @Mock ProfessionService professionService;
 
   @Mock ObjectMapper objectMapper;
 
@@ -235,8 +237,8 @@ public class QuizServiceTest {
     QuizDto quizDTO = QuizBuilder.buildQuizDTO().get();
 
     // When
-    when(professionRepository.findById(anyLong()))
-        .thenReturn(Optional.of(Profession.builder().build()));
+    when(professionService.getWithId(anyLong()))
+        .thenReturn(Profession.builder().build());
     when(quizRepository.findFirstByProfessionIdAndStatusIsNot(anyLong(), any()))
         .thenReturn(Optional.empty());
     when(quizRepository.save(any())).thenReturn(quiz);

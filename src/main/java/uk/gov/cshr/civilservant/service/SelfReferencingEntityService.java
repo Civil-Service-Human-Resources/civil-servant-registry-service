@@ -4,6 +4,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.SelfReferencingEntity;
 import uk.gov.cshr.civilservant.dto.DtoEntity;
 import uk.gov.cshr.civilservant.dto.factory.DtoFactory;
+import uk.gov.cshr.civilservant.exception.NotFoundException;
 import uk.gov.cshr.civilservant.repository.SelfReferencingEntityRepository;
 
 import java.util.Comparator;
@@ -20,6 +21,11 @@ public abstract class SelfReferencingEntityService<
       SelfReferencingEntityRepository<T> repository, DtoFactory<K, T> dtoFactory) {
     this.repository = repository;
     this.dtoFactory = dtoFactory;
+  }
+
+  public T getWithId(Long id) {
+    return repository.findById(id)
+            .orElseThrow(() -> new NotFoundException(String.format("Resource wit ID %s not found", id)));
   }
 
   public List<T> getTree() {

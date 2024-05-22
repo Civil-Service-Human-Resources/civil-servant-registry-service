@@ -1,14 +1,5 @@
 package uk.gov.cshr.civilservant.service;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-import javax.persistence.EntityNotFoundException;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +15,18 @@ import uk.gov.cshr.civilservant.dto.factory.QuizResultDtoFactory;
 import uk.gov.cshr.civilservant.exception.ProfessionNotFoundException;
 import uk.gov.cshr.civilservant.exception.QuizNotFoundException;
 import uk.gov.cshr.civilservant.exception.QuizServiceException;
-import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
 import uk.gov.cshr.civilservant.repository.ProfessionRepository;
 import uk.gov.cshr.civilservant.repository.QuizRepository;
 import uk.gov.cshr.civilservant.repository.QuizResultRepository;
+
+import javax.persistence.EntityNotFoundException;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -40,7 +39,7 @@ public class QuizService {
   private QuestionService questionService;
   private QuizRepository quizRepository;
   private ProfessionRepository professionRepository;
-  private OrganisationalUnitRepository organisationalUnitRepository;
+  private ProfessionService professionService;
   private QuizResultRepository quizResultRepository;
   private QuizDtoFactory quizDtoFactory;
   private QuizResultDtoFactory quizResultDtoFactory;
@@ -48,22 +47,21 @@ public class QuizService {
 
   @Autowired
   public QuizService(
-      QuizRepository quizRepository,
-      QuizDtoFactory quizDtoFactory,
-      ProfessionRepository professionRepository,
-      OrganisationalUnitRepository organisationalUnitRepository,
-      QuestionService questionService,
-      QuizResultRepository quizResultRepository,
-      AnswerDtoFactory answerDtoFactory,
-      QuizResultDtoFactory quizResultDtoFactory,
-      ObjectMapper objectMapper) {
+          QuizRepository quizRepository,
+          QuizDtoFactory quizDtoFactory,
+          ProfessionRepository professionRepository,
+          QuestionService questionService,
+          QuizResultRepository quizResultRepository,
+          AnswerDtoFactory answerDtoFactory,
+          ProfessionService professionService, QuizResultDtoFactory quizResultDtoFactory,
+          ObjectMapper objectMapper) {
     this.quizRepository = quizRepository;
     this.quizDtoFactory = quizDtoFactory;
     this.professionRepository = professionRepository;
-    this.organisationalUnitRepository = organisationalUnitRepository;
     this.questionService = questionService;
     this.quizResultRepository = quizResultRepository;
     this.answerDtoFactory = answerDtoFactory;
+    this.professionService = professionService;
     this.quizResultDtoFactory = quizResultDtoFactory;
     this.objectMapper = objectMapper;
   }
@@ -113,20 +111,16 @@ public class QuizService {
   public QuizDto create(Long professionId) throws ProfessionNotFoundException {
     Optional<QuizDto> quizDto = getQuizByProfessionId(professionId);
     if (!quizDto.isPresent()) {
-      Optional<Profession> profession = professionRepository.findById(professionId);
-      if (!profession.isPresent()) {
-        throw new ProfessionNotFoundException(
-            String.format("Error creating quiz for non existent profession : %d", professionId));
-      }
+      Profession profession = professionService.getWithId(professionId);
       return quizDtoFactory.create(
           quizRepository.save(
               Quiz.builder()
                   .status(Status.DRAFT)
-                  .profession(profession.get())
+                  .profession(profession)
                   .description("")
                   .createdOn(LocalDateTime.now())
                   .updatedOn(LocalDateTime.now())
-                  .name("Quiz for " + profession.get().getName())
+                  .name("Quiz for " + profession.getName())
                   .numberOfQuestions(0)
                   .build()));
     }
