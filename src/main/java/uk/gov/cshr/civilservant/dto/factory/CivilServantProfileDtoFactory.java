@@ -12,7 +12,6 @@ import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
@@ -41,9 +40,8 @@ public class CivilServantProfileDtoFactory {
 
     private GradeDto getGradeDto(CivilServant civilServant) {
         GradeDto gradeDto = null;
-        Optional<Grade> gradeOptional = civilServant.getGrade();
-        if (gradeOptional.isPresent()) {
-            Grade grade = gradeOptional.get();
+        Grade grade = civilServant.getGrade();
+        if (grade != null) {
             gradeDto = new GradeDto(grade.getId(), grade.getCode(), grade.getName());
         }
         return gradeDto;

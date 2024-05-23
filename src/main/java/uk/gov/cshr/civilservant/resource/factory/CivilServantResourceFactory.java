@@ -6,10 +6,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.CivilServant;
 import uk.gov.cshr.civilservant.domain.Grade;
-import uk.gov.cshr.civilservant.dto.GradeDto;
-import uk.gov.cshr.civilservant.dto.InterestDto;
-import uk.gov.cshr.civilservant.dto.OrgCodeDTO;
-import uk.gov.cshr.civilservant.dto.ProfessionDto;
+import uk.gov.cshr.civilservant.dto.*;
+import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
 import uk.gov.cshr.civilservant.dto.factory.ProfessionDtoFactory;
 import uk.gov.cshr.civilservant.resource.CivilServantResource;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
@@ -24,6 +22,7 @@ public class CivilServantResourceFactory {
     private final IdentityService identityService;
     private final LinkFactory linkFactory;
     private final ProfessionDtoFactory ProfessionDtoFactory;
+    private final OrganisationalUnitDtoFactory organisationalUnitDtoFactory;
 
     @Transactional
     public Resource<CivilServantResource> create(CivilServant civilServant) {
@@ -32,13 +31,15 @@ public class CivilServantResourceFactory {
 
         civilServantResource.setFullName(civilServant.getFullName());
 
-        if (civilServant.getGrade().isPresent()) {
-            Grade grade = civilServant.getGrade().get();
+        Grade grade = civilServant.getGrade();
+        if (grade != null) {
             civilServantResource.setGrade(GradeDto.fromGrade(grade));
         }
 
         if (civilServant.getOrganisationalUnit().isPresent()) {
-            civilServantResource.setOrganisationalUnit(civilServant.getOrganisationalUnit().get());
+            OrganisationalUnitDto organisationalUnitDto = organisationalUnitDtoFactory.create(civilServant.getOrganisationalUnit().get(),
+                    false, false, false);
+            civilServantResource.setOrganisationalUnit(organisationalUnitDto);
         }
 
         if (civilServant.getProfession().isPresent()) {
@@ -75,13 +76,15 @@ public class CivilServantResourceFactory {
     public Resource<CivilServantResource> createResourceForNotification(CivilServant civilServant) {
         CivilServantResource civilServantResource = new CivilServantResource();
 
-        if (civilServant.getGrade().isPresent()) {
-            Grade grade = civilServant.getGrade().get();
+        Grade grade = civilServant.getGrade();
+        if (grade != null) {
             civilServantResource.setGrade(GradeDto.fromGrade(grade));
         }
 
         if (civilServant.getOrganisationalUnit().isPresent()) {
-            civilServantResource.setOrganisationalUnit(civilServant.getOrganisationalUnit().get());
+            OrganisationalUnitDto organisationalUnitDto = organisationalUnitDtoFactory.create(civilServant.getOrganisationalUnit().get(),
+                    false, false, false);
+            civilServantResource.setOrganisationalUnit(organisationalUnitDto);
         }
 
         if (civilServant.getProfession().isPresent()) {

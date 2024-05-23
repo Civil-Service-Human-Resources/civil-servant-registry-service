@@ -2,9 +2,9 @@ package uk.gov.cshr.civilservant.resource;
 
 import lombok.Data;
 import uk.gov.cshr.civilservant.domain.Identity;
-import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.GradeDto;
 import uk.gov.cshr.civilservant.dto.InterestDto;
+import uk.gov.cshr.civilservant.dto.OrganisationalUnitDto;
 import uk.gov.cshr.civilservant.dto.ProfessionDto;
 
 import java.util.Set;
@@ -13,7 +13,7 @@ import java.util.Set;
 public class CivilServantResource {
   private String fullName;
   private GradeDto grade;
-  private OrganisationalUnit organisationalUnit;
+  private OrganisationalUnitDto organisationalUnit;
   private ProfessionDto profession;
   private Set<ProfessionDto> otherAreasOfWork;
   private Set<InterestDto> interests;
