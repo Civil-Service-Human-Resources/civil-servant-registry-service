@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.cshr.civilservant.domain.Profession;
 import uk.gov.cshr.civilservant.domain.Quiz;
 import uk.gov.cshr.civilservant.domain.Roles;
 import uk.gov.cshr.civilservant.domain.Status;
@@ -89,7 +88,7 @@ public class QuizController {
   public ResponseEntity create(@Valid @RequestBody CreateQuizDto createQuizDto) {
 
     try {
-      Profession profession = createQuizDto.getProfession();
+      ProfessionDto profession = createQuizDto.getProfession();
       return ok(quizService.create(profession.getId()));
     } catch (Exception ex) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_MESSAGE);
