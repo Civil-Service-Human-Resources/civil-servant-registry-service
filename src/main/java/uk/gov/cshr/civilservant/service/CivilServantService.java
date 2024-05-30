@@ -2,19 +2,24 @@ package uk.gov.cshr.civilservant.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.hateoas.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.CivilServant;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
+import uk.gov.cshr.civilservant.dto.CivilServantProfileDto;
+import uk.gov.cshr.civilservant.dto.factory.CivilServantProfileDtoFactory;
 import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
 import uk.gov.cshr.civilservant.exception.UserNotFoundException;
 import uk.gov.cshr.civilservant.exception.civilServant.InvalidUserOrganisationException;
 import uk.gov.cshr.civilservant.exception.organisationalUnit.OrganisationalUnitNotFoundException;
 import uk.gov.cshr.civilservant.repository.AgencyTokenRepository;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
+import uk.gov.cshr.civilservant.resource.CivilServantResource;
+import uk.gov.cshr.civilservant.resource.factory.CivilServantResourceFactory;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -27,6 +32,8 @@ public class CivilServantService {
     private final IdentityService identityService;
     private final OrganisationalUnitService organisationalUnitService;
     private final AgencyTokenRepository agencyTokenRepository;
+    private final CivilServantProfileDtoFactory civilServantProfileDtoFactory;
+    private final CivilServantResourceFactory resourceFactory;
 
     public String getCivilServantUid() {
         CivilServant cs = civilServantRepository.findByPrincipal()
@@ -53,13 +60,27 @@ public class CivilServantService {
             });
     }
 
+    @Transactional
+    public CivilServantProfileDto getFullProfile(String uid) {
+        IdentityDTO identityDTO = identityService.getidentity(uid);
+        CivilServant civilServant = civilServantRepository.findByIdentity(uid).orElseThrow(CivilServantNotFoundException::new);
+        return civilServantProfileDtoFactory.create(civilServant, identityDTO);
+    }
+
+    @Transactional
+    public Resource<CivilServantResource> getCivilServantResourceWithUid(String uid) {
+        return civilServantRepository.findByIdentity(uid).map(
+                        resourceFactory::create)
+                .orElse(null);
+    }
+
     public CivilServant updateMyOrganisationalUnit(Long organisationalUnitId) {
         CivilServant cs = civilServantRepository.findByPrincipal()
                 .orElseThrow(CivilServantNotFoundException::new);
         if (cs.getOrganisationalUnit().isPresent() &&
-            Objects.equals(cs.getOrganisationalUnit().get().getId(), organisationalUnitId)) {
-                log.warn(String.format("Civil servant '%s' tried to update to their current organisational unit (%s). Aborting.", cs.getId(), organisationalUnitId));
-                return cs;
+                Objects.equals(cs.getOrganisationalUnit().get().getId(), organisationalUnitId)) {
+            log.warn(String.format("Civil servant '%s' tried to update to their current organisational unit (%s). Aborting.", cs.getId(), organisationalUnitId));
+            return cs;
         }
         String uid = cs.getIdentity().getUid();
         IdentityDTO identity = identityService.getidentity(uid);
@@ -75,11 +96,9 @@ public class CivilServantService {
                 boolean valid = organisationalUnitService.isDomainValidForOrganisation(organisationalUnitId, userDomain);
                 if (valid) {
                     cs.setOrganisationalUnit(organisationalUnit);
-                    log.info("User is not an unrestricted organisaton user; removing user's admin roles");
-                    identityService.removeReportingAccess(Collections.singletonList(uid));
                 } else {
                     throw new InvalidUserOrganisationException(String.format("User domain '%s' does not exist on organisation '%s' or any associated agency tokens",
-                        userDomain, organisationalUnitId));
+                            userDomain, organisationalUnitId));
                 }
             }
             civilServantRepository.saveAndFlush(cs);

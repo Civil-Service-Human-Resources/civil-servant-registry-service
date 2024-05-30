@@ -10,6 +10,10 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import uk.gov.cshr.civilservant.domain.*;
 import uk.gov.cshr.civilservant.dto.OrgCodeDTO;
+import uk.gov.cshr.civilservant.dto.OrganisationalUnitDto;
+import uk.gov.cshr.civilservant.dto.ProfessionDto;
+import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
+import uk.gov.cshr.civilservant.dto.factory.ProfessionDtoFactory;
 import uk.gov.cshr.civilservant.resource.CivilServantResource;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
@@ -30,6 +34,12 @@ public class CivilServantResourceFactoryTest {
     @Mock
     private LinkFactory linkFactory;
 
+    @Mock
+    private ProfessionDtoFactory professionDtoFactory;
+
+    @Mock
+    private OrganisationalUnitDtoFactory organisationalUnitDtoFactory;
+
     @InjectMocks
     private CivilServantResourceFactory factory;
 
@@ -38,13 +48,19 @@ public class CivilServantResourceFactoryTest {
         long id = 99L;
         String fullName = "full-name";
         Grade grade = new Grade("code", "name");
-        Set<Interest> interests = ImmutableSet.of(new Interest("interest"));
+        Interest interest = new Interest("interest");
+        Set<Interest> interests = ImmutableSet.of(interest);
         String lineManagerName = "line-manager";
         String lineManagerEmail = "line-manager@domain.com";
         CivilServant lineManager = new CivilServant();
         lineManager.setFullName(lineManagerName);
         Profession profession = new Profession("profession");
+        ProfessionDto professionDto = new ProfessionDto();
+        professionDto.setName("profession");
         OrganisationalUnit organisationalUnit = new OrganisationalUnit();
+        organisationalUnit.setCode("CODE");
+        OrganisationalUnitDto organisationalUnitDto = new OrganisationalUnitDto();
+        organisationalUnitDto.setCode("CODE");
 
         CivilServant civilServant = new CivilServant();
         civilServant.setId(id);
@@ -59,6 +75,10 @@ public class CivilServantResourceFactoryTest {
 
         Link selfLink = mock(Link.class);
         when(linkFactory.createSelfLink(civilServant)).thenReturn(selfLink);
+
+        when(professionDtoFactory.createSimple(profession)).thenReturn(professionDto);
+        when(organisationalUnitDtoFactory.create(organisationalUnit, false, false, false))
+                .thenReturn(organisationalUnitDto);
 
         Link organisationLink = mock(Link.class);
         when(linkFactory.createRelationshipLink(civilServant, "organisationalUnit"))
@@ -82,12 +102,13 @@ public class CivilServantResourceFactoryTest {
         assertTrue(resource.getLinks().contains(professionLink));
 
         assertEquals(fullName, content.getFullName());
-        assertEquals(grade, content.getGrade());
-        assertEquals(interests, content.getInterests());
+        assertEquals(grade.getCode(), content.getGrade().getCode());
+        assertEquals(grade.getName(), content.getGrade().getName());
+        assertTrue(interests.stream().anyMatch(i -> i.getName().equals(interest.getName())));
         assertEquals(lineManagerName, content.getLineManagerName());
         assertEquals(lineManagerEmail, content.getLineManagerEmailAddress());
-        assertEquals(organisationalUnit, content.getOrganisationalUnit());
-        assertEquals(profession, content.getProfession());
+        assertEquals(organisationalUnit.getCode(), content.getOrganisationalUnit().getCode());
+        assertEquals(profession.getName(), content.getProfession().getName());
     }
 
     @Test

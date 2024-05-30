@@ -1,6 +1,5 @@
 package uk.gov.cshr.civilservant.service.identity;
 
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,11 +17,7 @@ import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.service.exception.UserNotFoundException;
 import uk.gov.cshr.civilservant.service.identity.model.AgencyTokenCapacityUsed;
-import uk.gov.cshr.civilservant.service.identity.model.BatchProcessResponse;
-import uk.gov.cshr.civilservant.service.identity.model.RemoveReportingAccessInput;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -33,46 +28,16 @@ public class IdentityService {
     private OAuth2RestOperations restOperations;
     private String identityAPIUrl;
     private String identityAgencyTokenUrl;
-    private final String removeReportingAccessUrl;
     private final UriComponentsBuilder agencyTokenUrlBuilder;
 
     @Autowired
     public IdentityService(OAuth2RestOperations restOperations, @Value("${identity.identityAPIUrl}") String identityAPIUrl,
                            @Value("${identity.agencyTokenUrl}") String agencyTokenUrl,
-                           @Value("${identity.identityAgencyTokenUrl}") String identityAgencyTokenUrl,
-                           @Value("${identity.removeReportingRolesUrl}") String removeReportingAccessUrl) {
+                           @Value("${identity.identityAgencyTokenUrl}") String identityAgencyTokenUrl) {
         this.restOperations = restOperations;
         this.identityAPIUrl = identityAPIUrl;
         this.identityAgencyTokenUrl = identityAgencyTokenUrl;
         this.agencyTokenUrlBuilder = UriComponentsBuilder.fromHttpUrl(agencyTokenUrl);
-        this.removeReportingAccessUrl = removeReportingAccessUrl;
-    }
-
-    public void removeReportingAccess(List<String> uids) {
-        log.info(String.format("Removing reporting access from %s users", uids.size()));
-        List<String> failedUids = new ArrayList<>();
-        Lists.partition(uids, 50).forEach(batch -> {
-           try {
-               RemoveReportingAccessInput batchObject = new RemoveReportingAccessInput(batch);
-               BatchProcessResponse resp = restOperations.postForObject(removeReportingAccessUrl, batchObject, BatchProcessResponse.class);
-               if (resp != null) {
-                   failedUids.addAll(resp.getFailedIds());
-                   if (!resp.getSuccessfulIds().isEmpty()) {
-                       log.info(String.format("Removed reporting access from the following users: %s", resp.getSuccessfulIds()));
-                   }
-                   if (!failedUids.isEmpty()) {
-                       log.error(String.format("Failed to remove admin access from the following users %s", failedUids));
-                       throw new RuntimeException(String.format("Failed to remove admin access from %s users", failedUids.size()));
-                   }
-               } else {
-                   log.error(String.format("Null response when removing admin access from uids: %s", batch));
-                   failedUids.addAll(batch);
-               }
-           } catch (HttpClientErrorException http) {
-               log.error(String.format("Error when removing admin access from uids: %s. %s", batch, http));
-               failedUids.addAll(batch);
-           }
-        });
     }
 
     public IdentityDTO findByEmail(String email) {

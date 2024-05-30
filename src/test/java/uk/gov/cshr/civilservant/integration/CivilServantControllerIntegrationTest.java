@@ -10,7 +10,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.config.IntegrationTestUserConfig;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
-import uk.gov.cshr.civilservant.service.identity.model.BatchProcessResponse;
 import uk.gov.cshr.civilservant.utils.CustomAuthentication;
 
 import java.util.Collections;
@@ -23,7 +22,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.cshr.civilservant.utils.apiStubs.IdentityServiceStub.*;
+import static uk.gov.cshr.civilservant.utils.apiStubs.IdentityServiceStub.stubGetIdentityWithUid;
+import static uk.gov.cshr.civilservant.utils.apiStubs.IdentityServiceStub.stubPostClientToken;
 
 @SpringBootTest(classes = IntegrationTestUserConfig.class)
 @AutoConfigureMockMvc
@@ -31,6 +31,21 @@ import static uk.gov.cshr.civilservant.utils.apiStubs.IdentityServiceStub.*;
 @Transactional
 public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
     private final Authentication learner = new CustomAuthentication(Collections.singletonList(new SimpleGrantedAuthority("LEARNER")), "learner");
+
+    @Test
+    public void shouldACivilServantWithUid() throws Exception {
+        mockMvc.perform(
+                        get("/civilServants/resource/learner")
+                                .accept(APPLICATION_JSON)
+                                .with(authentication(learner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fullName", equalTo("Learner")))
+                .andExpect(jsonPath("$.organisationalUnit.id", equalTo(2)))
+                .andExpect(jsonPath("$.grade.id", equalTo(1)))
+                .andExpect(jsonPath("$.profession.id", equalTo(1)))
+                .andExpect(jsonPath("$.identity.uid", equalTo("learner")));
+
+    }
 
     @Test
     public void shouldGetCurrentCivilServant() throws Exception {
@@ -41,6 +56,7 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.fullName", equalTo("Learner")))
                 .andExpect(jsonPath("$.organisationalUnit.id", equalTo(2)))
+                .andExpect(jsonPath("$.grade.id", equalTo(1)))
                 .andExpect(jsonPath("$.profession.id", equalTo(1)))
                 .andExpect(jsonPath("$.identity.uid", equalTo("learner")));
 
@@ -71,8 +87,6 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
         stubGetIdentityWithUid("learner", new IdentityDTO(
                 "learner", "learner@cabinetoffice.gov.uk", new HashSet<>(Collections.singletonList("LEARNER"))
         ));
-        stubPostRemoveReportingAccess(Collections.singletonList("learner"),
-                new BatchProcessResponse(Collections.singletonList("learner"), Collections.emptyList()));
         mockMvc.perform(
                         patch("/civilServants/me/organisationalUnit")
                                 .accept(APPLICATION_JSON)
@@ -90,8 +104,6 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
         stubGetIdentityWithUid("learner", new IdentityDTO(
                 "learner", "learner@CABINETOFFICE.gov.uk", new HashSet<>(Collections.singletonList("LEARNER"))
         ));
-        stubPostRemoveReportingAccess(Collections.singletonList("learner"),
-                new BatchProcessResponse(Collections.singletonList("learner"), Collections.emptyList()));
         mockMvc.perform(
                         patch("/civilServants/me/organisationalUnit")
                                 .accept(APPLICATION_JSON)
@@ -109,8 +121,6 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
         stubGetIdentityWithUid("learner", new IdentityDTO(
                 "learner", "learner@mydomain.com", new HashSet<>(Collections.singletonList("LEARNER"))
         ));
-        stubPostRemoveReportingAccess(Collections.singletonList("learner"),
-                new BatchProcessResponse(Collections.singletonList("learner"), Collections.emptyList()));
         mockMvc.perform(
                         patch("/civilServants/me/organisationalUnit")
                                 .accept(APPLICATION_JSON)

@@ -1,41 +1,50 @@
 package uk.gov.cshr.civilservant.resource.factory;
 
-import java.util.Optional;
-
+import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.CivilServant;
-import uk.gov.cshr.civilservant.dto.OrgCodeDTO;
+import uk.gov.cshr.civilservant.domain.Grade;
+import uk.gov.cshr.civilservant.dto.*;
+import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
+import uk.gov.cshr.civilservant.dto.factory.ProfessionDtoFactory;
 import uk.gov.cshr.civilservant.resource.CivilServantResource;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
-import org.springframework.hateoas.Resource;
-import org.springframework.stereotype.Component;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class CivilServantResourceFactory {
     private final IdentityService identityService;
     private final LinkFactory linkFactory;
+    private final ProfessionDtoFactory ProfessionDtoFactory;
+    private final OrganisationalUnitDtoFactory organisationalUnitDtoFactory;
 
-    public CivilServantResourceFactory(IdentityService identityService, LinkFactory linkFactory) {
-        this.identityService = identityService;
-        this.linkFactory = linkFactory;
-    }
-
+    @Transactional
     public Resource<CivilServantResource> create(CivilServant civilServant) {
 
         CivilServantResource civilServantResource = new CivilServantResource();
 
         civilServantResource.setFullName(civilServant.getFullName());
 
-        if (civilServant.getGrade().isPresent()) {
-            civilServantResource.setGrade(civilServant.getGrade().get());
+        Grade grade = civilServant.getGrade();
+        if (grade != null) {
+            civilServantResource.setGrade(GradeDto.fromGrade(grade));
         }
 
         if (civilServant.getOrganisationalUnit().isPresent()) {
-            civilServantResource.setOrganisationalUnit(civilServant.getOrganisationalUnit().get());
+            OrganisationalUnitDto organisationalUnitDto = organisationalUnitDtoFactory.create(civilServant.getOrganisationalUnit().get(),
+                    false, false, false);
+            civilServantResource.setOrganisationalUnit(organisationalUnitDto);
         }
 
         if (civilServant.getProfession().isPresent()) {
-            civilServantResource.setProfession(civilServant.getProfession().get());
+            ProfessionDto professionDto = ProfessionDtoFactory.createSimple(civilServant.getProfession().get());
+            civilServantResource.setProfession(professionDto);
         }
 
         if (civilServant.getLineManager().isPresent()) {
@@ -47,8 +56,11 @@ public class CivilServantResourceFactory {
 
         civilServantResource.setUserId(civilServant.getId());
 
-        civilServantResource.setInterests(civilServant.getInterests());
-        civilServantResource.setOtherAreasOfWork(civilServant.getOtherAreasOfWork());
+        Set<InterestDto> interests = civilServant.getInterests().stream().map(i -> new InterestDto(i.getId(), i.getName())).collect(Collectors.toSet());
+        civilServantResource.setInterests(interests);
+
+        Set<ProfessionDto> otherAreasOfWork = civilServant.getOtherAreasOfWork().stream().map(this.ProfessionDtoFactory::createSimple).collect(Collectors.toSet());
+        civilServantResource.setOtherAreasOfWork(otherAreasOfWork);
         civilServantResource.setIdentity(civilServant.getIdentity());
 
         Resource<CivilServantResource> resource = new Resource<>(civilServantResource);
@@ -64,22 +76,28 @@ public class CivilServantResourceFactory {
     public Resource<CivilServantResource> createResourceForNotification(CivilServant civilServant) {
         CivilServantResource civilServantResource = new CivilServantResource();
 
-        if (civilServant.getGrade().isPresent()) {
-            civilServantResource.setGrade(civilServant.getGrade().get());
+        Grade grade = civilServant.getGrade();
+        if (grade != null) {
+            civilServantResource.setGrade(GradeDto.fromGrade(grade));
         }
 
         if (civilServant.getOrganisationalUnit().isPresent()) {
-            civilServantResource.setOrganisationalUnit(civilServant.getOrganisationalUnit().get());
+            OrganisationalUnitDto organisationalUnitDto = organisationalUnitDtoFactory.create(civilServant.getOrganisationalUnit().get(),
+                    false, false, false);
+            civilServantResource.setOrganisationalUnit(organisationalUnitDto);
         }
 
         if (civilServant.getProfession().isPresent()) {
-            civilServantResource.setProfession(civilServant.getProfession().get());
+            ProfessionDto professionDto = ProfessionDtoFactory.createSimple(civilServant.getProfession().get());
+            civilServantResource.setProfession(professionDto);
         }
 
         civilServantResource.setUserId(civilServant.getId());
-        civilServantResource.setOtherAreasOfWork(civilServant.getOtherAreasOfWork());
+        Set<ProfessionDto> otherAreasOfWork = civilServant.getOtherAreasOfWork().stream().map(this.ProfessionDtoFactory::createSimple).collect(Collectors.toSet());
+        civilServantResource.setOtherAreasOfWork(otherAreasOfWork);
         civilServantResource.setIdentity(civilServant.getIdentity());
-        civilServantResource.setInterests(civilServant.getInterests());
+        Set<InterestDto> interests = civilServant.getInterests().stream().map(i -> new InterestDto(i.getId(), i.getName())).collect(Collectors.toSet());
+        civilServantResource.setInterests(interests);
 
         Resource<CivilServantResource> resource = new Resource<>(civilServantResource);
 

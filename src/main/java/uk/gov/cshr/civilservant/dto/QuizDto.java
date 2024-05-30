@@ -1,12 +1,11 @@
 package uk.gov.cshr.civilservant.dto;
 
-import java.time.LocalDateTime;
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
-import uk.gov.cshr.civilservant.domain.Profession;
 import uk.gov.cshr.civilservant.domain.Status;
+
+import java.time.LocalDateTime;
+import java.util.Set;
 
 @Builder
 @NoArgsConstructor
@@ -17,7 +16,7 @@ import uk.gov.cshr.civilservant.domain.Status;
 public class QuizDto {
   private Long id;
   private String name;
-  private Profession profession;
+  private ProfessionDto profession;
   private Set<QuestionDto> questions;
   private LocalDateTime createdOn;
   private LocalDateTime updatedOn;

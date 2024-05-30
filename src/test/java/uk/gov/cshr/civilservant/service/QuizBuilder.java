@@ -1,13 +1,14 @@
 package uk.gov.cshr.civilservant.service;
 
-import java.util.*;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.gov.cshr.civilservant.domain.*;
 import uk.gov.cshr.civilservant.dto.AnswerDto;
+import uk.gov.cshr.civilservant.dto.ProfessionDto;
 import uk.gov.cshr.civilservant.dto.QuestionDto;
 import uk.gov.cshr.civilservant.dto.QuizDto;
+
+import java.util.*;
 
 public class QuizBuilder {
 
@@ -28,7 +29,7 @@ public class QuizBuilder {
             .build();
     Set<QuestionDto> questions = new HashSet<>();
     questions.add(question1);
-    Profession profession = new Profession();
+    ProfessionDto profession = new ProfessionDto();
     profession.setId(1L);
     return Optional.of(QuizDto.builder().profession(profession).questions(questions).build());
   }
