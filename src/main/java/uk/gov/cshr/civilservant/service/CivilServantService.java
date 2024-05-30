@@ -2,6 +2,7 @@ package uk.gov.cshr.civilservant.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.hateoas.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.CivilServant;
@@ -14,6 +15,8 @@ import uk.gov.cshr.civilservant.exception.civilServant.InvalidUserOrganisationEx
 import uk.gov.cshr.civilservant.exception.organisationalUnit.OrganisationalUnitNotFoundException;
 import uk.gov.cshr.civilservant.repository.AgencyTokenRepository;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
+import uk.gov.cshr.civilservant.resource.CivilServantResource;
+import uk.gov.cshr.civilservant.resource.factory.CivilServantResourceFactory;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
@@ -30,6 +33,7 @@ public class CivilServantService {
     private final OrganisationalUnitService organisationalUnitService;
     private final AgencyTokenRepository agencyTokenRepository;
     private final CivilServantProfileDtoFactory civilServantProfileDtoFactory;
+    private final CivilServantResourceFactory resourceFactory;
 
     public String getCivilServantUid() {
         CivilServant cs = civilServantRepository.findByPrincipal()
@@ -61,6 +65,13 @@ public class CivilServantService {
         IdentityDTO identityDTO = identityService.getidentity(uid);
         CivilServant civilServant = civilServantRepository.findByIdentity(uid).orElseThrow(CivilServantNotFoundException::new);
         return civilServantProfileDtoFactory.create(civilServant, identityDTO);
+    }
+
+    @Transactional
+    public Resource<CivilServantResource> getCivilServantResourceWithUid(String uid) {
+        return civilServantRepository.findByIdentity(uid).map(
+                        resourceFactory::create)
+                .orElse(null);
     }
 
     public CivilServant updateMyOrganisationalUnit(Long organisationalUnitId) {

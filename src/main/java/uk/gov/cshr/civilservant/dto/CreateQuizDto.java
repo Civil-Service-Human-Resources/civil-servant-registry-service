@@ -1,9 +1,8 @@
 package uk.gov.cshr.civilservant.dto;
 
-import javax.validation.constraints.NotNull;
-
 import lombok.*;
-import uk.gov.cshr.civilservant.domain.Profession;
+
+import javax.validation.constraints.NotNull;
 
 @Builder
 @NoArgsConstructor
@@ -11,5 +10,5 @@ import uk.gov.cshr.civilservant.domain.Profession;
 @Getter
 @Setter
 public class CreateQuizDto {
-  @NotNull Profession profession;
+  @NotNull ProfessionDto profession;
 }

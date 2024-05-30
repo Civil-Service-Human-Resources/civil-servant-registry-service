@@ -1,17 +1,17 @@
 package uk.gov.cshr.civilservant.domain;
 
-import static java.util.Collections.unmodifiableSet;
-
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import javax.persistence.*;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
 
 @Entity
 public class CivilServant implements RegistryEntity {
@@ -80,7 +80,11 @@ public class CivilServant implements RegistryEntity {
     this.organisationalUnit = organisationalUnit;
   }
 
-  public Optional<Grade> getGrade() {
+  public Grade getGrade() {
+    return grade;
+  }
+
+  public Optional<Grade> getGradeOtional() {
     return Optional.ofNullable(grade);
   }
 

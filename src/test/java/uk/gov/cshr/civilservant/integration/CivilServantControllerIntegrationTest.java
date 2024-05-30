@@ -33,6 +33,21 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
     private final Authentication learner = new CustomAuthentication(Collections.singletonList(new SimpleGrantedAuthority("LEARNER")), "learner");
 
     @Test
+    public void shouldACivilServantWithUid() throws Exception {
+        mockMvc.perform(
+                        get("/civilServants/resource/learner")
+                                .accept(APPLICATION_JSON)
+                                .with(authentication(learner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fullName", equalTo("Learner")))
+                .andExpect(jsonPath("$.organisationalUnit.id", equalTo(2)))
+                .andExpect(jsonPath("$.grade.id", equalTo(1)))
+                .andExpect(jsonPath("$.profession.id", equalTo(1)))
+                .andExpect(jsonPath("$.identity.uid", equalTo("learner")));
+
+    }
+
+    @Test
     public void shouldGetCurrentCivilServant() throws Exception {
         mockMvc.perform(
                         get("/civilServants/me")
