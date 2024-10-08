@@ -62,9 +62,7 @@ public class CivilServantService {
 
     @Transactional
     public CivilServantProfileDto getFullProfile(String uid) {
-        IdentityDTO identityDTO = identityService.getidentity(uid);
-        CivilServant civilServant = civilServantRepository.findByIdentity(uid).orElseThrow(CivilServantNotFoundException::new);
-        return civilServantProfileDtoFactory.create(civilServant, identityDTO);
+        return civilServantProfileDtoFactory.create(uid);
     }
 
     @Transactional

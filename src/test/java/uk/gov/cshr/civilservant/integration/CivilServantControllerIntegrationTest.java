@@ -82,6 +82,26 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void shouldReturnFullCivilServantProfile() throws Exception {
+        stubPostClientToken();
+        stubGetIdentityWithUid("learner", new IdentityDTO(
+                "learner", "learner@domain.com", new HashSet<>(Collections.singletonList("LEARNER"))
+        ));
+        stubGetIdentityWithUid("manager", new IdentityDTO(
+                "manager", "manager@domain.com", new HashSet<>(Collections.singletonList("LEARNER"))
+        ));
+        mockMvc.perform(
+                        get("/civilServants/resource/learner/profile")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .with(authentication(learner)))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.lineManagerName", equalTo("Manager")))
+                .andExpect(jsonPath("$.lineManagerEmail", equalTo("manager@domain.com")));
+
+    }
+
+    @Test
     public void shouldUpdateRestrictedCivilServantsOrganisation() throws Exception {
         stubPostClientToken();
         stubGetIdentityWithUid("learner", new IdentityDTO(
