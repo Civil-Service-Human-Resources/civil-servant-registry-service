@@ -12,6 +12,6 @@ public class BaseIntegrationTest extends CSRSControllerTestBase {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(options()
             .port(9000)
-            .notifier(new ConsoleNotifier(true)), true);
+            .notifier(new ConsoleNotifier(true)), false);
 
 }
