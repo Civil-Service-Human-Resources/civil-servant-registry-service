@@ -137,7 +137,7 @@ dependencies {
     compile group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
 
     // https://github.com/alphagov/notifications-java-client
-    compile('uk.gov.service.notify:notifications-java-client:3.9.1-RELEASE')
+    compile('uk.gov.service.notify:notifications-java-client:3.9.2-RELEASE')
 
     compile 'org.projectlombok:lombok:1.18.4'
     compile 'com.opencsv:opencsv:4.3'
