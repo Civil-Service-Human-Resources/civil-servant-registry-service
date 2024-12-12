@@ -21,6 +21,7 @@ import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.resource.CivilServantResource;
 import uk.gov.cshr.civilservant.resource.factory.CivilServantResourceFactory;
+import uk.gov.cshr.civilservant.security.CustomOAuth2Authentication;
 import uk.gov.cshr.civilservant.service.CivilServantService;
 import uk.gov.cshr.civilservant.service.LineManagerService;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
@@ -76,8 +77,9 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
 
     @PostMapping("/me/login")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Resource<CivilServantResource>> performLogin(@RequestBody IdentityDTO dto) {
+    public ResponseEntity<Resource<CivilServantResource>> performLogin(CustomOAuth2Authentication identity) {
         log.debug("Checking civil servant login details & fetching the profile");
+        IdentityDTO dto = new IdentityDTO(identity.getUid(), identity.getUserEmail(), identity.getRoles());
         return civilServantService.performLogin(dto).map(
                         civilServant -> ResponseEntity.ok(civilServantResourceFactory.create(civilServant)))
                 .orElse(ResponseEntity.notFound().build());

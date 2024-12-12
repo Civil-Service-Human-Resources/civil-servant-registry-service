@@ -1,15 +1,12 @@
 package uk.gov.cshr.civilservant.security;
 
-import java.util.Map;
-import java.util.Optional;
-
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.intercept.RunAsUserToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import uk.gov.cshr.civilservant.domain.CivilServant;
@@ -17,14 +14,18 @@ import uk.gov.cshr.civilservant.domain.Identity;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.repository.IdentityRepository;
 
+import java.util.Map;
+import java.util.Optional;
+
 @Slf4j
 public class CsrsJwtAccessTokenConverter extends JwtAccessTokenConverter {
 
   private static final String INTERNAL_ROLE = "INTERNAL";
+  private final String EMAIL_KEY = "email";
 
-  @Autowired private IdentityRepository identityRepository;
+  private final IdentityRepository identityRepository;
 
-  @Autowired private CivilServantRepository civilServantRepository;
+  private final CivilServantRepository civilServantRepository;
 
   public CsrsJwtAccessTokenConverter(
       IdentityRepository identityRepository, CivilServantRepository civilServantRepository) {
@@ -32,8 +33,16 @@ public class CsrsJwtAccessTokenConverter extends JwtAccessTokenConverter {
     this.civilServantRepository = civilServantRepository;
   }
 
-  @Override
-  public OAuth2Authentication extractAuthentication(Map<String, ?> map) {
+    @Override
+    public Map<String, ?> convertAccessToken(OAuth2AccessToken token, OAuth2Authentication authentication) {
+        log.debug("Getting user email address from access token");
+        Map<String, Object> vals = (Map<String, Object>) super.convertAccessToken(token, authentication);
+        vals.put(EMAIL_KEY, token.getAdditionalInformation().get(EMAIL_KEY));
+        return vals;
+    }
+
+    @Override
+  public CustomOAuth2Authentication extractAuthentication(Map<String, ?> map) {
     OAuth2Authentication authentication = super.extractAuthentication(map);
 
     configureInternalUser();
@@ -71,7 +80,9 @@ public class CsrsJwtAccessTokenConverter extends JwtAccessTokenConverter {
           return civilServantRepository.save(newCivilServant);
         });
 
-    return authentication;
+    // email will be null here if the token is a client token
+    String email = (String) map.get(EMAIL_KEY);
+    return new CustomOAuth2Authentication(authentication.getOAuth2Request(), authentication.getUserAuthentication(), email);
   }
 
   private void configureInternalUser() {
