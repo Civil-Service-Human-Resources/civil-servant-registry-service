@@ -27,6 +27,7 @@ public interface CivilServantRepository extends JpaRepository<CivilServant, Long
           + "LEFT JOIN FETCH c.lineManager "
           + "LEFT JOIN FETCH c.grade "
           + "LEFT JOIN FETCH c.otherAreasOfWork "
+          + "LEFT JOIN FETCH c.otherOrganisationalUnits "
           + "LEFT JOIN FETCH c.interests "
           + "WHERE c.identity.uid = ?#{principal}")
   Optional<CivilServant> findByPrincipal();
@@ -42,6 +43,7 @@ public interface CivilServantRepository extends JpaRepository<CivilServant, Long
           + "LEFT JOIN FETCH c.lineManager "
           + "LEFT JOIN FETCH c.grade "
           + "LEFT JOIN FETCH c.otherAreasOfWork "
+          + "LEFT JOIN FETCH c.otherOrganisationalUnits "
           + "LEFT JOIN FETCH c.interests "
           + "WHERE c.id = ?1")
   Optional<CivilServant> findById(@Param("id") Long id);
@@ -63,6 +65,7 @@ public interface CivilServantRepository extends JpaRepository<CivilServant, Long
       "LEFT JOIN FETCH c.lineManager " +
       "LEFT JOIN FETCH c.grade " +
       "LEFT JOIN FETCH c.otherAreasOfWork " +
+      "LEFT JOIN FETCH c.otherOrganisationalUnits " +
       "LEFT JOIN FETCH c.interests " +
       "LEFT JOIN FETCH c.identity " +
       "WHERE c.organisationalUnit.code = ?1")

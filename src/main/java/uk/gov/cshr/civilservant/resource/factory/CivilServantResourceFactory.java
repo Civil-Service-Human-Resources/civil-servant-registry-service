@@ -61,6 +61,10 @@ public class CivilServantResourceFactory {
 
         Set<ProfessionDto> otherAreasOfWork = civilServant.getOtherAreasOfWork().stream().map(this.ProfessionDtoFactory::createSimple).collect(Collectors.toSet());
         civilServantResource.setOtherAreasOfWork(otherAreasOfWork);
+
+        Set<OrganisationalUnitDto> otherOrganisationalUnits = civilServant.getOtherOrganisationalUnits().stream().map(this.organisationalUnitDtoFactory::create).collect(Collectors.toSet());
+        civilServantResource.setOtherOrganisationalUnits(otherOrganisationalUnits);
+
         civilServantResource.setIdentity(civilServant.getIdentity());
 
         Resource<CivilServantResource> resource = new Resource<>(civilServantResource);
@@ -95,6 +99,9 @@ public class CivilServantResourceFactory {
         civilServantResource.setUserId(civilServant.getId());
         Set<ProfessionDto> otherAreasOfWork = civilServant.getOtherAreasOfWork().stream().map(this.ProfessionDtoFactory::createSimple).collect(Collectors.toSet());
         civilServantResource.setOtherAreasOfWork(otherAreasOfWork);
+        Set<OrganisationalUnitDto> otherOrganisationalUnits = civilServant.getOtherOrganisationalUnits().stream().map(this.organisationalUnitDtoFactory::create).collect(Collectors.toSet());
+        civilServantResource.setOtherOrganisationalUnits(otherOrganisationalUnits);
+
         civilServantResource.setIdentity(civilServant.getIdentity());
         Set<InterestDto> interests = civilServant.getInterests().stream().map(i -> new InterestDto(i.getId(), i.getName())).collect(Collectors.toSet());
         civilServantResource.setInterests(interests);
