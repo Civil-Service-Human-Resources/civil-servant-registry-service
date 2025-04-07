@@ -1,6 +1,8 @@
 package uk.gov.cshr.civilservant.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.data.rest.webmvc.RepositoryLinksResource;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
@@ -14,7 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.cshr.civilservant.controller.v2.models.SimplePage;
 import uk.gov.cshr.civilservant.domain.CivilServant;
+import uk.gov.cshr.civilservant.domain.Identity;
 import uk.gov.cshr.civilservant.dto.CivilServantProfileDto;
 import uk.gov.cshr.civilservant.dto.UpdateOrganisationDTO;
 import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
@@ -27,7 +31,6 @@ import uk.gov.cshr.civilservant.service.LineManagerService;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -173,13 +176,13 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
 
     @GetMapping("/organisation/{code}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Resource<CivilServantResource>>> civilServantByOrganisationCode(@PathVariable("code") String code) {
-        List<CivilServant> civilServants = civilServantRepository.findAllByOrganisationCode(code);
-        ResponseEntity<List<Resource<CivilServantResource>>> entity = ResponseEntity.ok(civilServants.stream()
-            .map(civilServantResourceFactory::createResourceForNotification)
-            .collect(Collectors.toList()));
-
-        return entity;
+    @ResponseBody
+    public SimplePage<String> civilServantUidsByOrganisationCode(Pageable pageable, @PathVariable("code") String code) {
+        Page<Identity> identities = civilServantRepository.findAllIdentitiesByOrganisationCode(pageable, code);
+        return new SimplePage<>(identities.getContent()
+                .stream()
+                .map(Identity::getUid)
+                .collect(Collectors.toList()), identities.getTotalElements(), pageable);
     }
 
     @Override
