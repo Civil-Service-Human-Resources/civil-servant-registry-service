@@ -61,6 +61,10 @@ public class CivilServantResourceFactory {
 
         Set<ProfessionDto> otherAreasOfWork = civilServant.getOtherAreasOfWork().stream().map(this.ProfessionDtoFactory::createSimple).collect(Collectors.toSet());
         civilServantResource.setOtherAreasOfWork(otherAreasOfWork);
+
+        Set<OrganisationalUnitDto> otherOrganisationalUnits = civilServant.getOtherOrganisationalUnits().stream().map(this.organisationalUnitDtoFactory::create).collect(Collectors.toSet());
+        civilServantResource.setOtherOrganisationalUnits(otherOrganisationalUnits);
+
         civilServantResource.setIdentity(civilServant.getIdentity());
 
         Resource<CivilServantResource> resource = new Resource<>(civilServantResource);
@@ -69,41 +73,6 @@ public class CivilServantResourceFactory {
         resource.add(linkFactory.createRelationshipLink(civilServant, "organisationalUnit"));
         resource.add(linkFactory.createRelationshipLink(civilServant, "grade"));
         resource.add(linkFactory.createRelationshipLink(civilServant, "profession"));
-
-        return resource;
-    }
-
-    public Resource<CivilServantResource> createResourceForNotification(CivilServant civilServant) {
-        CivilServantResource civilServantResource = new CivilServantResource();
-
-        Grade grade = civilServant.getGrade();
-        if (grade != null) {
-            civilServantResource.setGrade(GradeDto.fromGrade(grade));
-        }
-
-        if (civilServant.getOrganisationalUnit().isPresent()) {
-            OrganisationalUnitDto organisationalUnitDto = organisationalUnitDtoFactory.create(civilServant.getOrganisationalUnit().get(),
-                    false, false, false);
-            civilServantResource.setOrganisationalUnit(organisationalUnitDto);
-        }
-
-        if (civilServant.getProfession().isPresent()) {
-            ProfessionDto professionDto = ProfessionDtoFactory.createSimple(civilServant.getProfession().get());
-            civilServantResource.setProfession(professionDto);
-        }
-
-        civilServantResource.setUserId(civilServant.getId());
-        Set<ProfessionDto> otherAreasOfWork = civilServant.getOtherAreasOfWork().stream().map(this.ProfessionDtoFactory::createSimple).collect(Collectors.toSet());
-        civilServantResource.setOtherAreasOfWork(otherAreasOfWork);
-        civilServantResource.setIdentity(civilServant.getIdentity());
-        Set<InterestDto> interests = civilServant.getInterests().stream().map(i -> new InterestDto(i.getId(), i.getName())).collect(Collectors.toSet());
-        civilServantResource.setInterests(interests);
-
-        Resource<CivilServantResource> resource = new Resource<>(civilServantResource);
-
-        resource.add(linkFactory.createSelfLink(civilServant));
-        resource.add(linkFactory.createRelationshipLink(civilServant, "organisationalUnit"));
-        resource.add(linkFactory.createRelationshipLink(civilServant, "grade"));
 
         return resource;
     }

@@ -13,6 +13,7 @@ public class CivilServantDto {
   private String organisation;
   private String profession;
   private List<String> otherAreasOfWork;
+  private List<String> otherOrganisationalUnits;
   private String grade;
 
   public CivilServantDto(

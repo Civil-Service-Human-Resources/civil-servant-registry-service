@@ -16,6 +16,7 @@ public class CivilServantResource {
   private OrganisationalUnitDto organisationalUnit;
   private ProfessionDto profession;
   private Set<ProfessionDto> otherAreasOfWork;
+  private Set<OrganisationalUnitDto> otherOrganisationalUnits;
   private Set<InterestDto> interests;
   private String lineManagerName;
   private String lineManagerEmailAddress;

@@ -42,6 +42,9 @@ public class CivilServant implements RegistryEntity {
   @ManyToMany(fetch = FetchType.LAZY)
   private Set<Profession> otherAreasOfWork = new HashSet<>();
 
+  @ManyToMany(fetch = FetchType.LAZY)
+  private Set<OrganisationalUnit> otherOrganisationalUnits = new HashSet<>();
+
   @JsonIgnore
   @ManyToOne(fetch = FetchType.LAZY)
   private CivilServant lineManager;
@@ -122,6 +125,17 @@ public class CivilServant implements RegistryEntity {
     }
   }
 
+  public Set<OrganisationalUnit> getOtherOrganisationalUnits() {
+    return otherOrganisationalUnits;
+  }
+
+  public void setOtherOrganisationalUnits(Set<OrganisationalUnit> otherOrganisationalUnits) {
+    this.otherOrganisationalUnits.clear();
+    if(otherOrganisationalUnits != null) {
+      this.otherOrganisationalUnits.addAll(otherOrganisationalUnits);
+    }
+  }
+
   public Optional<CivilServant> getLineManager() {
     return Optional.ofNullable(lineManager);
   }
@@ -171,6 +185,7 @@ public class CivilServant implements RegistryEntity {
         .append("grade", grade)
         .append("profession", profession)
         .append("otherAreasOfWork", otherAreasOfWork)
+        .append("otherOrganisationalUnits", otherOrganisationalUnits)
         .append("interests", interests)
         .append("identity", identity)
         .append("lineManager", lineManager)
