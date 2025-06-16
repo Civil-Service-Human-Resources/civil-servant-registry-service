@@ -62,7 +62,12 @@ public class CivilServantResourceFactory {
         Set<ProfessionDto> otherAreasOfWork = civilServant.getOtherAreasOfWork().stream().map(this.ProfessionDtoFactory::createSimple).collect(Collectors.toSet());
         civilServantResource.setOtherAreasOfWork(otherAreasOfWork);
 
-        Set<OrganisationalUnitDto> otherOrganisationalUnits = civilServant.getOtherOrganisationalUnits().stream().map(this.organisationalUnitDtoFactory::create).collect(Collectors.toSet());
+        Set<OrganisationalUnitDto> otherOrganisationalUnits =
+                civilServant.getOtherOrganisationalUnits()
+                        .stream()
+                        .map(o -> organisationalUnitDtoFactory.create(o, false, false, false))
+                        .collect(Collectors.toSet());
+
         civilServantResource.setOtherOrganisationalUnits(otherOrganisationalUnits);
 
         civilServantResource.setIdentity(civilServant.getIdentity());
