@@ -67,7 +67,6 @@ public class CivilServantResourceFactory {
                         .stream()
                         .map(o -> organisationalUnitDtoFactory.create(o, false, false, false))
                         .collect(Collectors.toSet());
-
         civilServantResource.setOtherOrganisationalUnits(otherOrganisationalUnits);
 
         civilServantResource.setIdentity(civilServant.getIdentity());
