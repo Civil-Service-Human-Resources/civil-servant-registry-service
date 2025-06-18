@@ -5,7 +5,7 @@
                 <map>
                     <entry key="AGENCY_TOKEN_MAX_CAPACITY" value="1500" />
                     <entry key="AGENCY_TOKEN_MIN_CAPACITY" value="1" />
-                    <entry key="CLIENT_ID" value="9fbd4ae2-2db3-44c7-9544-88e80255b56e" />
+                    <entry key="CLIENT_ID" value="test" />
                     <entry key="CLIENT_SECRET" value="test" />
                     <entry key="DATABASE_HOST" value="jdbc:mysql://localhost:3306" />
                     <entry key="DATABASE_NAME" value="csrs" />
@@ -17,7 +17,7 @@
                     <entry key="GOV_NOTIFY_API_KEY" value="changeme" />
                     <entry key="GOV_NOTIFY_ENABLED" value="false" />
                     <entry key="GOV_NOTIFY_LINEMANAGER_TEMPLATE_ID" value="changeme" />
-                    <entry key="JWT_KEY" value="bJwXRAslLzOtPywnCqBbQujKBKki44LB" />
+                    <entry key="JWT_KEY" value="test" />
                     <entry key="OAUTH_CHECK_TOKEN_ENDPOINT" value="/oauth2/introspect" />
                     <entry key="OAUTH_SERVICE_URL" value="http://localhost:9005" />
                     <entry key="OAUTH_TOKEN_ENDPOINT" value="/oauth2/token" />
