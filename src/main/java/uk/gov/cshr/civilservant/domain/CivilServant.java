@@ -87,7 +87,7 @@ public class CivilServant implements RegistryEntity {
     return grade;
   }
 
-  public Optional<Grade> getGradeOtional() {
+  public Optional<Grade> getGradeOptional() {
     return Optional.ofNullable(grade);
   }
 
