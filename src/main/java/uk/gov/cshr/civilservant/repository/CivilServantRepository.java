@@ -34,10 +34,10 @@ public interface CivilServantRepository extends JpaRepository<CivilServant, Long
           + "WHERE c.identity.uid = ?#{principal}")
   Optional<CivilServant> findByPrincipal();
 
-  @PreAuthorize("#civilServant.identity.uid eq principal || hasAuthority('IDENTITY_MANAGE_IDENTITY')")
+  @PreAuthorize("#civilServant.identity.uid eq principal || hasAnyAuthority('INTERNAL','IDENTITY_MANAGE_IDENTITY')")
   CivilServant save(@Param("civilServant") CivilServant civilServant);
 
-  @PostAuthorize("returnObject.isPresent() && returnObject.get().identity.uid eq principal")
+  @PostAuthorize("returnObject.isPresent() && (returnObject.get().identity.uid eq principal || hasAnyAuthority('INTERNAL','IDENTITY_MANAGE_IDENTITY'))")
   @Query(
       "select c from CivilServant c "
           + "LEFT JOIN FETCH c.organisationalUnit "
