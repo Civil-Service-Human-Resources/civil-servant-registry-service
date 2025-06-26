@@ -78,15 +78,28 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("/me")
+    @PatchMapping(value = "/me", consumes = "application/patch+json")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Resource<CivilServantResource>> patch(CivilServant cs) {
         log.debug("Patching civil servant details for logged in user");
         return civilServantRepository.findByPrincipal().map(
                         civilServant -> {
-                            cs.setId(civilServant.getId());
-                            cs.setIdentity(civilServant.getIdentity());
-                            return ResponseEntity.ok(civilServantResourceFactory.create(civilServantRepository.save(cs)));
+                            if (cs.getFullName() != null) {
+                                civilServant.setFullName(cs.getFullName());
+                            }
+                            if (cs.getGrade() != null) {
+                                civilServant.setGrade(cs.getGrade());
+                            }
+                            if (cs.getProfession().isPresent()) {
+                                civilServant.setProfession(cs.getProfession().get());
+                            }
+                            if (cs.getInterests() != null) {
+                                civilServant.setInterests(cs.getInterests());
+                            }
+                            if (cs.getOtherAreasOfWork() != null) {
+                                civilServant.setOtherAreasOfWork(cs.getOtherAreasOfWork());
+                            }
+                            return ResponseEntity.ok(civilServantResourceFactory.create(civilServantRepository.save(civilServant)));
                         })
                 .orElse(ResponseEntity.notFound().build());
     }
