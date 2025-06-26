@@ -81,31 +81,10 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
 
     @PatchMapping(value = "/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Resource<CivilServantResource>> patch(@RequestBody @Valid Resource<CivilServant> csResource) {
+    public ResponseEntity patch(@RequestBody @Valid Resource<CivilServant> csResource) {
         log.debug("Patching civil servant details for logged in user");
-        return civilServantRepository.findByPrincipal().map(
-                        civilServant -> {
-                            CivilServant cs = csResource.getContent();
-                            if (cs.getFullName() != null) {
-                                civilServant.setFullName(cs.getFullName());
-                            }
-                            if (cs.getGrade() != null) {
-                                civilServant.setGrade(cs.getGrade());
-                            }
-                            if (cs.getProfession().isPresent()) {
-                                civilServant.setProfession(cs.getProfession().get());
-                            }
-                            if (cs.getInterests() != null) {
-                                civilServant.setInterests(cs.getInterests());
-                            }
-                            if (cs.getOtherAreasOfWork() != null) {
-                                civilServant.setOtherAreasOfWork(cs.getOtherAreasOfWork());
-                            }
-                            civilServant = civilServantRepository.save(civilServant);
-                            Resource<CivilServantResource> civilServantResourceResource = civilServantResourceFactory.create(civilServant);
-                            return ResponseEntity.ok(civilServantResourceResource);
-                        })
-                .orElse(ResponseEntity.notFound().build());
+        civilServantService.update(csResource.getContent());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/me/login")

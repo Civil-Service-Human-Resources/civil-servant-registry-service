@@ -72,6 +72,27 @@ public class CivilServantService {
                 .orElse(null);
     }
 
+    public void update(CivilServant cs) {
+        CivilServant civilServant = civilServantRepository.findByPrincipal()
+                .orElseThrow(CivilServantNotFoundException::new);
+        if (cs.getFullName() != null) {
+            civilServant.setFullName(cs.getFullName());
+        }
+        if (cs.getGrade() != null) {
+            civilServant.setGrade(cs.getGrade());
+        }
+        if (cs.getProfession().isPresent()) {
+            civilServant.setProfession(cs.getProfession().get());
+        }
+        if (cs.getInterests() != null) {
+            civilServant.setInterests(cs.getInterests());
+        }
+        if (cs.getOtherAreasOfWork() != null) {
+            civilServant.setOtherAreasOfWork(cs.getOtherAreasOfWork());
+        }
+        civilServantRepository.save(civilServant);
+    }
+
     public CivilServant updateMyOrganisationalUnit(Long organisationalUnitId) {
         CivilServant cs = civilServantRepository.findByPrincipal()
                 .orElseThrow(CivilServantNotFoundException::new);
