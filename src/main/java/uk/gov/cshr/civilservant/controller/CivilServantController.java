@@ -30,6 +30,7 @@ import uk.gov.cshr.civilservant.service.CivilServantService;
 import uk.gov.cshr.civilservant.service.LineManagerService;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -80,10 +81,11 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
 
     @PatchMapping(value = "/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Resource<CivilServantResource>> patch(CivilServant cs) {
+    public ResponseEntity<Resource<CivilServantResource>> patch(@RequestBody @Valid Resource<CivilServant> csResource) {
         log.debug("Patching civil servant details for logged in user");
         return civilServantRepository.findByPrincipal().map(
                         civilServant -> {
+                            CivilServant cs = csResource.getContent();
                             if (cs.getFullName() != null) {
                                 civilServant.setFullName(cs.getFullName());
                             }
@@ -99,7 +101,9 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
                             if (cs.getOtherAreasOfWork() != null) {
                                 civilServant.setOtherAreasOfWork(cs.getOtherAreasOfWork());
                             }
-                            return ResponseEntity.ok(civilServantResourceFactory.create(civilServantRepository.save(civilServant)));
+                            civilServant = civilServantRepository.save(civilServant);
+                            Resource<CivilServantResource> civilServantResourceResource = civilServantResourceFactory.create(civilServant);
+                            return ResponseEntity.ok(civilServantResourceResource);
                         })
                 .orElse(ResponseEntity.notFound().build());
     }
