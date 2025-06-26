@@ -191,4 +191,15 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
                                 .content("{\"otherOrganisationalUnits\": [\"/organisationalUnits/15\", \"/organisationalUnits/16\"]}"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    public void testCivilServantsPatchMeEndpointPerformsOrgUnitPatch() throws Exception {
+        mockMvc.perform(
+                        patch("/civilServants/me")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .with(authentication(civilServant1010))
+                                .content("{\"otherOrganisationalUnits\": [\"/organisationalUnits/15\", \"/organisationalUnits/16\"]}"))
+                .andExpect(status().isOk());
+    }
 }

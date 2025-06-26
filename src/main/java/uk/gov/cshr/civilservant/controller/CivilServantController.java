@@ -78,6 +78,19 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PatchMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Resource<CivilServantResource>> patch(CivilServant cs) {
+        log.debug("Patching civil servant details for logged in user");
+        return civilServantRepository.findByPrincipal().map(
+                        civilServant -> {
+                            cs.setId(civilServant.getId());
+                            cs.setIdentity(civilServant.getIdentity());
+                            return ResponseEntity.ok(civilServantResourceFactory.create(civilServantRepository.save(cs)));
+                        })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/me/login")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Resource<CivilServantResource>> performLogin(CustomOAuth2Authentication identity) {
