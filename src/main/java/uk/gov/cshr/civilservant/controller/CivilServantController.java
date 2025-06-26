@@ -78,7 +78,7 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PatchMapping(value = "/me", consumes = "application/patch+json")
+    @PatchMapping(value = "/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Resource<CivilServantResource>> patch(CivilServant cs) {
         log.debug("Patching civil servant details for logged in user");
