@@ -67,6 +67,10 @@ public class CivilServant implements RegistryEntity {
     return identity;
   }
 
+  public void setIdentity(Identity identity) {
+    this.identity = identity;
+  }
+
   public String getFullName() {
     return fullName;
   }

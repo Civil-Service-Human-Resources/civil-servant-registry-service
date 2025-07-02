@@ -30,6 +30,7 @@ import uk.gov.cshr.civilservant.service.CivilServantService;
 import uk.gov.cshr.civilservant.service.LineManagerService;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -76,6 +77,14 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
         return civilServantRepository.findByPrincipal().map(
                 civilServant -> ResponseEntity.ok(civilServantResourceFactory.create(civilServant)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping(value = "/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity patch(@RequestBody @Valid Resource<CivilServant> csResource) {
+        log.debug("Patching civil servant details for logged in user");
+        civilServantService.update(csResource.getContent());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/me/login")
