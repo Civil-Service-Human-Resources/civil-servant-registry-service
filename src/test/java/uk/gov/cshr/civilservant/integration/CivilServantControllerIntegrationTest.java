@@ -34,7 +34,7 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
     private final Authentication civilServant1010 = new CustomAuthentication(Collections.singletonList(new SimpleGrantedAuthority("LEARNER")), "learner-with-other-orgs");
 
     @Test
-    public void shouldACivilServantWithUid() throws Exception {
+    public void shouldGetACivilServantWithUid() throws Exception {
         mockMvc.perform(
                         get("/civilServants/resource/learner")
                                 .accept(APPLICATION_JSON)
@@ -168,6 +168,22 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
                                 .content("{\"organisationalUnitId\": 2}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.organisationalUnit.id", equalTo(2)));
+    }
+
+    @Test
+    public void shouldUpdateCivilServantOtherOrganisation() throws Exception {
+        stubPostClientToken();
+        stubGetIdentityWithUid("learner", new IdentityDTO(
+                "learner-with-other-orgs", "learner-other-orgs@cabinetoffice.gov.uk", new HashSet<>(Collections.singletonList("LEARNER"))
+        ));
+        mockMvc.perform(
+                        patch("/civilServants/me/organisationalUnit")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .with(authentication(learner))
+                                .content("{\"organisationalUnitId\": 4}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.organisationalUnit.id", equalTo(4)));
     }
 
     @Test

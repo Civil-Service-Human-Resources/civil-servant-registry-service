@@ -148,6 +148,11 @@ public class CivilServant implements RegistryEntity {
     this.lineManager = lineManager;
   }
 
+  @JsonIgnore
+  public boolean hasOtherOrganisation(Long otherOrganisationId) {
+    return getOtherOrganisationalUnits().stream().anyMatch(o -> o.getId().equals(otherOrganisationId));
+  }
+
   @JsonProperty
   public String getLineManagerName() {
     if (lineManager != null) {

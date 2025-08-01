@@ -50,7 +50,7 @@ public class CivilServantService {
                 String csDomain = identity.getEmailDomain();
                 if (!agencyTokenRepository.existsByDomain(csDomain)) {
                     cs.getOrganisationalUnit().ifPresent(o -> {
-                        if(!o.doesDomainExist(csDomain) && !identity.isUnrestrictedOrganisation()) {
+                        if(!o.doesDomainExist(csDomain) && !identity.isUnrestrictedOrganisation() && !cs.hasOtherOrganisation(o.getId())) {
                             cs.setOrganisationalUnit(null);
                             civilServantRepository.saveAndFlush(cs);
                         }
@@ -108,6 +108,9 @@ public class CivilServantService {
                     .orElseThrow(() -> new OrganisationalUnitNotFoundException(organisationalUnitId));
             if (identity.getRoles().contains("UNRESTRICTED_ORGANISATION")) {
                 log.info("User is an unrestricted organisaton user");
+                cs.setOrganisationalUnit(organisationalUnit);
+            } else if (cs.hasOtherOrganisation(organisationalUnitId)) {
+                log.info("Organisation {} is an other organisational unit for user", organisationalUnitId);
                 cs.setOrganisationalUnit(organisationalUnit);
             } else {
                 String userDomain = identity.getEmailDomain();
