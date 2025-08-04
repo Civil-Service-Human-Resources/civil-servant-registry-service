@@ -55,19 +55,24 @@ public class CivilServantResourceFactory {
         }
 
         civilServantResource.setUserId(civilServant.getId());
+        if(civilServant.getInterests() != null) {
+            Set<InterestDto> interests = civilServant.getInterests().stream().map(i -> new InterestDto(i.getId(), i.getName())).collect(Collectors.toSet());
+            civilServantResource.setInterests(interests);
+        }
 
-        Set<InterestDto> interests = civilServant.getInterests().stream().map(i -> new InterestDto(i.getId(), i.getName())).collect(Collectors.toSet());
-        civilServantResource.setInterests(interests);
+        if(civilServant.getOtherAreasOfWork() != null) {
+            Set<ProfessionDto> otherAreasOfWork = civilServant.getOtherAreasOfWork().stream().map(this.ProfessionDtoFactory::createSimple).collect(Collectors.toSet());
+            civilServantResource.setOtherAreasOfWork(otherAreasOfWork);
+        }
 
-        Set<ProfessionDto> otherAreasOfWork = civilServant.getOtherAreasOfWork().stream().map(this.ProfessionDtoFactory::createSimple).collect(Collectors.toSet());
-        civilServantResource.setOtherAreasOfWork(otherAreasOfWork);
-
-        Set<OrganisationalUnitDto> otherOrganisationalUnits =
-                civilServant.getOtherOrganisationalUnits()
-                        .stream()
-                        .map(o -> organisationalUnitDtoFactory.create(o, false, false, false))
-                        .collect(Collectors.toSet());
-        civilServantResource.setOtherOrganisationalUnits(otherOrganisationalUnits);
+        if(civilServant.getOtherOrganisationalUnits() != null) {
+            Set<OrganisationalUnitDto> otherOrganisationalUnits =
+                    civilServant.getOtherOrganisationalUnits()
+                            .stream()
+                            .map(o -> organisationalUnitDtoFactory.create(o, false, false, false))
+                            .collect(Collectors.toSet());
+            civilServantResource.setOtherOrganisationalUnits(otherOrganisationalUnits);
+        }
 
         civilServantResource.setIdentity(civilServant.getIdentity());
 
@@ -90,5 +95,4 @@ public class CivilServantResourceFactory {
             return Optional.empty();
         }
     }
-
 }

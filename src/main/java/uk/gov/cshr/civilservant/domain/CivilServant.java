@@ -2,6 +2,9 @@ package uk.gov.cshr.civilservant.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -13,6 +16,9 @@ import java.util.Set;
 
 import static java.util.Collections.unmodifiableSet;
 
+@NoArgsConstructor
+@Getter
+@Setter
 @Entity
 public class CivilServant implements RegistryEntity {
 
@@ -33,119 +39,68 @@ public class CivilServant implements RegistryEntity {
   private Profession profession;
 
   @ManyToMany(fetch = FetchType.LAZY)
-  private Set<Interest> interests = new HashSet<>();
+  private Set<Interest> interests;
 
   @OneToOne(cascade = CascadeType.REMOVE)
   @JsonIgnore
   private Identity identity;
 
   @ManyToMany(fetch = FetchType.LAZY)
-  private Set<Profession> otherAreasOfWork = new HashSet<>();
+  private Set<Profession> otherAreasOfWork;
 
   @ManyToMany(fetch = FetchType.LAZY)
-  private Set<OrganisationalUnit> otherOrganisationalUnits = new HashSet<>();
+  private Set<OrganisationalUnit> otherOrganisationalUnits;
 
   @JsonIgnore
   @ManyToOne(fetch = FetchType.LAZY)
   private CivilServant lineManager;
 
-  public CivilServant() {}
-
   public CivilServant(Identity identity) {
     this.identity = identity;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public Identity getIdentity() {
-    return identity;
-  }
-
-  public void setIdentity(Identity identity) {
-    this.identity = identity;
-  }
-
-  public String getFullName() {
-    return fullName;
-  }
-
-  public void setFullName(String fullName) {
-    this.fullName = fullName;
   }
 
   public Optional<OrganisationalUnit> getOrganisationalUnit() {
     return Optional.ofNullable(organisationalUnit);
   }
 
-  public void setOrganisationalUnit(OrganisationalUnit organisationalUnit) {
-    this.organisationalUnit = organisationalUnit;
-  }
-
-  public Grade getGrade() {
-    return grade;
-  }
-
   public Optional<Grade> getGradeOptional() {
     return Optional.ofNullable(grade);
-  }
-
-  public void setGrade(Grade grade) {
-    this.grade = grade;
   }
 
   public Optional<Profession> getProfession() {
     return Optional.ofNullable(profession);
   }
 
-  public void setProfession(Profession profession) {
-    this.profession = profession;
-  }
-
   public Set<Interest> getInterests() {
-    return unmodifiableSet(interests);
+    if(interests != null) {
+      return unmodifiableSet(interests);
+    }
+    return null;
   }
 
   public void setInterests(Set<Interest> interests) {
-    this.interests.clear();
     if (interests != null) {
+      this.interests = new HashSet<>();
       this.interests.addAll(interests);
     }
   }
 
-  public Set<Profession> getOtherAreasOfWork() {
-    return otherAreasOfWork;
-  }
-
   public void setOtherAreasOfWork(Set<Profession> otherAreasOfWork) {
-    this.otherAreasOfWork.clear();
     if (otherAreasOfWork != null) {
+      this.otherAreasOfWork = new HashSet<>();
       this.otherAreasOfWork.addAll(otherAreasOfWork);
     }
   }
 
-  public Set<OrganisationalUnit> getOtherOrganisationalUnits() {
-    return otherOrganisationalUnits;
-  }
-
   public void setOtherOrganisationalUnits(Set<OrganisationalUnit> otherOrganisationalUnits) {
-    this.otherOrganisationalUnits.clear();
     if(otherOrganisationalUnits != null) {
+      this.otherOrganisationalUnits = new HashSet<>();
       this.otherOrganisationalUnits.addAll(otherOrganisationalUnits);
     }
   }
 
   public Optional<CivilServant> getLineManager() {
     return Optional.ofNullable(lineManager);
-  }
-
-  public void setLineManager(CivilServant lineManager) {
-    this.lineManager = lineManager;
   }
 
   @JsonProperty
