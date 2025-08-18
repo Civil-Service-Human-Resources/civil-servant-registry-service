@@ -49,7 +49,7 @@ public class CivilServant implements RegistryEntity {
   private Set<Profession> otherAreasOfWork;
 
   @ManyToMany(fetch = FetchType.LAZY)
-  private Set<OrganisationalUnit> otherOrganisationalUnits;
+  private Set<OrganisationalUnit> otherOrganisationalUnits = new HashSet<>();
 
   @JsonIgnore
   @ManyToOne(fetch = FetchType.LAZY)
@@ -111,6 +111,7 @@ public class CivilServant implements RegistryEntity {
   public boolean hasOtherOrganisation(Long otherOrganisationId) {
     return getOtherOrganisationalUnits().stream().anyMatch(o -> o.getId().equals(otherOrganisationId));
   }
+
   @JsonProperty
   public String getLineManagerName() {
     if (lineManager != null) {
