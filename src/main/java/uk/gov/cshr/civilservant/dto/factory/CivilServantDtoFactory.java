@@ -29,11 +29,15 @@ public class CivilServantDtoFactory extends DtoFactory<CivilServantDto, CivilSer
             civilServantDto.setProfession(civilServant.getProfession().get().getName());
         }
 
-        civilServantDto.setOtherAreasOfWork(civilServant.getOtherAreasOfWork().stream()
-                .map(Profession::getName)
-                .collect(Collectors.toList()));
+        if(civilServant.getOtherAreasOfWork() != null) {
+            civilServantDto.setOtherAreasOfWork(civilServant.getOtherAreasOfWork().stream()
+                    .map(Profession::getName)
+                    .collect(Collectors.toList()));
+        }
 
-        civilServantDto.setOtherOrganisationalUnits(civilServant.getOtherOrganisationalUnits().stream().map(OrganisationalUnit::getName).collect(Collectors.toList()));
+        if(civilServant.getOtherOrganisationalUnits() != null) {
+            civilServantDto.setOtherOrganisationalUnits(civilServant.getOtherOrganisationalUnits().stream().map(OrganisationalUnit::getName).collect(Collectors.toList()));
+        }
 
         Grade grade = civilServant.getGrade();
         if (grade != null) {
