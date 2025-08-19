@@ -99,8 +99,21 @@ public class CivilServant implements RegistryEntity {
     }
   }
 
+  public Set<OrganisationalUnit> getOtherOrganisationalUnits() {
+    return otherOrganisationalUnits == null ? new HashSet<>() : otherOrganisationalUnits;
+  }
+
   public Optional<CivilServant> getLineManager() {
     return Optional.ofNullable(lineManager);
+  }
+
+  public void setLineManager(CivilServant lineManager) {
+    this.lineManager = lineManager;
+  }
+
+  @JsonIgnore
+  public boolean hasOtherOrganisation(Long otherOrganisationId) {
+    return getOtherOrganisationalUnits().stream().anyMatch(o -> o.getId().equals(otherOrganisationId));
   }
 
   @JsonProperty
