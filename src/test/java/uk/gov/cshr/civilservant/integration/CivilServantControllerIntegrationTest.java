@@ -34,7 +34,7 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
     private final Authentication civilServant1010 = new CustomAuthentication(Collections.singletonList(new SimpleGrantedAuthority("LEARNER")), "learner-with-other-orgs");
 
     @Test
-    public void shouldACivilServantWithUid() throws Exception {
+    public void shouldGetACivilServantWithUid() throws Exception {
         mockMvc.perform(
                         get("/civilServants/resource/learner")
                                 .accept(APPLICATION_JSON)
@@ -171,6 +171,22 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void shouldUpdateCivilServantOtherOrganisation() throws Exception {
+        stubPostClientToken();
+        stubGetIdentityWithUid("learner", new IdentityDTO(
+                "learner-with-other-orgs", "learner-other-orgs@cabinetoffice.gov.uk", new HashSet<>(Collections.singletonList("LEARNER"))
+        ));
+        mockMvc.perform(
+                        patch("/civilServants/me/organisationalUnit")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .with(authentication(learner))
+                                .content("{\"organisationalUnitId\": 4}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.organisationalUnit.id", equalTo(4)));
+    }
+
+    @Test
     public void testCivilServantsOtherOrganisationalUnitsGetEndpointReturnsArrayOfTwoOrganisationalUnits() throws Exception {
         mockMvc.perform(
                 get("/civilServants/1010/otherOrganisationalUnits")
@@ -189,6 +205,17 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
                                 .contentType(APPLICATION_JSON)
                                 .with(authentication(civilServant1010))
                                 .content("{\"otherOrganisationalUnits\": [\"/organisationalUnits/15\", \"/organisationalUnits/16\"]}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testCivilServantsPatchMe() throws Exception {
+        mockMvc.perform(
+                        patch("/civilServants/me")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .with(authentication(civilServant1010))
+                                .content("{\"otherAreasOfWork\": [\"/professions/15\", \"/professions/16\"]}"))
                 .andExpect(status().isOk());
     }
 }
