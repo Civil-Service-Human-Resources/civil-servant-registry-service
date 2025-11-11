@@ -140,11 +140,11 @@ public class OrganisationalUnitController {
 
     @PostMapping("/{organisationalUnitId}/agencyToken")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<AgencyTokenResponseDto> saveAgencyToken(@PathVariable Long organisationalUnitId, @Valid @RequestBody AgencyTokenDTO agencyTokenDto, UriComponentsBuilder builder) {
+    public ResponseEntity<AgencyToken> saveAgencyToken(@PathVariable Long organisationalUnitId, @Valid @RequestBody AgencyTokenDTO agencyTokenDto, UriComponentsBuilder builder) {
         AgencyToken agencyToken = agencyTokenFactory.buildAgencyTokenFromAgencyTokenDto(agencyTokenDto);
         return organisationalUnitService.getOrganisationalUnit(organisationalUnitId).map(organisationalUnit -> {
             organisationalUnitService.setAgencyToken(organisationalUnit, agencyToken);
-            return ResponseEntity.created(organisationalUnitService.getAgencyToken(organisationalUnitId));
+            return ResponseEntity.status(201).body(agencyToken);
         }).orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
@@ -163,7 +163,7 @@ public class OrganisationalUnitController {
 
     @PatchMapping("/{organisationalUnitId}/agencyToken")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity updateAgencyToken(@PathVariable Long organisationalUnitId, @Valid @RequestBody AgencyTokenDTO agencyTokenDto) {
+    public ResponseEntity<AgencyToken> updateAgencyToken(@PathVariable Long organisationalUnitId, @Valid @RequestBody AgencyTokenDTO agencyTokenDto) {
         AgencyToken agencyToken = agencyTokenFactory.buildAgencyTokenFromAgencyTokenDto(agencyTokenDto);
         return organisationalUnitService.getOrganisationalUnit(organisationalUnitId).map(organisationalUnit -> {
             organisationalUnitService.updateAgencyToken(organisationalUnit, agencyToken);
