@@ -4,11 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import uk.gov.cshr.civilservant.controller.models.FetchSkillsMetadataRequest;
 import uk.gov.cshr.civilservant.controller.models.SyncSkillsMetadataRequest;
 import uk.gov.cshr.civilservant.controller.v2.models.PageableParams;
+import uk.gov.cshr.civilservant.controller.v2.models.SimplePage;
 import uk.gov.cshr.civilservant.domain.CivilServantSkillsMetadata;
-import uk.gov.cshr.civilservant.dto.factory.SkillsMetadataDtoFactory;
-import uk.gov.cshr.civilservant.dto.skills.SkillsMetadataSyncDto;
+import uk.gov.cshr.civilservant.dto.skills.SkillsMetadataDto;
 import uk.gov.cshr.civilservant.repository.SkillsMetadataRepository;
 
 import java.time.Clock;
@@ -21,24 +22,26 @@ import java.util.stream.Collectors;
 public class SkillsMetadataService {
 
     private final SkillsMetadataRepository skillsMetadataRepository;
-    private final SkillsMetadataDtoFactory skillsMetadataDtoFactory;
     private final Clock clock;
 
-    public SkillsMetadataService(SkillsMetadataRepository skillsMetadataRepository, SkillsMetadataDtoFactory skillsMetadataDtoFactory, Clock clock) {
+    public SkillsMetadataService(SkillsMetadataRepository skillsMetadataRepository, Clock clock) {
         this.skillsMetadataRepository = skillsMetadataRepository;
-        this.skillsMetadataDtoFactory = skillsMetadataDtoFactory;
         this.clock = clock;
     }
 
-    public SkillsMetadataSyncDto syncUsers(SyncSkillsMetadataRequest params) {
-        Pageable pageable = new PageableParams(0, params.getUserCount()).getAsPageable();
+    public SimplePage<SkillsMetadataDto> getUids(FetchSkillsMetadataRequest params, PageableParams pageableParams) {
+        Pageable pageable = pageableParams.getAsPageable();
         Page<CivilServantSkillsMetadata> skillsMetadataPage = params.getIsSynced() ? skillsMetadataRepository.getBySynced(pageable) : skillsMetadataRepository.getByNotSynced(pageable);
-        SkillsMetadataSyncDto skillsMetadataSyncDto = skillsMetadataDtoFactory.buildSkillsMetadataSyncDto(skillsMetadataPage);
-        log.info("Setting {} civil servants to synced", skillsMetadataPage.getSize());
+        List<SkillsMetadataDto> dtos = skillsMetadataPage.getContent().stream()
+                .map(c -> new SkillsMetadataDto(c.getCivilServant().getIdentity().getUid(), c.getSyncTimestamp())).collect(Collectors.toList());
+        return new SimplePage<>(dtos, skillsMetadataPage.getTotalElements(), pageable);
+    }
+
+    public void syncUids(SyncSkillsMetadataRequest params) {
+        List<CivilServantSkillsMetadata> metadata = skillsMetadataRepository.getAllByCivilServant_Identity_UidIn(params.getUids());
         LocalDateTime now = LocalDateTime.now(clock);
-        List<CivilServantSkillsMetadata> updatedMetadata = skillsMetadataPage.getContent().stream().peek(
-                skills -> skills.setSyncTimestamp(now)).collect(Collectors.toList());
-        skillsMetadataRepository.saveAll(updatedMetadata);
-        return skillsMetadataSyncDto;
+        log.info("Syncing {} accounts", metadata.size());
+        metadata.forEach(data -> data.setSyncTimestamp(now));
+        skillsMetadataRepository.saveAll(metadata);
     }
 }

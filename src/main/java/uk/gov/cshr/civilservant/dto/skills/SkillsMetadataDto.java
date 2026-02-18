@@ -7,17 +7,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SkillsMetadataSyncDto {
+public class SkillsMetadataDto {
 
-    private List<String> uids;
+    private String uid;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
-    private LocalDateTime minSyncTimestamp;
-    private Integer remainingUserCount;
+    private LocalDateTime syncTimestamp;
 
 }

@@ -27,6 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,19 +48,50 @@ public class SkillsControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Transactional
-    public void shouldSyncExistingUids() throws Exception {
+    public void shouldGetExistingUids() throws Exception {
+        mockMvc.perform(
+                        get("/skills-metadata")
+                                .accept(APPLICATION_JSON)
+                                .param("isSynced", "true")
+                                .param("size", "2")
+                                .with(authentication(auth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", equalTo(2)))
+                .andExpect(jsonPath("$.content[0].uid", equalTo("skills-3")))
+                .andExpect(jsonPath("$.content[0].syncTimestamp", equalTo("2022-01-01 10:00:00")))
+                .andExpect(jsonPath("$.content[1].uid", equalTo("skills-4")))
+                .andExpect(jsonPath("$.content[1].syncTimestamp", equalTo("2022-02-01 10:00:00")))
+                .andExpect(jsonPath("$.totalElements", equalTo(4)));
+    }
+
+    @Test
+    @Transactional
+    public void shouldSyncNewUids() throws Exception {
+        mockMvc.perform(
+                        get("/skills-metadata")
+                                .accept(APPLICATION_JSON)
+                                .param("isSynced", "false")
+                                .param("size", "2")
+                                .with(authentication(auth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", equalTo(2)))
+                .andExpect(jsonPath("$.content[0].uid", equalTo("skills-1")))
+                .andExpect(jsonPath("$.content[0].syncTimestamp", equalTo(null)))
+                .andExpect(jsonPath("$.content[1].uid", equalTo("skills-2")))
+                .andExpect(jsonPath("$.content[1].syncTimestamp", equalTo(null)))
+                .andExpect(jsonPath("$.totalElements", equalTo(2)));
+    }
+
+    @Test
+    @Transactional
+    public void shouldSyncUids() throws Exception {
         mockMvc.perform(
                         post("/skills-metadata/sync-uids")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"userCount\":  2, \"isSynced\": true}")
+                                .content("{\"uids\":  [\"skills-3\", \"skills-4\"]}")
                                 .with(authentication(auth)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.uids.length()", equalTo(2)))
-                .andExpect(jsonPath("$.uids[0]", equalTo("skills-3")))
-                .andExpect(jsonPath("$.uids[1]", equalTo("skills-4")))
-                .andExpect(jsonPath("$.minSyncTimestamp", equalTo("2022-01-01 10:00:00")))
-                .andExpect(jsonPath("$.remainingUserCount", equalTo(2)));
+                .andExpect(status().isOk());
         Map<String, CivilServantSkillsMetadata> map = new HashMap<>();
         skillsMetadataRepository.getAll(new PageableParams(0, 6).getAsPageable()).getContent()
                 .forEach(s -> map.put(s.getCivilServant().getIdentity().getUid(), s));
@@ -67,32 +99,6 @@ public class SkillsControllerIntegrationTest extends BaseIntegrationTest {
         assertNull(map.get("skills-2").getSyncTimestamp());
         assertEquals("2023-01-01T10:00:00", map.get("skills-3").getSyncTimestamp().format(formatter));
         assertEquals("2023-01-01T10:00:00", map.get("skills-4").getSyncTimestamp().format(formatter));
-        assertEquals("2022-03-01T10:00:00", map.get("skills-5").getSyncTimestamp().format(formatter));
-        assertEquals("2022-04-01T10:00:00", map.get("skills-6").getSyncTimestamp().format(formatter));
-    }
-
-    @Test
-    @Transactional
-    public void shouldSyncNewUids() throws Exception {
-        mockMvc.perform(
-                        post("/skills-metadata/sync-uids")
-                                .accept(APPLICATION_JSON)
-                                .contentType(APPLICATION_JSON)
-                                .content("{\"userCount\":  2, \"isSynced\": false}")
-                                .with(authentication(auth)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.uids.length()", equalTo(2)))
-                .andExpect(jsonPath("$.uids[0]", equalTo("skills-1")))
-                .andExpect(jsonPath("$.uids[1]", equalTo("skills-2")))
-                .andExpect(jsonPath("$.minSyncTimestamp", equalTo(null)))
-                .andExpect(jsonPath("$.remainingUserCount", equalTo(0)));
-        Map<String, CivilServantSkillsMetadata> map = new HashMap<>();
-        skillsMetadataRepository.getAll(new PageableParams(0, 6).getAsPageable()).getContent()
-                .forEach(s -> map.put(s.getCivilServant().getIdentity().getUid(), s));
-        assertEquals("2023-01-01T10:00:00", map.get("skills-1").getSyncTimestamp().format(formatter));
-        assertEquals("2023-01-01T10:00:00", map.get("skills-2").getSyncTimestamp().format(formatter));
-        assertEquals("2022-01-01T10:00:00", map.get("skills-3").getSyncTimestamp().format(formatter));
-        assertEquals("2022-02-01T10:00:00", map.get("skills-4").getSyncTimestamp().format(formatter));
         assertEquals("2022-03-01T10:00:00", map.get("skills-5").getSyncTimestamp().format(formatter));
         assertEquals("2022-04-01T10:00:00", map.get("skills-6").getSyncTimestamp().format(formatter));
     }

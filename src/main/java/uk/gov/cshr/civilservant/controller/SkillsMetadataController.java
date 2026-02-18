@@ -1,9 +1,13 @@
 package uk.gov.cshr.civilservant.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.cshr.civilservant.controller.models.FetchSkillsMetadataRequest;
 import uk.gov.cshr.civilservant.controller.models.SyncSkillsMetadataRequest;
-import uk.gov.cshr.civilservant.dto.skills.SkillsMetadataSyncDto;
+import uk.gov.cshr.civilservant.controller.v2.models.PageableParams;
+import uk.gov.cshr.civilservant.controller.v2.models.SimplePage;
+import uk.gov.cshr.civilservant.dto.skills.SkillsMetadataDto;
 import uk.gov.cshr.civilservant.service.SkillsMetadataService;
 
 @Slf4j
@@ -18,9 +22,16 @@ public class SkillsMetadataController {
     }
 
     @ResponseBody
+    @GetMapping
+    public SimplePage<SkillsMetadataDto> getSkillsUids(PageableParams pageable, FetchSkillsMetadataRequest params) {
+        return skillsMetadataService.getUids(params, pageable);
+    }
+
+    @ResponseBody
     @PostMapping("/sync-uids")
-    public SkillsMetadataSyncDto syncSkillsUids(@RequestBody SyncSkillsMetadataRequest params) {
-        return skillsMetadataService.syncUsers(params);
+    @ResponseStatus(HttpStatus.OK)
+    public void syncUids(@RequestBody SyncSkillsMetadataRequest params) {
+        skillsMetadataService.syncUids(params);
     }
 
 }

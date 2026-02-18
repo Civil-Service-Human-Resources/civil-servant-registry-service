@@ -8,6 +8,8 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 import uk.gov.cshr.civilservant.domain.CivilServantSkillsMetadata;
 
+import java.util.List;
+
 @Repository
 public interface SkillsMetadataRepository extends JpaRepository<CivilServantSkillsMetadata, Long>, PagingAndSortingRepository<CivilServantSkillsMetadata, Long> {
 
@@ -23,6 +25,10 @@ public interface SkillsMetadataRepository extends JpaRepository<CivilServantSkil
 
     @Query(value = "select cssm from CivilServantSkillsMetadata cssm ")
     Page<CivilServantSkillsMetadata> getAll(Pageable paging);
+
+//    @Query(value = "select cssm from CivilServantSkillsMetadata cssm " +
+//            "where cssm.civilServant.identity.uid in (?1)")
+    List<CivilServantSkillsMetadata> getAllByCivilServant_Identity_UidIn(List<String> uids);
 
 //    @Query(value = "select CivilServantSkillsMetadata " +
 //            "from CivilServantSkillsMetadata cssm " +
