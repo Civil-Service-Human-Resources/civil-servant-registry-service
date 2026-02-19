@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class SkillsMetadataDto {
 
     private String uid;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss")
     private LocalDateTime syncTimestamp;
 
 }

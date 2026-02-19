@@ -58,9 +58,9 @@ public class SkillsControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", equalTo(2)))
                 .andExpect(jsonPath("$.content[0].uid", equalTo("skills-3")))
-                .andExpect(jsonPath("$.content[0].syncTimestamp", equalTo("2022-01-01 10:00:00")))
+                .andExpect(jsonPath("$.content[0].syncTimestamp", equalTo("2022-01-01T10:00:00")))
                 .andExpect(jsonPath("$.content[1].uid", equalTo("skills-4")))
-                .andExpect(jsonPath("$.content[1].syncTimestamp", equalTo("2022-02-01 10:00:00")))
+                .andExpect(jsonPath("$.content[1].syncTimestamp", equalTo("2022-02-01T10:00:00")))
                 .andExpect(jsonPath("$.totalElements", equalTo(4)));
     }
 
