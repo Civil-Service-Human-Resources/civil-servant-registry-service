@@ -10,6 +10,8 @@ import uk.gov.cshr.civilservant.controller.v2.models.SimplePage;
 import uk.gov.cshr.civilservant.dto.skills.SkillsMetadataDto;
 import uk.gov.cshr.civilservant.service.SkillsMetadataService;
 
+import javax.validation.Valid;
+
 @Slf4j
 @RequestMapping("/skills-metadata")
 @RestController
@@ -23,7 +25,7 @@ public class SkillsMetadataController {
 
     @ResponseBody
     @GetMapping
-    public SimplePage<SkillsMetadataDto> getSkillsUids(PageableParams pageable, FetchSkillsMetadataRequest params) {
+    public SimplePage<SkillsMetadataDto> getSkillsUids(PageableParams pageable, @Valid FetchSkillsMetadataRequest params) {
         return skillsMetadataService.getUids(params, pageable);
     }
 

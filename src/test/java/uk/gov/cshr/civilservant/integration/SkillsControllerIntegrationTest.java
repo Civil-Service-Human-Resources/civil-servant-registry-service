@@ -52,7 +52,7 @@ public class SkillsControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(
                         get("/skills-metadata")
                                 .accept(APPLICATION_JSON)
-                                .param("isSynced", "true")
+                                .param("syncTimestampLte", "2022-03-01T11:00:00")
                                 .param("size", "2")
                                 .with(authentication(auth)))
                 .andExpect(status().isOk())
@@ -61,7 +61,7 @@ public class SkillsControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.content[0].syncTimestamp", equalTo("2022-01-01T10:00:00")))
                 .andExpect(jsonPath("$.content[1].uid", equalTo("skills-4")))
                 .andExpect(jsonPath("$.content[1].syncTimestamp", equalTo("2022-02-01T10:00:00")))
-                .andExpect(jsonPath("$.totalElements", equalTo(4)));
+                .andExpect(jsonPath("$.totalElements", equalTo(3)));
     }
 
     @Test
@@ -70,7 +70,6 @@ public class SkillsControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(
                         get("/skills-metadata")
                                 .accept(APPLICATION_JSON)
-                                .param("isSynced", "false")
                                 .param("size", "2")
                                 .with(authentication(auth)))
                 .andExpect(status().isOk())
@@ -93,7 +92,7 @@ public class SkillsControllerIntegrationTest extends BaseIntegrationTest {
                                 .with(authentication(auth)))
                 .andExpect(status().isOk());
         Map<String, CivilServantSkillsMetadata> map = new HashMap<>();
-        skillsMetadataRepository.getAll(new PageableParams(0, 6).getAsPageable()).getContent()
+        skillsMetadataRepository.findAll(new PageableParams(0, 6).getAsPageable()).getContent()
                 .forEach(s -> map.put(s.getCivilServant().getIdentity().getUid(), s));
         assertNull(map.get("skills-1").getSyncTimestamp());
         assertNull(map.get("skills-2").getSyncTimestamp());

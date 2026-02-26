@@ -8,6 +8,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 import uk.gov.cshr.civilservant.domain.CivilServantSkillsMetadata;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -15,24 +16,9 @@ public interface SkillsMetadataRepository extends JpaRepository<CivilServantSkil
 
     @Query(value = "select cssm " +
             "from CivilServantSkillsMetadata cssm " +
-    "where cssm.syncTimestamp is null")
-    Page<CivilServantSkillsMetadata> getByNotSynced(Pageable paging);
+    "where (:syncTimestampLte is null or cssm.syncTimestamp <= :syncTimestampLte)")
+    Page<CivilServantSkillsMetadata> get(Pageable paging, LocalDateTime syncTimestampLte);
 
-    @Query(value = "select cssm " +
-            "from CivilServantSkillsMetadata cssm " +
-            "where cssm.syncTimestamp is not null")
-    Page<CivilServantSkillsMetadata> getBySynced(Pageable paging);
-
-    @Query(value = "select cssm from CivilServantSkillsMetadata cssm ")
-    Page<CivilServantSkillsMetadata> getAll(Pageable paging);
-
-//    @Query(value = "select cssm from CivilServantSkillsMetadata cssm " +
-//            "where cssm.civilServant.identity.uid in (?1)")
     List<CivilServantSkillsMetadata> getAllByCivilServant_Identity_UidIn(List<String> uids);
-
-//    @Query(value = "select CivilServantSkillsMetadata " +
-//            "from CivilServantSkillsMetadata cssm " +
-//            "where ?1 is null or IF((cssm.syncTimestamp is null), 'false', 'true') = ?1 ")
-//    Page<CivilServantSkillsMetadata> getByNotSynced(@Nullable Boolean synced, Pageable paging);
 
 }
