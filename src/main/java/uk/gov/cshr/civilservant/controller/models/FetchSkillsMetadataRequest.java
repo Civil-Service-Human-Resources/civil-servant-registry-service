@@ -17,4 +17,10 @@ public class FetchSkillsMetadataRequest {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime syncTimestampLte;
 
+    private boolean synced;
+
+    public boolean getIsSynced() {
+        return synced || syncTimestampLte != null;
+    }
+
 }

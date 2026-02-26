@@ -16,8 +16,14 @@ public interface SkillsMetadataRepository extends JpaRepository<CivilServantSkil
 
     @Query(value = "select cssm " +
             "from CivilServantSkillsMetadata cssm " +
-    "where (:syncTimestampLte is null or cssm.syncTimestamp <= :syncTimestampLte)")
-    Page<CivilServantSkillsMetadata> get(Pageable paging, LocalDateTime syncTimestampLte);
+            "where cssm.syncTimestamp is null")
+    Page<CivilServantSkillsMetadata> getByNotSynced(Pageable paging);
+
+    @Query(value = "select cssm " +
+            "from CivilServantSkillsMetadata cssm " +
+            "where cssm.syncTimestamp is not null " +
+            "and (:lastSyncedLte is null or cssm.syncTimestamp <= :lastSyncedLte)")
+    Page<CivilServantSkillsMetadata> getBySynced(Pageable paging, LocalDateTime lastSyncedLte);
 
     List<CivilServantSkillsMetadata> getAllByCivilServant_Identity_UidIn(List<String> uids);
 

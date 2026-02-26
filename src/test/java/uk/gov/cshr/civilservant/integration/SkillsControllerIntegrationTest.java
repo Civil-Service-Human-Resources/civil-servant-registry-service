@@ -70,7 +70,7 @@ public class SkillsControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(
                         get("/skills-metadata")
                                 .accept(APPLICATION_JSON)
-                                .param("size", "2")
+                                .param("size", "6")
                                 .with(authentication(auth)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", equalTo(2)))

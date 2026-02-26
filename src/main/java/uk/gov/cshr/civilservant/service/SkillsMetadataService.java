@@ -31,7 +31,7 @@ public class SkillsMetadataService {
 
     public SimplePage<SkillsMetadataDto> getUids(FetchSkillsMetadataRequest params, PageableParams pageableParams) {
         Pageable pageable = pageableParams.getAsPageable();
-        Page<CivilServantSkillsMetadata> skillsMetadataPage = skillsMetadataRepository.get(pageable, params.getSyncTimestampLte());
+        Page<CivilServantSkillsMetadata> skillsMetadataPage = params.getIsSynced() ? skillsMetadataRepository.getBySynced(pageable, params.getSyncTimestampLte()) : skillsMetadataRepository.getByNotSynced(pageable);
         List<SkillsMetadataDto> dtos = skillsMetadataPage.getContent().stream()
                 .map(c -> new SkillsMetadataDto(c.getCivilServant().getIdentity().getUid(), c.getSyncTimestamp())).collect(Collectors.toList());
         return new SimplePage<>(dtos, skillsMetadataPage.getTotalElements(), pageable);
