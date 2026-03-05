@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.cshr.civilservant.exception.apiCodes.ApiCode;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static java.util.Collections.sort;
@@ -28,6 +29,15 @@ public class ErrorDtoFactory {
     errorDto.setMessage(status.getReasonPhrase());
     errorDto.setErrors(new ArrayList<>(errors));
     errorDto.setApiErrorCode(code.getCode());
+    return errorDto;
+  }
+
+  public FieldErrorDto createFieldError(HttpStatus httpStatus, List<FieldError> errors) {
+    errors.sort(Comparator.comparing(FieldError::getField));
+    FieldErrorDto errorDto = new FieldErrorDto();
+    errorDto.setStatus(httpStatus.value());
+    errorDto.setMessage(httpStatus.getReasonPhrase());
+    errorDto.setErrors(new ArrayList<>(errors));
     return errorDto;
   }
 }
