@@ -14,4 +14,8 @@ public class InterestDtoFactory extends DtoFactory<InterestDto, Interest> {
     return interestDto;
   }
 
+  @Override
+  public InterestDto create(Interest interest) {
+    return createSimple(interest);
+  }
 }
