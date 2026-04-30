@@ -98,6 +98,15 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
                                 .contentType(APPLICATION_JSON)
                                 .with(authentication(learner)))
                 .andExpect(status().is2xxSuccessful())
+                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()))
+                .andExpect(jsonPath("$.fullName", equalTo("Learner")))
+                .andExpect(jsonPath("$.email", equalTo("learner@domain.com")))
+                .andExpect(jsonPath("$.uid", equalTo("learner")))
+                .andExpect(jsonPath("$.grade.name", equalTo("Administrative assistant")))
+                .andExpect(jsonPath("$.profession.name", equalTo("Analysis")))
+                .andExpect(jsonPath("$.organisationalUnit.name", equalTo("Department of Health & Social Care")))
+                .andExpect(jsonPath("$.otherAreasOfWork[0].name", equalTo("Commercial")))
+                .andExpect(jsonPath("$.interests[0].name", equalTo("Contract management")))
                 .andExpect(jsonPath("$.lineManagerName", equalTo("Manager")))
                 .andExpect(jsonPath("$.lineManagerEmail", equalTo("manager@domain.com")));
 
