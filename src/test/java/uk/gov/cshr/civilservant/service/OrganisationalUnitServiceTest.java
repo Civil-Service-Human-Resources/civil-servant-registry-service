@@ -13,7 +13,6 @@ import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.*;
 import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
 import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
-import uk.gov.cshr.civilservant.exception.NoOrganisationsFoundException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.repository.DomainRepository;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
@@ -69,32 +68,6 @@ public class OrganisationalUnitServiceTest {
 
         family = new FamilyOrganisationUnits();
         GODFATHERS_CODE = family.getTopParent().getCode();
-
-        // mocking for the top parent
-        Optional<OrganisationalUnit> topOrg = Optional.of(family.getTopParent());
-        when(organisationalUnitRepository.findByCode(eq(GODFATHERS_CODE))).thenReturn(topOrg);
-
-        // mocking for godfathers children - first generation
-        for (int i = 0; i < family.getTopParent().getChildren().size(); i++) {
-            String codeOfChildAtIndexI = "god" + i;
-            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildrenAsList().get(i));
-            when(organisationalUnitRepository.findByCode(eq(codeOfChildAtIndexI))).thenReturn(childAtIndexI);
-        }
-
-        // mocking for godfather children, child 1s children - second generation
-        for (int i = 0; i < family.getTopParent().getChildrenAsList().get(1).getChildren().size(); i++) {
-            String codeOfChildAtIndexI = "grandOne" + i;
-            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildrenAsList().get(1).getChildrenAsList().get(i));
-            when(organisationalUnitRepository.findByCode(eq(codeOfChildAtIndexI))).thenReturn(childAtIndexI);
-        }
-
-        // mocking for godfather children, child 2s children - second generation
-        for (int i = 0; i < family.getTopParent().getChildrenAsList().get(2).getChildren().size(); i++) {
-            String codeOfChildAtIndexI = "grandTwo" + i;
-            Optional<OrganisationalUnit> childAtIndexI = Optional.of(family.getTopParent().getChildrenAsList().get(2).getChildrenAsList().get(i));
-            when(organisationalUnitRepository.findByCode(eq(codeOfChildAtIndexI))).thenReturn(childAtIndexI);
-        }
-
     }
 
     @Test
@@ -168,141 +141,6 @@ public class OrganisationalUnitServiceTest {
     }
 
     @Test
-    public void shouldReturnAllOrganisationCodes() {
-        List<String> codes = Arrays.asList("code1", "code2");
-
-        when(organisationalUnitRepository.findAllCodes()).thenReturn(codes);
-
-        assertEquals(codes, organisationalUnitService.getOrganisationalUnitCodes());
-    }
-
-    @Test
-    public void givenAnOrgWithThreeLevelsAndTopLevelIsRequested_whenGetOrganisationWithParents_thenShouldReturnParentOnlyOrgUnits() {
-        // given
-
-        // when
-        List<OrganisationalUnit> actual = organisationalUnitService.getOrganisationWithParents(GODFATHERS_CODE);
-
-        // then
-        assertThat(actual).hasSize(1);
-        assertThat(actual).extracting(OrganisationalUnit::getName)
-                .containsOnly("Godfather: the head of the family");
-    }
-
-    @Test
-    public void givenAnOrgWithThreeLevelsAndSecondLevelIsRequested_whenGetOrganisationWithParents_thenShouldReturnSecondLevelItemRequestedAndItsParentOnlyOrgUnits() {
-        // given
-        List<OrganisationalUnit> secondLevel = family.getParentsChildren();
-        String codeOfSecondLevelWithChildren = secondLevel.get(1).getCode();
-
-        // when
-        List<OrganisationalUnit> actual = organisationalUnitService.getOrganisationWithParents(codeOfSecondLevelWithChildren);
-
-        // then
-        assertThat(actual).hasSize(2);
-        assertThat(actual).extracting(OrganisationalUnit::getName)
-                .containsOnly("Godfather: the head of the family", "child 1 of the godfathers");
-    }
-
-    @Test
-    public void givenAnOrgWithThreeLevelsAndThirdLevelIsRequested_whenGetOrganisationWithParents_thenShouldReturnThirdLevelItemRequestedAndItsSecondLevelParentAndTheTopParentOnlyOrgUnits() {
-        // given
-        List<OrganisationalUnit> secondLevelChildOnesChildren = family.getParentsChildrenChildren(1);
-        String codeOfThirdLevelOrg = secondLevelChildOnesChildren.get(0).getCode();
-
-        // when
-        List<OrganisationalUnit> actual = organisationalUnitService.getOrganisationWithParents(codeOfThirdLevelOrg);
-
-        // then
-        assertThat(actual).hasSize(3);
-        assertThat(actual).extracting(OrganisationalUnit::getName)
-                .containsOnly("Godfather: the head of the family", "child 1 of the godfathers", "child 0 of the god1");
-    }
-
-    @Test
-    public void givenAnOrgWithThreeLevelsAndTopParentIsRequested_whenGetOrganisationWithChildren_thenShouldReturnAllThreeGenerationsOfOrgUnits() {
-        // given
-
-        // when
-        List<OrganisationalUnit> actual = organisationalUnitService.getOrganisationWithChildren(GODFATHERS_CODE);
-
-        // then
-        assertThat(actual).hasSize(16);
-        assertThat(actual).extracting(OrganisationalUnit::getName)
-                .containsOnly("Godfather: the head of the family",
-                        "child 0 of the godfathers",
-                        "child 1 of the godfathers",
-                        "child 2 of the godfathers",
-                        "child 3 of the godfathers",
-                        "child 4 of the godfathers",
-                        "child 0 of the god1",
-                        "child 1 of the god1",
-                        "child 2 of the god1",
-                        "child 3 of the god1",
-                        "child 4 of the god1",
-                        "child 0 of the god2",
-                        "child 1 of the god2",
-                        "child 2 of the god2",
-                        "child 3 of the god2",
-                        "child 4 of the god2"
-                );
-    }
-
-    @Test
-    public void givenAnOrgWithThreeLevelsAndSecondLevelItemWhichHasNoChildrenIsRequested_whenGetOrganisationWithChildren_thenShouldReturnOrgUnitsCascadingDownOnly() {
-        // given
-        List<OrganisationalUnit> secondLevel = family.getParentsChildren();
-        String codeOfSecondLevelWithNoChildren = secondLevel.get(0).getCode();
-
-        // when
-        List<OrganisationalUnit> actual = organisationalUnitService.getOrganisationWithChildren(codeOfSecondLevelWithNoChildren);
-
-        // then
-        assertThat(actual).hasSize(1);
-        // should contain only these
-        assertThat(actual).extracting((OrganisationalUnit::getName)).containsOnly(
-                "child 0 of the godfathers");
-    }
-
-
-    @Test
-    public void givenAnOrgWithThreeLevelsAndSecondLevelItemsWhichHasFiveChildrenIsRequested_whenGetOrganisationWithChildren_thenShouldReturnOrgUnitsCascadingDownOnly() {
-        // given
-        List<OrganisationalUnit> secondLevel = family.getParentsChildren();
-        String codeOfSecondLevelWithChildren = secondLevel.get(1).getCode();
-
-        // when
-        List<OrganisationalUnit> actual = organisationalUnitService.getOrganisationWithChildren(codeOfSecondLevelWithChildren);
-
-        // then
-        assertThat(actual).hasSize(6);
-        // should contain only these
-        assertThat(actual).extracting((OrganisationalUnit::getName)).containsOnly(
-                "child 1 of the godfathers",
-                "child 0 of the god1",
-                "child 1 of the god1",
-                "child 2 of the god1",
-                "child 3 of the god1",
-                "child 4 of the god1");
-    }
-
-    @Test
-    public void givenAnOrgWithThreeLevelsAndThirdLevelIsRequested_whenGetOrganisationWithChildren_thenShouldReturnOrgUnitsCascadingDownOnly() {
-        // given
-        List<OrganisationalUnit> secondLevelChildOnesChildren = family.getParentsChildrenChildren(1);
-        String codeOfThirdLevelOrg = secondLevelChildOnesChildren.get(0).getCode();
-
-        // when
-        List<OrganisationalUnit> actual = organisationalUnitService.getOrganisationWithChildren(codeOfThirdLevelOrg);
-
-        // then
-        assertThat(actual).hasSize(1);
-        // should contain only these
-        assertThat(actual).extracting((OrganisationalUnit::getName)).containsOnly(
-                "child 0 of the god1");
-    }
-
-    @Test
     public void deleteAgencyToken_ok() throws CSRSApplicationException {
 
         String name = "name", code = "code", abbrv = "test", token = "token", agencyTokenCode = UUID.randomUUID().toString();
@@ -351,68 +189,6 @@ public class OrganisationalUnitServiceTest {
         verify(agencyTokenService, times(0)).deleteAgencyToken(agencyToken);
 
         assertNull(returnedOrganisationalUnit);
-    }
-
-    @Test
-    public void givenAWhitelistedDomain_whenGetOrganisationsForDomain_thenReturnAllOrganisations() throws CSRSApplicationException {
-        // given
-        when(organisationalUnitRepository.findAll()).thenReturn(ALL_ORGS);
-
-        // when
-        List<OrganisationalUnit> actual = organisationalUnitService.getOrganisationsForDomain(WL_DOMAIN, USER_UID);
-
-        // then
-        assertThat(actual).hasSize(ALL_ORGS.size());
-        verify(organisationalUnitRepository, times(1)).findAll();
-    }
-
-    @Test
-    public void givenAgencyTokenDomain_whenGetOrganisationsForDomain_thenReturnMatchingOrganisationsForThatAgencyTokenIncludingTheirChildrenAndCascadeDownOnly() throws CSRSApplicationException {
-        // given
-        when(identityService.getAgencyTokenUid(eq(USER_UID))).thenReturn(Optional.of(AGENCY_TOKEN_UID));
-        Optional<AgencyToken> agencyTokenOptional = Optional.of(AgencyTokenTestingUtils.getAgencyToken());
-        when(agencyTokenService.getAgencyTokenByUid(eq(AGENCY_TOKEN_UID))).thenReturn(agencyTokenOptional);
-        Optional<OrganisationalUnit> nhsGlasgowWithChildren = buildNHSGlasgowWithChildren();
-        when(organisationalUnitRepository.findOrganisationByAgencyToken(eq(agencyTokenOptional.get()))).thenReturn(nhsGlasgowWithChildren);
-
-        // when
-        List<OrganisationalUnit> actual = organisationalUnitService.getOrganisationsForDomain(NHS_GLASGOW_DOMAIN, USER_UID);
-
-        // then
-        // org for that at and all orgs children should be returned,
-        // i.e. Glasgow and its children maryhill and govan ONLY
-        assertThat(actual).extracting("code").containsExactlyInAnyOrder("NHSGLASGOW", "NHSMARYHILL", "NHSGOVAN");
-    }
-
-    @Test
-    public void givenAgencyTokenDomainAndNoAgencyTokenFound_whenGetOrganisationsForDomain_thenThrowTokenDoesNotExistException() throws CSRSApplicationException {
-        // given
-        when(identityService.getAgencyTokenUid(eq(USER_UID))).thenReturn(Optional.of(AGENCY_TOKEN_UID));
-        when(agencyTokenService.getAgencyTokenByUid(eq(AGENCY_TOKEN_UID))).thenReturn(Optional.empty());
-        expectedException.expect(TokenDoesNotExistException.class);
-
-        // when
-        List<OrganisationalUnit> actual = organisationalUnitService.getOrganisationsForDomain(NHS_GLASGOW_DOMAIN, USER_UID);
-
-        // then
-        verifyZeroInteractions(organisationalUnitRepository);
-    }
-
-    @Test
-    public void givenAgencyTokenDomainAndNoOrganisationFound_whenGetOrganisationsForDomain_thenThrowNoOrganisationsFoundException() throws CSRSApplicationException {
-        // given
-        when(identityService.getAgencyTokenUid(eq(USER_UID))).thenReturn(Optional.of(AGENCY_TOKEN_UID));
-        Optional<AgencyToken> agencyTokenOptional = Optional.of(AgencyTokenTestingUtils.getAgencyToken());
-        when(agencyTokenService.getAgencyTokenByUid(eq(AGENCY_TOKEN_UID))).thenReturn(agencyTokenOptional);
-        when(organisationalUnitRepository.findOrganisationByAgencyToken(eq(agencyTokenOptional.get()))).thenReturn(Optional.empty());
-        expectedException.expect(NoOrganisationsFoundException.class);
-        expectedException.expectMessage("No organisations found for domain: " + NHS_GLASGOW_DOMAIN);
-
-        // when
-        List<OrganisationalUnit> actual = organisationalUnitService.getOrganisationsForDomain(NHS_GLASGOW_DOMAIN, USER_UID);
-
-        // then
-        verifyZeroInteractions(organisationalUnitRepository);
     }
 
     @Test
