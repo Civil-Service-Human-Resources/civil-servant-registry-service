@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit> {
@@ -178,6 +179,11 @@ public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit
         ArrayList<OrganisationalUnit> hierarchy = new ArrayList<>(Collections.singletonList(this));
         this.children.forEach(c -> hierarchy.addAll(c.getHierarchyAsFlatList()));
         return hierarchy;
+    }
+
+    @JsonIgnore
+    public List<Long> getHierarchyIds() {
+        return getHierarchyAsFlatList().stream().map(OrganisationalUnit::getId).collect(Collectors.toList());
     }
 
     @JsonIgnore

@@ -15,7 +15,10 @@ import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.*;
 import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
-import uk.gov.cshr.civilservant.exception.*;
+import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
+import uk.gov.cshr.civilservant.exception.NotFoundException;
+import uk.gov.cshr.civilservant.exception.TokenAlreadyExistsException;
+import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.exception.organisationalUnit.DomainAlreadyExistsException;
 import uk.gov.cshr.civilservant.exception.organisationalUnit.OrganisationalUnitNotFoundException;
 import uk.gov.cshr.civilservant.repository.DomainRepository;
@@ -49,6 +52,24 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         this.identityService = identityService;
     }
 
+    public Map<Long, String> getFormattedNamesMap() {
+        Map<Long, String> nameMap = new HashMap<>();
+        Map<Long, OrganisationalUnit> orgMap = new HashMap<>();
+        repository.findAllNormalised().forEach(org -> orgMap.put(org.getId(), org));
+        orgMap.forEach((orgId, org) -> {
+            List<String> nameParts = new ArrayList<>();
+            nameParts.add(org.getName());
+            Long parentId = org.getParentId();
+            while (parentId != null) {
+                OrganisationalUnit parent = orgMap.get(parentId);
+                nameParts.add(parent.getName());
+                parentId = parent.getParentId();
+            }
+            nameMap.put(orgId, String.join(" | ", nameParts));
+        });
+        return nameMap;
+    }
+
     public boolean isDomainValidForOrganisation(Long organisationalUnitId, String domain) {
         log.info(String.format("Checking if domain %s is valid for organisation %s", domain, organisationalUnitId));
         boolean valid = repository.findByDomain(domain)
@@ -60,64 +81,6 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
                     .map(OrganisationalUnit::getId).distinct().anyMatch(o -> o.equals(organisationalUnitId));
         }
         return valid;
-    }
-
-    public List<OrganisationalUnit> getOrganisationWithParents(String code) {
-        List<OrganisationalUnit> organisationalUnitList = new ArrayList<>();
-        getOrganisationalUnitAndParent(code, organisationalUnitList);
-        sortOrganisationList(organisationalUnitList);
-        return organisationalUnitList;
-    }
-
-    public List<OrganisationalUnit> getOrganisationWithChildren(String code) {
-        List<OrganisationalUnit> organisationalUnitList = new ArrayList<>();
-        getOrganisationalUnitAndChildren(code, organisationalUnitList);
-        sortOrganisationList(organisationalUnitList);
-        return organisationalUnitList;
-    }
-
-    public List<OrganisationalUnit> getOrganisationsForDomain(String domain, String userUid) throws CSRSApplicationException {
-        return identityService.getAgencyTokenUid(userUid)
-                .map(s -> {
-                    AgencyToken agencyToken = agencyTokenService.getAgencyTokenByUid(s)
-                            .orElseThrow(TokenDoesNotExistException::new);
-
-                    OrganisationalUnit organisationalUnit = repository.findOrganisationByAgencyToken(agencyToken)
-                            .orElseThrow(() -> new NoOrganisationsFoundException((domain)));
-
-                    return getOrganisationWithChildren(organisationalUnit.getCode());
-                })
-                .orElseGet(() -> repository.findAll());
-    }
-
-    private List<OrganisationalUnit> getOrganisationalUnitAndChildren(String code, List<OrganisationalUnit> organisationalUnits) {
-        repository.findByCode(code).ifPresent(organisationalUnit -> {
-            organisationalUnits.add(organisationalUnit);
-            getChildren(organisationalUnit, organisationalUnits);
-        });
-
-        return organisationalUnits;
-    }
-
-    private List<OrganisationalUnit> getOrganisationalUnitAndParent(String code, List<OrganisationalUnit> organisationalUnits) {
-        repository.findByCode(code).ifPresent(organisationalUnit -> {
-            organisationalUnits.add(organisationalUnit);
-            getParent(organisationalUnit, organisationalUnits);
-        });
-
-        return organisationalUnits;
-    }
-
-    private void getParent(OrganisationalUnit organisationalUnit, List<OrganisationalUnit> organisationalUnits) {
-        Optional<OrganisationalUnit> parent = Optional.ofNullable(organisationalUnit.getParent());
-        parent.ifPresent(parentOrganisationalUnit -> getOrganisationalUnitAndParent(parentOrganisationalUnit.getCode(), organisationalUnits));
-    }
-
-    private void getChildren(OrganisationalUnit organisationalUnit, List<OrganisationalUnit> organisationalUnits) {
-        if (organisationalUnit.hasChildren()) {
-            Set<OrganisationalUnit> listOfChildren = organisationalUnit.getChildren();
-            listOfChildren.stream().forEach(childOrganisationalUnit -> getOrganisationalUnitAndChildren(childOrganisationalUnit.getCode(), organisationalUnits));
-        }
     }
 
     public Optional<OrganisationalUnit> getOrganisationalUnit(Long id) {
@@ -140,13 +103,6 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
                 .stream()
                 .map(o -> dtoFactory.create(o, false, params.isFormatName(), params.isFetchChildren()))
                 .collect(Collectors.toList()), organisationalUnitPage.getTotalElements(), pageable);
-    }
-
-
-    public List<OrganisationalUnit> getOrganisationsNormalised() {
-        List<OrganisationalUnit> organisationalUnits = repository.findAllNormalised();
-        sortOrganisationList(organisationalUnits);
-        return organisationalUnits;
     }
 
     public OrganisationalUnit setAgencyToken(OrganisationalUnit organisationalUnit, AgencyToken agencyToken) {
@@ -192,17 +148,6 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         return updateOrgUnit;
     }
 
-    public List<String> getOrganisationalUnitCodes() {
-        List<String> allCodes = repository.findAllCodes();
-        Collections.sort(allCodes, String.CASE_INSENSITIVE_ORDER);
-        return allCodes;
-    }
-
-    @Transactional
-    public Optional<OrganisationalUnit> get(Long id) {
-        return repository.findById(id);
-    }
-
     public OrganisationalUnit getOrThrowIfNotFound(Long id) {
         return repository.findById(id).orElseThrow(
                 () -> new OrganisationalUnitNotFoundException(id));
@@ -216,28 +161,8 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         return agencyTokenService.getAgencyTokenResponseDto(agencyToken);
     }
 
-    public List<OrganisationalUnit> getOrgTree() {
-        List<OrganisationalUnit> listOrg = this.getParents();
-        sortOrganisationList(listOrg);
-        return listOrg;
-    }
-
     public List<OrganisationalUnitDto> getFlatOrg() {
         return this.getListSortedByValue();
-    }
-
-    private void sortOrganisationList(List<OrganisationalUnit> list) {
-        list.forEach(org ->
-            {
-                if(org.hasChildren()) {
-                    List<OrganisationalUnit> children = org.getChildrenAsList();
-                    children.sort(Comparator.comparing(OrganisationalUnit::getName, String.CASE_INSENSITIVE_ORDER));
-                    //Below line is a recursive call which will be called recursively
-                    //until there are children as per above if condition.
-                    sortOrganisationList(children);
-                }
-            }
-        );
     }
 
     public AddDomainToOrgResponse addDomainToOrganisation(Long organisationalUnitId, String domainString) {
