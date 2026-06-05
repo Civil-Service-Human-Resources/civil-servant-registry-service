@@ -19,10 +19,6 @@ public interface OrganisationalUnitRepository extends SelfReferencingEntityRepos
 
     Optional<OrganisationalUnit> findByCode(@Param("code") String code);
 
-    @Query(value = "select new uk.gov.cshr.civilservant.domain.OrganisationalUnit(o.name, o.code, o.abbreviation) " +
-            "from OrganisationalUnit o")
-    List<OrganisationalUnit> findAllNormalised();
-
     @Override
     <S extends OrganisationalUnit> S save(S entity);
 

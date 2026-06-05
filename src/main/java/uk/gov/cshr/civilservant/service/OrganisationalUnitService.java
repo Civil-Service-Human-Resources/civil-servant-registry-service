@@ -25,7 +25,10 @@ import uk.gov.cshr.civilservant.repository.DomainRepository;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -54,18 +57,16 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
 
     public Map<Long, String> getFormattedNamesMap() {
         Map<Long, String> nameMap = new HashMap<>();
-        Map<Long, OrganisationalUnit> orgMap = new HashMap<>();
-        repository.findAllNormalised().forEach(org -> orgMap.put(org.getId(), org));
-        orgMap.forEach((orgId, org) -> {
-            List<String> nameParts = new ArrayList<>();
-            nameParts.add(org.getName());
+        Map<Long, OrganisationalUnit> orgMap = repository.findAll().stream().collect(Collectors.toMap(OrganisationalUnit::getId, o -> o));
+        orgMap.values().forEach(org -> {
+            String name = org.getName();
             Long parentId = org.getParentId();
             while (parentId != null) {
                 OrganisationalUnit parent = orgMap.get(parentId);
-                nameParts.add(parent.getName());
+                name = String.format("%s | %s", parent.getName(), name);
                 parentId = parent.getParentId();
             }
-            nameMap.put(orgId, String.join(" | ", nameParts));
+            nameMap.put(org.getId(), name);
         });
         return nameMap;
     }
