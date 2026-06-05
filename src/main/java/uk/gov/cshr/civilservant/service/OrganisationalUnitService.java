@@ -88,6 +88,11 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         return repository.findById(id);
     }
 
+    public OrganisationalUnitDto getOrganisationalUnit(Long id, boolean includeParents, boolean formatName, boolean includeChildren) {
+        OrganisationalUnit organisationalUnit = getOrganisationalUnit(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return dtoFactory.create(organisationalUnit, includeParents, formatName, includeChildren);
+    }
+
     public OrganisationalUnitDto getOrganisationalUnit(Long id, boolean includeParents) {
         OrganisationalUnit organisationalUnit = getOrganisationalUnit(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         return dtoFactory.create(organisationalUnit, includeParents, false, false);
@@ -160,10 +165,6 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
                 .orElseThrow(TokenDoesNotExistException::new);
 
         return agencyTokenService.getAgencyTokenResponseDto(agencyToken);
-    }
-
-    public List<OrganisationalUnitDto> getFlatOrg() {
-        return this.getListSortedByValue();
     }
 
     public AddDomainToOrgResponse addDomainToOrganisation(Long organisationalUnitId, String domainString) {
