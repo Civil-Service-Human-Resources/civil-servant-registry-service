@@ -84,7 +84,7 @@ public interface CivilServantRepository extends JpaRepository<CivilServant, Long
                   + "left join Identity i on i.id = c.identity.id "
                   + "left join Grade g on g.id = c.grade.id "
                   + "left join c.otherAreasOfWork oaw "
-                  + "where i.uid in (?1) and (?2 is null or ou.id in (?2)) "
+                  + "where i.uid in ?1 and (?2 is null or ou.id in ?2) "
                   + "group by c.id ")
   List<CivilServantReportDto> findAllByUidsNormalised(List<String> uids, List<Long> organisationalUnits);
 
