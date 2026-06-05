@@ -49,4 +49,40 @@ public class ReportControllerIntegrationTest extends BaseIntegrationTest {
 
     }
 
+    @Test
+    public void shouldGetACivilServantWithUidAndOrganisationId() throws Exception {
+        mockMvc.perform(
+                        get("/report/civil-servants-for-uids")
+                                .param("uids", "skills-4,skills-3")
+                                .param("organisationalUnitId", "2")
+                                .accept(APPLICATION_JSON)
+                                .with(authentication(learner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", equalTo(2)))
+                .andExpect(jsonPath("$.skills-4.id", equalTo("1103")))
+                .andExpect(jsonPath("$.skills-4.uid", equalTo("skills-4")))
+                .andExpect(jsonPath("$.skills-4.name", equalTo("Skills 4")))
+                .andExpect(jsonPath("$.skills-4.email", equalTo(null)))
+                .andExpect(jsonPath("$.skills-4.organisationCode", equalTo("D21")))
+                .andExpect(jsonPath("$.skills-4.organisationId", equalTo(4)))
+                .andExpect(jsonPath("$.skills-4.organisation", equalTo("Department of Health & Social Care | DH Core")))
+                .andExpect(jsonPath("$.skills-4.profession", equalTo("Analysis")))
+                .andExpect(jsonPath("$.skills-4.otherAreasOfWork", equalTo(null)))
+                .andExpect(jsonPath("$.skills-4.grade", equalTo("Administrative assistant")))
+                .andExpect(jsonPath("$.skills-4.lineManagerUid", equalTo(null)))
+                .andExpect(jsonPath("$.skills-3.id", equalTo("1102")))
+                .andExpect(jsonPath("$.skills-3.uid", equalTo("skills-3")))
+                .andExpect(jsonPath("$.skills-3.name", equalTo("Skills 3")))
+                .andExpect(jsonPath("$.skills-3.email", equalTo(null)))
+                .andExpect(jsonPath("$.skills-3.organisationCode", equalTo("dh")))
+                .andExpect(jsonPath("$.skills-3.organisationId", equalTo(2)))
+                .andExpect(jsonPath("$.skills-3.organisation", equalTo("Department of Health & Social Care")))
+                .andExpect(jsonPath("$.skills-3.profession", equalTo("Analysis")))
+                .andExpect(jsonPath("$.skills-3.otherAreasOfWork", equalTo(null)))
+                .andExpect(jsonPath("$.skills-3.grade", equalTo("Administrative assistant")))
+                .andExpect(jsonPath("$.skills-3.lineManagerUid", equalTo(null)));
+
+    }
+
+
 }

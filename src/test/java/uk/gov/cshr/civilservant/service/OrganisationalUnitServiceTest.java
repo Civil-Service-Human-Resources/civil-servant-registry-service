@@ -1,16 +1,20 @@
 package uk.gov.cshr.civilservant.service;
 
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.cshr.civilservant.domain.AgencyDomain;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
-import uk.gov.cshr.civilservant.dto.*;
+import uk.gov.cshr.civilservant.dto.AddDomainToOrgResponse;
+import uk.gov.cshr.civilservant.dto.AgencyDomainDTO;
+import uk.gov.cshr.civilservant.dto.AgencyTokenResponseDto;
+import uk.gov.cshr.civilservant.dto.BulkUpdate;
 import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
 import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
@@ -18,12 +22,9 @@ import uk.gov.cshr.civilservant.repository.DomainRepository;
 import uk.gov.cshr.civilservant.repository.OrganisationalUnitRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
 import uk.gov.cshr.civilservant.utils.AgencyTokenTestingUtils;
-import uk.gov.cshr.civilservant.utils.FamilyOrganisationUnits;
-import uk.gov.cshr.civilservant.utils.OrganisationalUnitTestUtils;
 
 import java.util.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
@@ -33,12 +34,6 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class OrganisationalUnitServiceTest {
 
-    private static final String WL_DOMAIN = "mydomain.com";
-    private static final String NHS_GLASGOW_DOMAIN = "nhsglasgow.gov.uk";
-    private static final String USER_UID = "myuid";
-    private static final String AGENCY_TOKEN_UID = "myagencytokenuid";
-    private static String GODFATHERS_CODE;
-    private static List<OrganisationalUnit> ALL_ORGS;
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
     @Mock
@@ -53,21 +48,9 @@ public class OrganisationalUnitServiceTest {
     private IdentityService identityService;
     @InjectMocks
     private OrganisationalUnitService organisationalUnitService;
-    private FamilyOrganisationUnits family;
 
-    @BeforeClass
-    public static void staticSetUp(){
-        ALL_ORGS = new ArrayList<>(10);
-        for(int i=0; i<10; i++) {
-            ALL_ORGS.add(OrganisationalUnitTestUtils.buildOrgUnit("wl", i, "whitelisted-domain"));
-        }
-    }
+    private void stubFindAllOrganisationUnits() {
 
-    @Before
-    public void setUp() {
-
-        family = new FamilyOrganisationUnits();
-        GODFATHERS_CODE = family.getTopParent().getCode();
     }
 
     @Test
@@ -89,55 +72,6 @@ public class OrganisationalUnitServiceTest {
         List<OrganisationalUnit> result = organisationalUnitService.getParents();
 
         assertEquals(Arrays.asList(parent1, parent2), result);
-    }
-
-    @Test
-    public void shouldReturnOrganisationalUnitsAsList() {
-        OrganisationalUnit parentOrganisationalUnit = new OrganisationalUnit();
-        parentOrganisationalUnit.setName("parent1");
-        parentOrganisationalUnit.setCode("p1");
-
-        OrganisationalUnit childOrganisationalUnit = new OrganisationalUnit();
-        childOrganisationalUnit.setName("child1");
-        childOrganisationalUnit.setCode("c1");
-        childOrganisationalUnit.setParent(parentOrganisationalUnit);
-
-        OrganisationalUnit grandchildOrganisationalUnit = new OrganisationalUnit();
-        grandchildOrganisationalUnit.setName("grandchild1");
-        grandchildOrganisationalUnit.setCode("gc1");
-        grandchildOrganisationalUnit.setParent(childOrganisationalUnit);
-
-        List<OrganisationalUnit> organisationalUnits = new ArrayList<>();
-        organisationalUnits.add(parentOrganisationalUnit);
-        organisationalUnits.add(childOrganisationalUnit);
-        organisationalUnits.add(grandchildOrganisationalUnit);
-
-        OrganisationalUnitDto parentOrgUnitDto = new OrganisationalUnitDto();
-        parentOrgUnitDto.setName(parentOrganisationalUnit.getName());
-        parentOrgUnitDto.setCode(parentOrganisationalUnit.getCode());
-        parentOrgUnitDto.setFormattedName("parent1");
-
-        OrganisationalUnitDto childOrgUnitDto = new OrganisationalUnitDto();
-        childOrgUnitDto.setName(childOrganisationalUnit.getName());
-        childOrgUnitDto.setCode(childOrganisationalUnit.getCode());
-        childOrgUnitDto.setFormattedName("parent1 | child1");
-
-        OrganisationalUnitDto grandchildOrgUnitDto = new OrganisationalUnitDto();
-        grandchildOrgUnitDto.setName(grandchildOrganisationalUnit.getName());
-        grandchildOrgUnitDto.setCode(grandchildOrganisationalUnit.getCode());
-        grandchildOrgUnitDto.setFormattedName("parent1 | child1 | grandchild1");
-
-        when(organisationalUnitRepository.findAll()).thenReturn(organisationalUnits);
-
-        when(organisationalUnitDtoFactory.create(parentOrganisationalUnit)).thenReturn(parentOrgUnitDto);
-        when(organisationalUnitDtoFactory.create(childOrganisationalUnit)).thenReturn(childOrgUnitDto);
-        when(organisationalUnitDtoFactory.create(grandchildOrganisationalUnit)).thenReturn(grandchildOrgUnitDto);
-
-        List<OrganisationalUnitDto> organisationalUnitDtoList = organisationalUnitService.getListSortedByValue();
-
-        assertThat(organisationalUnitDtoList).hasSize(3);
-        assertThat(organisationalUnitDtoList.get(0).getName()).isEqualTo("parent1");
-        assertThat(organisationalUnitDtoList.get(2).getFormattedName()).isEqualTo("parent1 | child1 | grandchild1");
     }
 
     @Test
@@ -261,62 +195,6 @@ public class OrganisationalUnitServiceTest {
         verifyZeroInteractions(agencyTokenService);
     }
 
-    private Optional<OrganisationalUnit> buildNHSGlasgowWithChildren() {
-        // set up at for nhs glasgow
-        // AT 1
-        AgencyToken at = new AgencyToken();
-        at.setId(new Long(100));
-        at.setToken("token123");
-        at.setAgencyDomains(new HashSet<>());
-
-        AgencyDomain nhsGlasgow = new AgencyDomain();
-        nhsGlasgow.setId(new Long(300));
-        nhsGlasgow.setDomain("nhsglasgow.gov.uk");
-        at.getAgencyDomains().add(nhsGlasgow);
-
-        AgencyDomain nhsEdinburgh = new AgencyDomain();
-        nhsEdinburgh.setId(new Long(3001));
-        nhsEdinburgh.setDomain("nhsedinburgh.gov.uk");
-        at.getAgencyDomains().add(nhsEdinburgh);
-
-        // glasgows children x 2
-        OrganisationalUnit maryhillNHS = new OrganisationalUnit();
-        maryhillNHS.setCode("NHSMARYHILL");
-        maryhillNHS.setName("maryhillNHS");
-
-        OrganisationalUnit govanNHS = new OrganisationalUnit();
-        govanNHS.setCode("NHSGOVAN");
-        govanNHS.setName("govanNHS");
-
-        // set up org for nhs glasgow
-        OrganisationalUnit greaterGlasgowNHS = new OrganisationalUnit();
-        greaterGlasgowNHS.setCode("NHSGLASGOW");
-        greaterGlasgowNHS.setName("greaterGlasgowNHS");
-        greaterGlasgowNHS.setAgencyToken(at);
-
-        List<OrganisationalUnit> children = new ArrayList<>();
-        children.add(maryhillNHS);
-        children.add(govanNHS);
-        greaterGlasgowNHS.setChildren(children);
-
-        // set the kids parent to be glasgow
-        maryhillNHS.setParent(greaterGlasgowNHS);
-        govanNHS.setParent(greaterGlasgowNHS);
-
-        greaterGlasgowNHS.setParent(ALL_ORGS.get(0));
-
-        Optional<OrganisationalUnit> optNhsGlasgow = Optional.of(greaterGlasgowNHS);
-        when(organisationalUnitRepository.findByCode(eq("NHSGLASGOW"))).thenReturn(optNhsGlasgow);
-
-        Optional<OrganisationalUnit> optNhsMaryhill = Optional.of(maryhillNHS);
-        when(organisationalUnitRepository.findByCode(eq("NHSMARYHILL"))).thenReturn(optNhsMaryhill);
-
-        Optional<OrganisationalUnit> optNhsGovan = Optional.of(govanNHS);
-        when(organisationalUnitRepository.findByCode(eq("NHSGOVAN"))).thenReturn(optNhsGovan);
-
-        return Optional.of(greaterGlasgowNHS);
-    }
-
     @Test
     public void shouldAddExistingDomainToSingleOrganisationalUnit() {
         OrganisationalUnit orgUnit = new OrganisationalUnit();
@@ -385,4 +263,36 @@ public class OrganisationalUnitServiceTest {
         verify(organisationalUnitRepository, times(1)).saveAll(any());
     }
 
+    @Test
+    public void testGetFormattedNamesMap() {
+        OrganisationalUnit parentOrganisationalUnit = new OrganisationalUnit();
+        parentOrganisationalUnit.setId(1L);
+        parentOrganisationalUnit.setName("parent1");
+        parentOrganisationalUnit.setCode("p1");
+
+        OrganisationalUnit childOrganisationalUnit = new OrganisationalUnit();
+        childOrganisationalUnit.setId(2L);
+        childOrganisationalUnit.setName("child1");
+        childOrganisationalUnit.setCode("c1");
+        childOrganisationalUnit.setParent(parentOrganisationalUnit);
+
+        OrganisationalUnit grandchildOrganisationalUnit = new OrganisationalUnit();
+        grandchildOrganisationalUnit.setId(3L);
+        grandchildOrganisationalUnit.setName("grandchild1");
+        grandchildOrganisationalUnit.setCode("gc1");
+        grandchildOrganisationalUnit.setParent(childOrganisationalUnit);
+
+        List<OrganisationalUnit> organisationalUnits = new ArrayList<>();
+        organisationalUnits.add(parentOrganisationalUnit);
+        organisationalUnits.add(childOrganisationalUnit);
+        organisationalUnits.add(grandchildOrganisationalUnit);
+
+        when(organisationalUnitRepository.findAll()).thenReturn(organisationalUnits);
+
+        Map<Long, String> map = organisationalUnitService.getFormattedNamesMap();
+        assertEquals(organisationalUnits.size(), map.size());
+        assertEquals(parentOrganisationalUnit.getName(), map.get(1L));
+        assertEquals("parent1 | child1", map.get(2L));
+        assertEquals("parent1 | child1 | grandchild1", map.get(3L));
+    }
 }
