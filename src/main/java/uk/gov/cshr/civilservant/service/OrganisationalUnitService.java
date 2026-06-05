@@ -57,12 +57,12 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
 
     public Map<Long, String> getFormattedNamesMap() {
         Map<Long, String> nameMap = new HashMap<>();
-        Map<Long, OrganisationalUnit> orgMap = repository.findAll().stream().collect(Collectors.toMap(OrganisationalUnit::getId, o -> o));
+        Map<Long, BasicOrganisationalUnitDto> orgMap = repository.findAll().stream().collect(Collectors.toMap(OrganisationalUnit::getId, o -> new BasicOrganisationalUnitDto(o.getId(), o.getParentId(), o.getName())));
         orgMap.values().forEach(org -> {
             String name = org.getName();
             Long parentId = org.getParentId();
             while (parentId != null) {
-                OrganisationalUnit parent = orgMap.get(parentId);
+                BasicOrganisationalUnitDto parent = orgMap.get(parentId);
                 name = String.format("%s | %s", parent.getName(), name);
                 parentId = parent.getParentId();
             }
