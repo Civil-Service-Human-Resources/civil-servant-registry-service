@@ -1,5 +1,6 @@
 package uk.gov.cshr.civilservant.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.controller.models.GetCivilServantsForUidsParams;
@@ -11,12 +12,14 @@ import uk.gov.cshr.civilservant.exception.UserNotFoundException;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ReportService {
 
   private final CivilServantRepository civilServantRepository;
@@ -49,11 +52,14 @@ public class ReportService {
               .map(DtoEntity::getId).collect(Collectors.toList());
     }
     Map<Long, String> orgFormattedNameMap = organisationalUnitService.getFormattedNamesMap();
-    return civilServantRepository
+    log.debug("Fetching normalised civil servants for {} UIDs and departments: {}", params.getUids().size(), organisationalUnitIds);
+    Collection<CivilServantReportDto> result = civilServantRepository
             .findAllByUidsNormalised(params.getUids(), organisationalUnitIds)
             .stream()
             .peek(cs -> cs.setOrganisation(orgFormattedNameMap.get(cs.getOrganisationId())))
-            .collect(
+            .collect(Collectors.toList());
+    log.debug("Found {} civil servants", result.size());
+    return result.stream().collect(
                     Collectors.toMap(CivilServantReportDto::getUid, civilServantDto -> civilServantDto));
   }
 
