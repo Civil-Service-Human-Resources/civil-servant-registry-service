@@ -84,6 +84,10 @@ public class OrganisationalUnitService extends SelfReferencingEntityService<Orga
         return valid;
     }
 
+    public List<Long> getHierarchyIds(Long organisationalUnitId) {
+        return repository.getOne(organisationalUnitId).getHierarchyAsFlatList().stream().map(OrganisationalUnit::getId).collect(Collectors.toList());
+    }
+
     public Optional<OrganisationalUnit> getOrganisationalUnit(Long id) {
         return repository.findById(id);
     }

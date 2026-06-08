@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.controller.models.GetCivilServantsForUidsParams;
 import uk.gov.cshr.civilservant.domain.CivilServant;
 import uk.gov.cshr.civilservant.dto.CivilServantReportDto;
-import uk.gov.cshr.civilservant.dto.DtoEntity;
 import uk.gov.cshr.civilservant.dto.SkillsReportsDto;
 import uk.gov.cshr.civilservant.exception.UserNotFoundException;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
@@ -47,9 +46,7 @@ public class ReportService {
   public Map<String, CivilServantReportDto> getCivilServantMapForUidsNormalised(GetCivilServantsForUidsParams params) {
     List<Long> organisationalUnitIds = null;
     if (params.getOrganisationId() != null) {
-      organisationalUnitIds = organisationalUnitService.getOrganisationalUnit(params.getOrganisationId(), false, false, true)
-              .getChildren().stream().flatMap(o -> o.getChildren().stream())
-              .map(DtoEntity::getId).collect(Collectors.toList());
+      organisationalUnitIds = organisationalUnitService.getHierarchyIds(params.getOrganisationId());
     }
     Map<Long, String> orgFormattedNameMap = organisationalUnitService.getFormattedNamesMap();
     log.debug("Fetching normalised civil servants for {} UIDs and departments: {}", params.getUids().size(), organisationalUnitIds);
