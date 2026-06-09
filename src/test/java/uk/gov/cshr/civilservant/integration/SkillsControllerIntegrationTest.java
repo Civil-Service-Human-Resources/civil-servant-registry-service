@@ -1,0 +1,105 @@
+package uk.gov.cshr.civilservant.integration;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.cshr.civilservant.config.IntegrationTestUserConfig;
+import uk.gov.cshr.civilservant.config.MockClockConfig;
+import uk.gov.cshr.civilservant.controller.v2.models.PageableParams;
+import uk.gov.cshr.civilservant.domain.CivilServantSkillsMetadata;
+import uk.gov.cshr.civilservant.repository.SkillsMetadataRepository;
+import uk.gov.cshr.civilservant.utils.CustomAuthentication;
+
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest(classes = IntegrationTestUserConfig.class)
+@AutoConfigureMockMvc
+@RunWith(SpringRunner.class)
+@Transactional
+@Import(MockClockConfig.class)
+public class SkillsControllerIntegrationTest extends BaseIntegrationTest {
+
+    private final Authentication auth = new CustomAuthentication(Collections.singletonList(new SimpleGrantedAuthority("LEARNER")), "learner");
+
+    @Autowired
+    private SkillsMetadataRepository skillsMetadataRepository;
+
+    private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+
+    @Test
+    @Transactional
+    public void shouldGetExistingUids() throws Exception {
+        mockMvc.perform(
+                        get("/skills-metadata")
+                                .accept(APPLICATION_JSON)
+                                .param("syncTimestampLte", "2022-03-01T11:00:00")
+                                .param("size", "2")
+                                .with(authentication(auth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", equalTo(2)))
+                .andExpect(jsonPath("$.content[0].uid", equalTo("skills-3")))
+                .andExpect(jsonPath("$.content[0].syncTimestamp", equalTo("2022-01-01T10:00:00")))
+                .andExpect(jsonPath("$.content[1].uid", equalTo("skills-4")))
+                .andExpect(jsonPath("$.content[1].syncTimestamp", equalTo("2022-02-01T10:00:00")))
+                .andExpect(jsonPath("$.totalElements", equalTo(3)));
+    }
+
+    @Test
+    @Transactional
+    public void shouldSyncNewUids() throws Exception {
+        mockMvc.perform(
+                        get("/skills-metadata")
+                                .accept(APPLICATION_JSON)
+                                .param("size", "6")
+                                .with(authentication(auth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", equalTo(2)))
+                .andExpect(jsonPath("$.content[0].uid", equalTo("skills-1")))
+                .andExpect(jsonPath("$.content[0].syncTimestamp", equalTo(null)))
+                .andExpect(jsonPath("$.content[1].uid", equalTo("skills-2")))
+                .andExpect(jsonPath("$.content[1].syncTimestamp", equalTo(null)))
+                .andExpect(jsonPath("$.totalElements", equalTo(2)));
+    }
+
+    @Test
+    @Transactional
+    public void shouldSyncUids() throws Exception {
+        mockMvc.perform(
+                        post("/skills-metadata/sync-uids")
+                                .accept(APPLICATION_JSON)
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"uids\":  [\"skills-3\", \"skills-4\"]}")
+                                .with(authentication(auth)))
+                .andExpect(status().isOk());
+        Map<String, CivilServantSkillsMetadata> map = new HashMap<>();
+        skillsMetadataRepository.findAll(new PageableParams(0, 6).getAsPageable()).getContent()
+                .forEach(s -> map.put(s.getCivilServant().getIdentity().getUid(), s));
+        assertNull(map.get("skills-1").getSyncTimestamp());
+        assertNull(map.get("skills-2").getSyncTimestamp());
+        assertEquals("2023-01-01T10:00:00", map.get("skills-3").getSyncTimestamp().format(formatter));
+        assertEquals("2023-01-01T10:00:00", map.get("skills-4").getSyncTimestamp().format(formatter));
+        assertEquals("2022-03-01T10:00:00", map.get("skills-5").getSyncTimestamp().format(formatter));
+        assertEquals("2022-04-01T10:00:00", map.get("skills-6").getSyncTimestamp().format(formatter));
+    }
+
+}

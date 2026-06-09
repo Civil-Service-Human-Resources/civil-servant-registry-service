@@ -5,15 +5,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import uk.gov.cshr.civilservant.domain.ErrorDto;
 import uk.gov.cshr.civilservant.domain.ErrorDtoFactory;
+import uk.gov.cshr.civilservant.domain.FieldError;
+import uk.gov.cshr.civilservant.domain.FieldErrorDto;
 import uk.gov.cshr.civilservant.exception.AlreadyExistsException;
 import uk.gov.cshr.civilservant.exception.CodedHttpException;
 import uk.gov.cshr.civilservant.exception.NotFoundException;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class ApiExceptionHandler {
@@ -23,6 +28,19 @@ public class ApiExceptionHandler {
 
   public ApiExceptionHandler(ErrorDtoFactory errorDtoFactory) {
     this.errorDtoFactory = errorDtoFactory;
+  }
+
+  @ExceptionHandler(BindException.class)
+  protected ResponseEntity<FieldErrorDto> handleBindException(BindException e) {
+    LOGGER.error("Bad Request: ", e);
+    List<FieldError> errors = e.getBindingResult().getFieldErrors().stream().map(fieldError -> {
+      String error = fieldError.getDefaultMessage() == null ? "No error" : fieldError.getDefaultMessage().split(";")[0];
+      return new FieldError(fieldError.getField(), error);
+    }).collect(Collectors.toList());
+    FieldErrorDto error =
+            errorDtoFactory.createFieldError(HttpStatus.BAD_REQUEST, errors);
+
+    return ResponseEntity.badRequest().body(error);
   }
 
   @ExceptionHandler(ConstraintViolationException.class)
