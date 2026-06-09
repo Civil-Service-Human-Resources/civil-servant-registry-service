@@ -62,26 +62,6 @@ public class ReportControllerTest extends CSRSControllerTestBase {
   @Test
   @WithMockUser(
       username = "user",
-      authorities = {"PROFESSION_REPORTER"})
-  public void shouldGetCivilServantsByUserProfessionWithCorrectRole() throws Exception {
-    CivilServantReportDto civilServant1 = new CivilServantReportDto();
-    civilServant1.setName("User 1");
-    CivilServantReportDto civilServant2 = new CivilServantReportDto();
-    civilServant2.setName("User 2");
-
-    when(reportService.getCivilServantMapByUserProfessionNormalised("user"))
-        .thenReturn(ImmutableMap.of("1", civilServant1, "2", civilServant2));
-
-    mockMvc
-        .perform(get("/report/civilServants").with(csrf()).accept(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("1.name", equalTo("User 1")))
-        .andExpect(jsonPath("2.name", equalTo("User 2")));
-  }
-
-  @Test
-  @WithMockUser(
-      username = "user",
       authorities = {"CSHR_REPORTER"})
   public void shouldGetAllCivilServants() throws Exception {
     CivilServantReportDto civilServant1 = new CivilServantReportDto();

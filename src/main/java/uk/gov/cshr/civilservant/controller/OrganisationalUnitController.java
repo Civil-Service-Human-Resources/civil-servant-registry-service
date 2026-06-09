@@ -12,17 +12,14 @@ import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.*;
 import uk.gov.cshr.civilservant.dto.factory.AgencyTokenFactory;
-import uk.gov.cshr.civilservant.dto.factory.OrganisationalUnitDtoFactory;
 import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
-import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
-import uk.gov.cshr.civilservant.exception.NoOrganisationsFoundException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
-import uk.gov.cshr.civilservant.service.CivilServantService;
 import uk.gov.cshr.civilservant.service.OrganisationalUnitService;
 
 import javax.validation.Valid;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -31,93 +28,12 @@ public class OrganisationalUnitController {
 
     private OrganisationalUnitService organisationalUnitService;
 
-    private OrganisationalUnitDtoFactory organisationalUnitDtoFactory;
-
     private AgencyTokenFactory agencyTokenFactory;
 
-    private CivilServantService civilServantService;
-
     public OrganisationalUnitController(OrganisationalUnitService organisationalUnitService,
-                                        OrganisationalUnitDtoFactory organisationalUnitDtoFactory,
-                                        AgencyTokenFactory agencyTokenFactory,
-                                        CivilServantService civilServantService) {
+                                        AgencyTokenFactory agencyTokenFactory) {
         this.organisationalUnitService = organisationalUnitService;
-        this.organisationalUnitDtoFactory = organisationalUnitDtoFactory;
         this.agencyTokenFactory = agencyTokenFactory;
-        this.civilServantService = civilServantService;
-    }
-
-    @GetMapping("/tree")
-    public ResponseEntity<List<OrganisationalUnit>> listOrganisationalUnitsAsTreeStructure() {
-        log.info("Getting org tree");
-        return ResponseEntity.ok(organisationalUnitService.getOrgTree());
-    }
-
-    @GetMapping("/flat")
-    public ResponseEntity<List<OrganisationalUnitDto>> listOrganisationalUnitsAsFlatStructure() {
-        log.info("Getting org flat");
-        return ResponseEntity.ok(organisationalUnitService.getFlatOrg());
-    }
-
-    @GetMapping("/flat/{domain}/")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<OrganisationalUnitDto>> listOrganisationalUnitsAsFlatStructureFilteredByDomain(@PathVariable String domain) {
-        log.info("Getting org flat, filtered by domain");
-        List<OrganisationalUnit> organisationalUnits;
-        try {
-            String uid = civilServantService.getCivilServantUid();
-            try {
-                organisationalUnits = organisationalUnitService.getOrganisationsForDomain(domain, uid);
-            } catch (NoOrganisationsFoundException e) {
-                return ResponseEntity.ok(Collections.EMPTY_LIST);
-            }
-            if(organisationalUnits.isEmpty()) {
-                return ResponseEntity.ok(Collections.EMPTY_LIST);
-            }
-            List<OrganisationalUnitDto> dtos = organisationalUnits.stream()
-                    .map(ou -> organisationalUnitDtoFactory.create(ou))
-                    .sorted(Comparator.comparing(OrganisationalUnitDto::getFormattedName, String.CASE_INSENSITIVE_ORDER))
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(dtos);
-        } catch(CivilServantNotFoundException | TokenDoesNotExistException e) {
-            return ResponseEntity.ok(Collections.EMPTY_LIST);
-        } catch(Exception e) {
-            log.error("Unexpected error occurred getting orgs filtered by domain", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    @GetMapping("/children/{code}")
-    public ResponseEntity<List<OrganisationalUnit>> getOrganisationWithChildren(@PathVariable String code) {
-        log.info("Getting org for current family only, current and any children");
-        return ResponseEntity.ok(organisationalUnitService.getOrganisationWithChildren(code));
-    }
-
-    @GetMapping("/parent/{code}")
-    public ResponseEntity<List<OrganisationalUnit>> getOrganisationWithParents(@PathVariable String code) {
-        return ResponseEntity.ok(organisationalUnitService.getOrganisationWithParents(code));
-    }
-
-    @GetMapping("/normalised")
-    public ResponseEntity<List<OrganisationalUnit>> getOrganisationNormalised() {
-        return ResponseEntity.ok(organisationalUnitService.getOrganisationsNormalised());
-    }
-
-    @GetMapping("/allCodesMap")
-    public ResponseEntity<Map<String, List<String>>> getAllCodes() {
-        Map<String, List<String>> codeParentCodesMap = new HashMap<>();
-
-        List<String> organisationalUnitCodes = organisationalUnitService.getOrganisationalUnitCodes();
-
-        organisationalUnitCodes.forEach(s -> {
-            List<String> parentCodes = organisationalUnitService.getOrganisationWithParents(s)
-                    .stream()
-                    .map(OrganisationalUnit::getCode)
-                    .collect(Collectors.toList());
-            codeParentCodesMap.put(s, parentCodes);
-        });
-
-        return ResponseEntity.ok(codeParentCodesMap);
     }
 
     @PostMapping("/{organisationalUnitId}/domains")
