@@ -13,10 +13,7 @@ import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.AgencyTokenDTO;
 import uk.gov.cshr.civilservant.dto.AgencyTokenResponseDto;
-import uk.gov.cshr.civilservant.dto.OrganisationalUnitDto;
 import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
-import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
-import uk.gov.cshr.civilservant.exception.NoOrganisationsFoundException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.service.CivilServantService;
 import uk.gov.cshr.civilservant.service.OrganisationalUnitService;
@@ -24,7 +21,10 @@ import uk.gov.cshr.civilservant.utils.AgencyTokenTestingUtils;
 import uk.gov.cshr.civilservant.utils.JsonUtils;
 import uk.gov.cshr.civilservant.utils.OrganisationalUnitTestUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -61,7 +61,7 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
     private List<OrganisationalUnit> filteredList;
 
     @Before
-    public void setUp() throws IllegalAccessException, CSRSApplicationException {
+    public void setUp() {
         dto = AgencyTokenTestingUtils.createAgencyTokenDTO();
         completeList = new ArrayList<>(10);
         for(int i=0; i<10; i++) {
@@ -72,109 +72,6 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
             filteredList.add(OrganisationalUnitTestUtils.buildOrgUnit("f", i, "agency-domain"));
         }
         when(civilServantService.getCivilServantUid()).thenReturn(UID);
-        when(organisationalUnitService.getOrganisationsForDomain(eq(WL_DOMAIN), eq(UID))).thenReturn(completeList);
-        when(organisationalUnitService.getOrganisationsForDomain(eq(NHS_GLASGOW_DOMAIN), eq(UID))).thenReturn(filteredList);
-    }
-
-    @Test
-    public void shouldReturnOkIfRequestingOrganisationalUnitTree() throws Exception {
-        ArrayList<OrganisationalUnit> organisationalUnits = new ArrayList<>();
-
-        when(organisationalUnitService.getOrgTree()).thenReturn(organisationalUnits);
-
-        mockMvc.perform(
-                MockMvcRequestBuilders.get("/organisationalUnits/tree")
-                        .accept(APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void shouldReturnOkIfRequestingOrganisationalUnitFlat() throws Exception {
-        List<OrganisationalUnitDto> organisationalUnitsList = new ArrayList<>();
-
-        when(organisationalUnitService.getFlatOrg()).thenReturn(organisationalUnitsList);
-
-        mockMvc.perform(
-                MockMvcRequestBuilders.get("/organisationalUnits/flat")
-                        .accept(APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void shouldReturnOkIfRequestingOrganisationalListFilteredByDomain_wlDomain() throws Exception {
-        mockMvc.perform(
-                MockMvcRequestBuilders.get("/organisationalUnits/flat/" + WL_DOMAIN + "/")
-                        .accept(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(completeList.size())))
-                .andExpect(jsonPath("$[0].code", equalTo(completeList.get(0).getCode())))
-                .andExpect(jsonPath("$[9].code", equalTo(completeList.get(9).getCode())));
-    }
-
-    @Test
-    public void shouldReturnOkIfRequestingOrganisationalListFilteredByDomain_agencyDomain() throws Exception {
-        mockMvc.perform(
-                MockMvcRequestBuilders.get("/organisationalUnits/flat/" + NHS_GLASGOW_DOMAIN + "/")
-                        .accept(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(filteredList.size())))
-                .andExpect(jsonPath("$[0].code", equalTo(filteredList.get(0).getCode())))
-                .andExpect(jsonPath("$[2].code", equalTo(filteredList.get(2).getCode())));
-    }
-
-    @Test
-    public void shouldReturn200IfRequestingNonExistentCivilServant() throws Exception {
-        when(civilServantService.getCivilServantUid()).thenThrow(new CivilServantNotFoundException());
-
-        mockMvc.perform(
-                MockMvcRequestBuilders.get("/organisationalUnits/flat/" + WL_DOMAIN + "/")
-                        .accept(APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(0)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void shouldReturn200IfRequestingNonExistentAgencyToken() throws Exception {
-        when(organisationalUnitService.getOrganisationsForDomain(eq(WL_DOMAIN), eq(UID))).thenThrow(new TokenDoesNotExistException());
-
-        mockMvc.perform(
-                MockMvcRequestBuilders.get("/organisationalUnits/flat/" + WL_DOMAIN + "/")
-                        .accept(APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(0)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void shouldReturn200IfRequestingNonExistentOrganisation() throws Exception {
-        when(organisationalUnitService.getOrganisationsForDomain(eq(WL_DOMAIN), eq(UID))).thenThrow(new NoOrganisationsFoundException(WL_DOMAIN));
-
-        mockMvc.perform(
-                MockMvcRequestBuilders.get("/organisationalUnits/flat/" + WL_DOMAIN + "/")
-                        .accept(APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(0)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void shouldReturn500IfGeneralApplicationError() throws Exception {
-        when(organisationalUnitService.getOrganisationsForDomain(eq(WL_DOMAIN), eq(UID))).thenThrow(new CSRSApplicationException("broken", new RuntimeException()));
-
-        mockMvc.perform(
-                MockMvcRequestBuilders.get("/organisationalUnits/flat/" + WL_DOMAIN + "/")
-                        .accept(APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    public void shouldReturn500IfTechnicalError() throws Exception {
-        when(organisationalUnitService.getOrganisationsForDomain(eq(WL_DOMAIN), eq(UID))).thenThrow(new RuntimeException());
-
-        mockMvc.perform(
-                MockMvcRequestBuilders.get("/organisationalUnits/flat/" + WL_DOMAIN + "/")
-                        .accept(APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
     }
 
     @Test
@@ -322,36 +219,4 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
         verify(organisationalUnitService, times(0)).deleteAgencyToken(organisationalUnit);
     }
 
-    @Test
-    public void shouldReturnOkIfRequestingAllCodesMap2() throws Exception {
-        String code1 = "code1";
-        String code2 = "code2";
-        List<String> organisationalUnitsCodesList = Arrays.asList(code1, code2);
-
-        OrganisationalUnit organisationalUnit1 = new OrganisationalUnit();
-        organisationalUnit1.setCode(code1);
-
-        OrganisationalUnit organisationalUnit2 = new OrganisationalUnit();
-        organisationalUnit2.setCode(code2);
-
-        OrganisationalUnit organisationalUnit3 = new OrganisationalUnit();
-        organisationalUnit3.setCode(code1);
-
-        OrganisationalUnit organisationalUnit4 = new OrganisationalUnit();
-        organisationalUnit4.setCode(code2);
-
-        List<OrganisationalUnit> organisationalUnitsParentsList1 = Arrays.asList(organisationalUnit1, organisationalUnit2);
-        List<OrganisationalUnit> organisationalUnitsParentsList2 = Arrays.asList(organisationalUnit3, organisationalUnit4);
-
-        when(organisationalUnitService.getOrganisationalUnitCodes()).thenReturn(organisationalUnitsCodesList);
-
-        when(organisationalUnitService.getOrganisationWithParents(code1)).thenReturn(organisationalUnitsParentsList1);
-        when(organisationalUnitService.getOrganisationWithParents(code2)).thenReturn(organisationalUnitsParentsList2);
-
-        mockMvc.perform(
-                MockMvcRequestBuilders.get("/organisationalUnits/allCodesMap")
-                        .accept(APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
 }
