@@ -1,85 +1,37 @@
 package uk.gov.cshr.civilservant.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.cshr.civilservant.controller.models.GetCivilServantsForUidsParams;
+import uk.gov.cshr.civilservant.domain.CivilServant;
+import uk.gov.cshr.civilservant.dto.CivilServantReportDto;
+import uk.gov.cshr.civilservant.dto.SkillsReportsDto;
+import uk.gov.cshr.civilservant.exception.UserNotFoundException;
+import uk.gov.cshr.civilservant.repository.CivilServantRepository;
+
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import uk.gov.cshr.civilservant.domain.CivilServant;
-import uk.gov.cshr.civilservant.dto.CivilServantDto;
-import uk.gov.cshr.civilservant.dto.CivilServantReportDto;
-import uk.gov.cshr.civilservant.dto.SkillsReportsDto;
-import uk.gov.cshr.civilservant.dto.factory.CivilServantDtoFactory;
-import uk.gov.cshr.civilservant.exception.UserNotFoundException;
-import uk.gov.cshr.civilservant.repository.CivilServantRepository;
-
 @Service
+@Slf4j
 public class ReportService {
 
   private final CivilServantRepository civilServantRepository;
-  private final CivilServantDtoFactory civilServantDtoFactory;
+  private final OrganisationalUnitService organisationalUnitService;
   private final QuizService quizService;
 
   public ReportService(
-      CivilServantRepository civilServantRepository,
-      CivilServantDtoFactory civilServantDtoFactory,
-      QuizService quizService) {
+          CivilServantRepository civilServantRepository,
+          OrganisationalUnitService organisationalUnitService,
+          QuizService quizService) {
     this.civilServantRepository = civilServantRepository;
-    this.civilServantDtoFactory = civilServantDtoFactory;
-    this.quizService = quizService;
-  }
-
-  @Transactional(readOnly = true)
-  public Map<String, CivilServantDto> getCivilServantMapByUserOrganisation(String userId) {
-    CivilServant user =
-        civilServantRepository
-            .findByIdentity(userId)
-            .orElseThrow(() -> new UserNotFoundException(userId));
-
-    if (user.getOrganisationalUnit().isPresent()) {
-      return civilServantRepository
-          .findAllByOrganisationalUnit(user.getOrganisationalUnit().get())
-          .stream()
-          .collect(
-              Collectors.toMap(
-                  civilServant -> civilServant.getIdentity().getUid(),
-                  civilServantDtoFactory::create));
-    }
-    return Collections.emptyMap();
-  }
-
-  @Transactional(readOnly = true)
-  public Map<String, CivilServantDto> getCivilServantMapByUserProfession(String userId) {
-    CivilServant user =
-        civilServantRepository
-            .findByIdentity(userId)
-            .orElseThrow(() -> new UserNotFoundException(userId));
-
-    if (user.getProfession().isPresent()) {
-      return civilServantRepository
-          .findAllByProfession(user.getProfession().get())
-          .stream()
-          .collect(
-              Collectors.toMap(
-                  civilServant -> civilServant.getIdentity().getUid(),
-                  civilServantDtoFactory::create));
-    }
-
-    return Collections.emptyMap();
-  }
-
-  @Transactional(readOnly = true)
-  public Map<String, CivilServantDto> getCivilServantMap() {
-    return civilServantRepository
-        .findAll()
-        .stream()
-        .collect(
-            Collectors.toMap(
-                civilServant -> civilServant.getIdentity().getUid(),
-                civilServantDtoFactory::create));
+      this.organisationalUnitService = organisationalUnitService;
+      this.quizService = quizService;
   }
 
   @Transactional(readOnly = true)
@@ -91,11 +43,20 @@ public class ReportService {
             Collectors.toMap(CivilServantReportDto::getUid, civilServantDto -> civilServantDto));
   }
 
-  public Map<String, CivilServantReportDto> getCivilServantMapForUidsNormalised(List<String> uids) {
-    return civilServantRepository
-            .findAllByUidsNormalised(uids)
+  public Map<String, CivilServantReportDto> getCivilServantMapForUidsNormalised(GetCivilServantsForUidsParams params) {
+    List<Long> organisationalUnitIds = null;
+    if (params.getOrganisationId() != null) {
+      organisationalUnitIds = organisationalUnitService.getHierarchyIds(params.getOrganisationId());
+    }
+    Map<Long, String> orgFormattedNameMap = organisationalUnitService.getFormattedNamesMap();
+    log.debug("Fetching normalised civil servants for {} UIDs and departments: {}", params.getUids().size(), organisationalUnitIds);
+    Collection<CivilServantReportDto> result = civilServantRepository
+            .findAllByUidsNormalised(params.getUids(), organisationalUnitIds)
             .stream()
-            .collect(
+            .peek(cs -> cs.setOrganisation(orgFormattedNameMap.get(cs.getOrganisationId())))
+            .collect(Collectors.toList());
+    log.debug("Found {} civil servants", result.size());
+    return result.stream().collect(
                     Collectors.toMap(CivilServantReportDto::getUid, civilServantDto -> civilServantDto));
   }
 
@@ -122,24 +83,6 @@ public class ReportService {
           .stream()
           .collect(Collectors.toMap(CivilServantReportDto::getUid, civilServant -> civilServant));
     }
-    return Collections.emptyMap();
-  }
-
-  @Transactional(readOnly = true)
-  public Map<String, CivilServantReportDto> getCivilServantMapByUserProfessionNormalised(
-      String userId) {
-    CivilServant user =
-        civilServantRepository
-            .findByIdentity(userId)
-            .orElseThrow(() -> new UserNotFoundException(userId));
-
-    if (user.getProfession().isPresent()) {
-      return civilServantRepository
-          .findAllByProfessionNormalised(user.getProfession().get())
-          .stream()
-          .collect(Collectors.toMap(CivilServantReportDto::getUid, civilServant -> civilServant));
-    }
-
     return Collections.emptyMap();
   }
 

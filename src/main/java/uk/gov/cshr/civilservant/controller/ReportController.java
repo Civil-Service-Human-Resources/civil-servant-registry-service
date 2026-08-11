@@ -1,15 +1,5 @@
 package uk.gov.cshr.civilservant.controller;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.security.Principal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
-
 import com.opencsv.CSVWriter;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
@@ -24,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.cshr.civilservant.controller.models.GetCivilServantsForUidsParams;
 import uk.gov.cshr.civilservant.domain.Roles;
 import uk.gov.cshr.civilservant.dto.CivilServantDto;
 import uk.gov.cshr.civilservant.dto.CivilServantReportDto;
@@ -31,6 +22,16 @@ import uk.gov.cshr.civilservant.dto.SkillsReportsDto;
 import uk.gov.cshr.civilservant.mapping.RoleMapping;
 import uk.gov.cshr.civilservant.service.ReportService;
 import uk.gov.cshr.civilservant.utils.strategy.HeaderColumnNameAndOrderMappingStrategy;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.Writer;
+import java.security.Principal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/report")
@@ -51,14 +52,6 @@ public class ReportController {
         reportService.getCivilServantMapByUserOrganisationNormalised(principal.getName()));
   }
 
-  @RoleMapping("PROFESSION_REPORTER")
-  @GetMapping("/civilServants")
-  public ResponseEntity<Map<String, CivilServantReportDto>> listAllCivilServantsByProfession(
-      Principal principal) {
-    return ResponseEntity.ok(
-        reportService.getCivilServantMapByUserProfessionNormalised(principal.getName()));
-  }
-
   @RoleMapping("CSHR_REPORTER")
   @GetMapping("/civilServants")
   public ResponseEntity<Map<String, CivilServantReportDto>> listAllCivilServants() {
@@ -66,8 +59,8 @@ public class ReportController {
   }
 
   @GetMapping(value = "/civil-servants-for-uids", params = "uids")
-  public ResponseEntity<Map<String, CivilServantReportDto>> listCivilServantsForUids(@RequestParam List<String> uids) {
-    return ResponseEntity.ok(reportService.getCivilServantMapForUidsNormalised(uids));
+  public ResponseEntity<Map<String, CivilServantReportDto>> listCivilServantsForUids(GetCivilServantsForUidsParams params) {
+    return ResponseEntity.ok(reportService.getCivilServantMapForUidsNormalised(params));
   }
 
   @GetMapping("/civilServants/code")
