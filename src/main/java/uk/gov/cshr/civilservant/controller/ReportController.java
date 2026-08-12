@@ -10,10 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.civilservant.controller.models.GetCivilServantsForUidsParams;
 import uk.gov.cshr.civilservant.domain.Roles;
 import uk.gov.cshr.civilservant.dto.CivilServantDto;
@@ -62,6 +59,12 @@ public class ReportController {
   public ResponseEntity<Map<String, CivilServantReportDto>> listCivilServantsForUids(GetCivilServantsForUidsParams params) {
     return ResponseEntity.ok(reportService.getCivilServantMapForUidsNormalised(params));
   }
+
+  @PostMapping(value = "/civil-servants-for-uids")
+  public ResponseEntity<Map<String, CivilServantReportDto>> fetchCivilServantsForUidsMap(@RequestBody GetCivilServantsForUidsParams params) {
+    return ResponseEntity.ok(reportService.getCivilServantMapForUidsNormalised(params));
+  }
+
 
   @GetMapping("/civilServants/code")
   public ResponseEntity<Map<String, CivilServantReportDto>> listAllCivilServantsWithCodes() {
