@@ -20,7 +20,7 @@ import uk.gov.cshr.civilservant.mapping.RoleMapping;
 import uk.gov.cshr.civilservant.service.ReportService;
 import uk.gov.cshr.civilservant.utils.strategy.HeaderColumnNameAndOrderMappingStrategy;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
 import java.security.Principal;

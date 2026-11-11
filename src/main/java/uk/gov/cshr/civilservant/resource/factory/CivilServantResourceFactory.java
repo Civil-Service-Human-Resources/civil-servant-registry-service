@@ -1,7 +1,7 @@
 package uk.gov.cshr.civilservant.resource.factory;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.CivilServant;
@@ -25,7 +25,7 @@ public class CivilServantResourceFactory {
     private final OrganisationalUnitDtoFactory organisationalUnitDtoFactory;
 
     @Transactional
-    public Resource<CivilServantResource> create(CivilServant civilServant) {
+    public EntityModel<CivilServantResource> create(CivilServant civilServant) {
 
         CivilServantResource civilServantResource = new CivilServantResource();
 
@@ -76,7 +76,7 @@ public class CivilServantResourceFactory {
 
         civilServantResource.setIdentity(civilServant.getIdentity());
 
-        Resource<CivilServantResource> resource = new Resource<>(civilServantResource);
+        EntityModel<CivilServantResource> resource = EntityModel.of(civilServantResource);
 
         resource.add(linkFactory.createSelfLink(civilServant));
         resource.add(linkFactory.createRelationshipLink(civilServant, "organisationalUnit"));

@@ -15,7 +15,7 @@ import uk.gov.cshr.civilservant.exception.QuizServiceException;
 import uk.gov.cshr.civilservant.service.QuestionService;
 import uk.gov.cshr.civilservant.service.QuizBuilder;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -194,7 +194,7 @@ public class QuestionControllerTest extends CSRSControllerTestBase {
     // then
 
     mockMvc
-        .perform(delete("/api/questions/1/delete").contentType(MediaType.APPLICATION_JSON))
+        .perform(delete("/api/questions/1/delete").with(csrf()).contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isInternalServerError());
   }
 

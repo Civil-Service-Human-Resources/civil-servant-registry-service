@@ -12,6 +12,7 @@ import uk.gov.cshr.civilservant.controller.CSRSControllerTestBase;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -29,7 +30,9 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
         mockMvc.perform(
                 get("/v2/organisationalUnits/4")
                         .with(csrf())
-        ).andExpect(status().is2xxSuccessful())
+        )
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("parentId").value("2"))
                 .andExpect(jsonPath("parent").isEmpty())
                 .andExpect(jsonPath("id").value(4))

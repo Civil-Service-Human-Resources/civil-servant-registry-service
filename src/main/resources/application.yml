@@ -19,16 +19,17 @@ spring:
       write_dates_as_timestamps: false
       fail-on-empty-beans: false
     default-property-inclusion: non_null
-  resources:
-    add-mappings: false
+  web:
+    resources:
+      add-mappings: false
   flyway:
     locations: classpath:db/migration/{vendor}
+    metadata_builder_contributor: uk.gov.cshr.civilservant.config.HibernateFunctionConfiguration
   jpa:
     hibernate:
       ddl-auto: none
     properties:
       hibernate:
-        dialect: uk.gov.cshr.civilservant.config.CustomMySqlDialect
         show_sql: false
         format_sql: false
   h2:
@@ -83,3 +84,8 @@ domains:
   validation:
     regex: ${DOMAIN_VALIDATION_REGEX:^([\w-]+\.)+[\w-]{2,6}$}
 
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

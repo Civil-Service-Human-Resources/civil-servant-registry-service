@@ -14,7 +14,9 @@ import java.util.Collections;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(classes = IntegrationTestUserConfig.class)
@@ -31,7 +33,10 @@ public class QuizControllerIntegrationTest extends BaseIntegrationTest {
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
                                 .content("{\"profession\": {\"id\":  \"100\"}}")
-                                .with(authentication(learner)))
+                                .with(authentication(learner))
+                                .with(csrf())
+                                )
+                .andDo(print())
                 .andExpect(status().isOk());
     }
 }

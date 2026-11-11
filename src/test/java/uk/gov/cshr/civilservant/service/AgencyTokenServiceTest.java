@@ -26,7 +26,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -257,7 +257,7 @@ public class AgencyTokenServiceTest {
 
         AgencyTokenResponseDto actual = agencyTokenService.getAgencyTokenResponseDto(agencyToken);
 
-        verifyZeroInteractions(agencyTokenResponseDtoFactory);
+        verifyNoInteractions(agencyTokenResponseDtoFactory);
     }
 
     @Test
@@ -271,7 +271,7 @@ public class AgencyTokenServiceTest {
 
         AgencyTokenResponseDto actual = agencyTokenService.getAgencyTokenResponseDto(agencyToken);
 
-        verifyZeroInteractions(agencyTokenResponseDtoFactory);
+        verifyNoInteractions(agencyTokenResponseDtoFactory);
     }
 
 }

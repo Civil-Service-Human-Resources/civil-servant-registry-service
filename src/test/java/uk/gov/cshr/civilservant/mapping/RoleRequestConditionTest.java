@@ -2,28 +2,26 @@ package uk.gov.cshr.civilservant.mapping;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
+import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(SecurityContextHolder.class)
-@PowerMockIgnore("javax.security.*")
 public class RoleRequestConditionTest {
+  @After
+  public void tearDown() {
+    SecurityContextHolder.clearContext();
+  }
 
   @Test
   public void shouldCombineRoles() {
@@ -41,21 +39,9 @@ public class RoleRequestConditionTest {
     String role = "test-role";
     HttpServletRequest request = mock(HttpServletRequest.class);
 
-    mockStatic(SecurityContextHolder.class);
-
-    SecurityContext securityContext = mock(SecurityContext.class);
-    when(SecurityContextHolder.getContext()).thenReturn(securityContext);
-    Authentication authentication = mock(Authentication.class);
-    when(securityContext.getAuthentication()).thenReturn(authentication);
-    GrantedAuthority grantedAuthority = mock(GrantedAuthority.class);
-    when(grantedAuthority.getAuthority()).thenReturn(role);
-
-    Collection<GrantedAuthority> authorities = Collections.singletonList(grantedAuthority);
-
-    when((Collection<GrantedAuthority>) authentication.getAuthorities()).thenReturn(authorities);
+    setAuthenticatedRole(role);
 
     RoleRequestCondition roleRequestCondition = new RoleRequestCondition(role);
-
     assertEquals(roleRequestCondition, roleRequestCondition.getMatchingCondition(request));
   }
 
@@ -64,18 +50,7 @@ public class RoleRequestConditionTest {
     String role = "test-role";
     HttpServletRequest request = mock(HttpServletRequest.class);
 
-    mockStatic(SecurityContextHolder.class);
-
-    SecurityContext securityContext = mock(SecurityContext.class);
-    when(SecurityContextHolder.getContext()).thenReturn(securityContext);
-    Authentication authentication = mock(Authentication.class);
-    when(securityContext.getAuthentication()).thenReturn(authentication);
-    GrantedAuthority grantedAuthority = mock(GrantedAuthority.class);
-    when(grantedAuthority.getAuthority()).thenReturn(role);
-
-    Collection<GrantedAuthority> authorities = Collections.singletonList(grantedAuthority);
-
-    when((Collection<GrantedAuthority>) authentication.getAuthorities()).thenReturn(authorities);
+    setAuthenticatedRole(role);
 
     RoleRequestCondition roleRequestCondition = new RoleRequestCondition("other role");
 
@@ -95,5 +70,18 @@ public class RoleRequestConditionTest {
             .compareTo(
                 new RoleRequestCondition("role1", "role2", "role3"),
                 mock(HttpServletRequest.class)));
+  }
+
+  private void setAuthenticatedRole(String role) {
+    SecurityContext securityContext = mock(SecurityContext.class);
+    Authentication authentication = mock(Authentication.class);
+
+    GrantedAuthority grantedAuthority = () -> role;
+    Collection<GrantedAuthority> authorities = Collections.singletonList(grantedAuthority);
+
+    when(securityContext.getAuthentication()).thenReturn(authentication);
+    doReturn(authorities).when(authentication).getAuthorities();
+
+    SecurityContextHolder.setContext(securityContext);
   }
 }

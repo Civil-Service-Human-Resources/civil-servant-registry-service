@@ -158,7 +158,7 @@ public class OrganisationalUnitServiceTest {
 
         AgencyTokenResponseDto actual = organisationalUnitService.getAgencyToken(orgId);
 
-        verifyZeroInteractions(agencyTokenService);
+        verifyNoInteractions(agencyTokenService);
     }
 
     @Test
@@ -192,7 +192,7 @@ public class OrganisationalUnitServiceTest {
 
         AgencyTokenResponseDto actual = organisationalUnitService.getAgencyToken(orgId);
 
-        verifyZeroInteractions(agencyTokenService);
+        verifyNoInteractions(agencyTokenService);
     }
 
     @Test

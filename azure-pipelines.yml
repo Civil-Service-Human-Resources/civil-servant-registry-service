@@ -23,16 +23,19 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+  - task: JavaToolInstaller@0
+    inputs:
+      versionSpec: '25'
+      jdkArchitectureOption: 'x64'
+      jdkSourceOption: 'PreInstalled'
+    displayName: 'Set up Java 25'
+
   - task: Maven@4
     inputs:
-      mavenPomFile: 'pom.xml'
+      mavenPOMFile: 'pom.xml'
       goals: 'clean package'
-      options: '-DskipTests=true'
       publishJUnitResults: false
-      jdkVersionOption: '1.8'
-      javaHomeOption: 'JDKVersion'
-      jdkArchitectureOption: 'x64'
-    displayName: 'Build and package with Maven and Java 8'
+    displayName: 'Run Maven Build'
 
   - task: Docker@2
     inputs:

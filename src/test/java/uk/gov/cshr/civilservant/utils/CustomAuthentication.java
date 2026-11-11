@@ -19,6 +19,7 @@ public class CustomAuthentication extends AbstractAuthenticationToken {
                                 String username) {
         super(authorities);
         this.username = username;
+        setAuthenticated(true);
     }
 
     @Override

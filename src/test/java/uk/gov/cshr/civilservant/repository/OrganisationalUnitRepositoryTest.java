@@ -157,7 +157,12 @@ public class OrganisationalUnitRepositoryTest {
     public void findOrganisationByAgencyToken_whenTokenAndOrgExistAndLinked() {
 
         // Create data
-        AgencyToken savedToken = agencyTokenRepository.save(new AgencyToken(-1, "test-token", 1, "uid"));
+        AgencyToken tokenToSave = new AgencyToken();
+        tokenToSave.setToken("test-token");
+        tokenToSave.setCapacity(1);
+        tokenToSave.setUid("uid");
+
+        AgencyToken savedToken = agencyTokenRepository.save(tokenToSave);
         OrganisationalUnit savedOrg = repository.save(new OrganisationalUnit("org-name", "org-code", "org-abbrv"));
 
         // Link
@@ -171,7 +176,12 @@ public class OrganisationalUnitRepositoryTest {
     public void findOrganisationByAgencyToken_whenTokenAndOrgExistButNotLinked() {
 
         // Create data
-        AgencyToken savedToken = agencyTokenRepository.save(new AgencyToken(-1, "test-token", 1, "uid"));
+        AgencyToken tokenToSave = new AgencyToken();
+        tokenToSave.setToken("test-token");
+        tokenToSave.setCapacity(1);
+        tokenToSave.setUid("uid");
+        AgencyToken savedToken = agencyTokenRepository.save(tokenToSave);
+
         OrganisationalUnit savedOrg = repository.save(new OrganisationalUnit("org-name", "org-code", "org-abbrv"));
 
         assertFalse(repository.findOrganisationByAgencyToken(savedToken).isPresent());

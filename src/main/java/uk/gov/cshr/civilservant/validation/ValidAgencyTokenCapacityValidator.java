@@ -4,8 +4,8 @@ import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintVa
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 @Component
 public class ValidAgencyTokenCapacityValidator implements ConstraintValidator<ValidCapacity, Integer> {

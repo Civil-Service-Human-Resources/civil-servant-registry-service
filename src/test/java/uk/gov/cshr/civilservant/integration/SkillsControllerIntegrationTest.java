@@ -27,6 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -89,7 +90,8 @@ public class SkillsControllerIntegrationTest extends BaseIntegrationTest {
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
                                 .content("{\"uids\":  [\"skills-3\", \"skills-4\"]}")
-                                .with(authentication(auth)))
+                                .with(authentication(auth))
+                                .with(csrf()))
                 .andExpect(status().isOk());
         Map<String, CivilServantSkillsMetadata> map = new HashMap<>();
         skillsMetadataRepository.findAll(new PageableParams(0, 6).getAsPageable()).getContent()

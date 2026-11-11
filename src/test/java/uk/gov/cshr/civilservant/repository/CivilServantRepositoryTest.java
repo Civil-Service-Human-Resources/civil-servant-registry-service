@@ -95,7 +95,7 @@ public class CivilServantRepositoryTest {
   }
 
   @Test
-  @WithMockUser(authorities = {"IDENTITY_MANAGE_IDENTITY", "PROFESSION_MANAGER"})
+  @WithMockUser(username = "1", authorities = {"IDENTITY_MANAGE_IDENTITY", "PROFESSION_MANAGER"})
   public void shouldReturnCivilServantsByProfession() {
     Profession profession1 = new Profession("profession1");
     professionRepository.save(profession1);

@@ -56,7 +56,7 @@ public class ProfessionControllerTest extends CSRSControllerTestBase{
 
     mockMvc
         .perform(
-            post("/professions/").with(csrf()).content(json).accept(MediaType.APPLICATION_JSON))
+            post("/professions/").content(json).accept(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isForbidden());
   }
@@ -70,7 +70,8 @@ public class ProfessionControllerTest extends CSRSControllerTestBase{
 
     mockMvc
         .perform(
-            post("/professions/").with(csrf()).content(json).accept(MediaType.APPLICATION_JSON))
+            post("/professions").with(csrf()).content(json).accept(MediaType.APPLICATION_JSON)
+                    .with(csrf()))
         .andDo(print())
         .andExpect(status().isCreated());
   }

@@ -31,13 +31,13 @@ public interface CivilServantRepository extends JpaRepository<CivilServant, Long
           + "LEFT JOIN FETCH c.otherAreasOfWork "
           + "LEFT JOIN FETCH c.otherOrganisationalUnits "
           + "LEFT JOIN FETCH c.interests "
-          + "WHERE c.identity.uid = ?#{principal}")
+          + "WHERE c.identity.uid = ?#{authentication.name}")
   Optional<CivilServant> findByPrincipal();
 
-  @PreAuthorize("#civilServant.identity.uid eq principal || hasAnyAuthority('INTERNAL','IDENTITY_MANAGE_IDENTITY')")
+  @PreAuthorize("#civilServant.identity.uid == authentication.name || hasAnyAuthority('INTERNAL','IDENTITY_MANAGE_IDENTITY')")
   CivilServant save(@Param("civilServant") CivilServant civilServant);
 
-  @PostAuthorize("returnObject.isPresent() && (returnObject.get().identity.uid eq principal || hasAnyAuthority('INTERNAL','IDENTITY_MANAGE_IDENTITY'))")
+  @PostAuthorize("returnObject.isPresent() && (returnObject.get().identity.uid == authentication.name || hasAnyAuthority('INTERNAL','IDENTITY_MANAGE_IDENTITY'))")
   @Query(
       "select c from CivilServant c "
           + "LEFT JOIN FETCH c.organisationalUnit "
@@ -66,38 +66,46 @@ public interface CivilServantRepository extends JpaRepository<CivilServant, Long
   Page<Identity> findAllIdentitiesByOrganisationCode(Pageable pageable, String organisationalUnitCode);
 
   @Query(
-      "select new uk.gov.cshr.civilservant.dto.CivilServantReportDto(c.id, c.fullName, ou.name, p.name, i.uid, g.name, group_concat(oaw.name)) "
-          + "from CivilServant c "
-          + "left join OrganisationalUnit ou on ou.id = c.organisationalUnit.id "
-          + "left join Profession p on p.id = c.profession.id "
-          + "left join Identity i on i.id = c.identity.id "
-          + "left join Grade g on g.id = c.grade.id "
-          + "join c.otherAreasOfWork oaw "
-          + "group by c.id ")
+          value = "select cs.id, cs.full_name, ou.name, p.name, i.uid, g.name, GROUP_CONCAT(p2.name) "
+          + "from civil_servant c "
+          + "left join organisational_unit ou on ou.id = cs.organisational_unit_id "
+          + "left join profession p on p.id = cs.profession_id "
+          + "left join identity i on i.id = cs.identity_id "
+          + "left join grade g on g.id = cs.grade_id "
+          + "left join civil_servant_other_areas_of_work csoaow on csoaow.civil_servant_id = cs.id "
+          + "left join profession p2 on p2.id = csoaow.other_areas_of_work_id "
+          + "group by cs.id",
+          nativeQuery = true
+  )
   List<CivilServantReportDto> findAllNormalised();
 
   @Query(
-          "select new uk.gov.cshr.civilservant.dto.CivilServantReportDto(c.id, c.fullName, ou.code, ou.id, ou.name, p.name, i.uid, g.name, group_concat(oaw.name)) "
-                  + "from CivilServant c "
-                  + "left join OrganisationalUnit ou on ou.id = c.organisationalUnit.id "
-                  + "left join Profession p on p.id = c.profession.id "
-                  + "left join Identity i on i.id = c.identity.id "
-                  + "left join Grade g on g.id = c.grade.id "
-                  + "left join c.otherAreasOfWork oaw "
-                  + "where i.uid in ?1 and ou.id in ?2 "
-                  + "group by c.id ")
+          value = "select cs.id, cs.full_name, ou.code, ou.id, ou.name, p.name, i.uid, g.name, GROUP_CONCAT(p2.name) " +
+                  "from civil_servant cs " +
+                  "left join organisational_unit ou on ou.id = cs.organisational_unit_id " +
+                  "left join profession p on p.id = cs.profession_id " +
+                  "left join identity i on i.id = cs.identity_id " +
+                  "left join grade g on g.id = cs.grade_id " +
+                  "left join civil_servant_other_areas_of_work csoaow on csoaow.civil_servant_id = cs.id " +
+                  "left join profession p2 on p2.id = csoaow.other_areas_of_work_id " +
+                  "group by cs.id",
+          nativeQuery = true
+  )
   List<CivilServantReportDto> findAllByUidsNormalisedWithOrgs(List<String> uids, List<Long> organisationalUnits);
 
   @Query(
-          "select new uk.gov.cshr.civilservant.dto.CivilServantReportDto(c.id, c.fullName, ou.code, ou.id, ou.name, p.name, i.uid, g.name, group_concat(oaw.name)) "
-                  + "from CivilServant c "
-                  + "left join OrganisationalUnit ou on ou.id = c.organisationalUnit.id "
-                  + "left join Profession p on p.id = c.profession.id "
-                  + "left join Identity i on i.id = c.identity.id "
-                  + "left join Grade g on g.id = c.grade.id "
-                  + "left join c.otherAreasOfWork oaw "
-                  + "where i.uid in ?1 "
-                  + "group by c.id ")
+          value = "select CAST(cs.id AS BIGINT), cs.full_name, ou.code, CAST(ou.id AS BIGINT), ou.name, p.name, i.uid, g.name, GROUP_CONCAT(p2.name) " +
+                  "from civil_servant cs " +
+                  "left join organisational_unit ou on ou.id = cs.organisational_unit_id " +
+                  "left join profession p on p.id = cs.profession_id " +
+                  "left join identity i on i.id = cs.identity_id " +
+                  "left join grade g on g.id = cs.grade_id " +
+                  "left join civil_servant_other_areas_of_work csoaow on csoaow.civil_servant_id = cs.id " +
+                  "left join profession p2 on p2.id = csoaow.other_areas_of_work_id " +
+                  "where i.uid in ?1 " +
+                  "group by cs.id",
+          nativeQuery = true
+  )
   List<CivilServantReportDto> findAllByUidsNormalised(List<String> uids);
 
   default List<CivilServantReportDto> findAllByUidsNormalised(List<String> uids, List<Long> organisationalUnits) {
@@ -108,17 +116,18 @@ public interface CivilServantRepository extends JpaRepository<CivilServant, Long
   }
 
   @Query(
-      "select new uk.gov.cshr.civilservant.dto.CivilServantReportDto(c.id, c.fullName, ou.name, p.name, i.uid, g.name, group_concat(oaw.name)) "
-          + "from CivilServant c "
-          + "left join OrganisationalUnit ou on ou.id = c.organisationalUnit.id "
-          + "left join Profession p on p.id = c.profession.id "
-          + "left join Identity i on i.id = c.identity.id "
-          + "left join Grade g on g.id = c.grade.id "
-          + "join c.otherAreasOfWork oaw "
-          + "where ou = ?1 "
-          + "group by c.id ")
-  List<CivilServantReportDto> findAllByOrganisationNormalised(
-      OrganisationalUnit organisationalUnit);
+          value = "select cs.id, cs.full_name, ou.name, p.name, i.uid, g.name, GROUP_CONCAT(p2.name) " +
+                  "from civil_servant cs " +
+                  "left join organisational_unit ou on ou.id = cs.organisational_unit_id " +
+                  "left join profession p on p.id = cs.profession_id " +
+                  "left join identity i on i.id = cs.identity_id " +
+                  "left join grade g on g.id = cs.grade_id " +
+                  "left join civil_servant_other_areas_of_work csoaow on csoaow.civil_servant_id = cs.id " +
+                  "left join profession p2 on p2.id = csoaow.other_areas_of_work_id " +
+                  "group by cs.id",
+          nativeQuery = true
+  )
+  List<CivilServantReportDto> findAllByOrganisationNormalised(OrganisationalUnit organisationalUnit);
 
   @Query(
       "select new uk.gov.cshr.civilservant.dto.CivilServantReportDto(c.fullName, ou.code, p.name, i.uid, g.name, li.uid) "
