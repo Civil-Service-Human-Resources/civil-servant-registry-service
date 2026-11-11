@@ -88,6 +88,7 @@ public interface CivilServantRepository extends JpaRepository<CivilServant, Long
                   "left join grade g on g.id = cs.grade_id " +
                   "left join civil_servant_other_areas_of_work csoaow on csoaow.civil_servant_id = cs.id " +
                   "left join profession p2 on p2.id = csoaow.other_areas_of_work_id " +
+                  "where i.uid in ?1 and ou.id in ?2 " +
                   "group by cs.id",
           nativeQuery = true
   )
@@ -124,6 +125,7 @@ public interface CivilServantRepository extends JpaRepository<CivilServant, Long
                   "left join grade g on g.id = cs.grade_id " +
                   "left join civil_servant_other_areas_of_work csoaow on csoaow.civil_servant_id = cs.id " +
                   "left join profession p2 on p2.id = csoaow.other_areas_of_work_id " +
+                  "where cs.organisational_unit_id = ?1 " +
                   "group by cs.id",
           nativeQuery = true
   )
