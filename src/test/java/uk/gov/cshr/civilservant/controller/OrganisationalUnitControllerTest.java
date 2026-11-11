@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -132,7 +133,7 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
 
         mockMvc.perform(
                 MockMvcRequestBuilders.post("/organisationalUnits/123/agencyToken").contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON).content(requestBodyAgencyTokenAsAString))
+                        .accept(APPLICATION_JSON).content(requestBodyAgencyTokenAsAString).with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated());
 
@@ -148,7 +149,8 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
 
         mockMvc.perform(
                 MockMvcRequestBuilders.post("/organisationalUnits/123/agencyToken").contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON).content(requestBodyAgencyTokenAsAString))
+                        .accept(APPLICATION_JSON).content(requestBodyAgencyTokenAsAString)
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -164,7 +166,8 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
 
         mockMvc.perform(
                 MockMvcRequestBuilders.post("/organisationalUnits/123/agencyToken").contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON).content(requestBodyAgencyTokenAsAString))
+                        .accept(APPLICATION_JSON).content(requestBodyAgencyTokenAsAString)
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -181,7 +184,8 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
         when(organisationalUnitService.deleteAgencyToken(organisationalUnit)).thenReturn(organisationalUnit);
 
         mockMvc.perform(
-                MockMvcRequestBuilders.delete(String.format("/organisationalUnits/%d/agencyToken", organisationalUnit.getId())))
+                MockMvcRequestBuilders.delete(String.format("/organisationalUnits/%d/agencyToken", organisationalUnit.getId()))
+                        .with(csrf()))
                 .andExpect(status().isOk());
 
         verify(organisationalUnitService, times(1)).getOrganisationalUnit(organisationalUnit.getId());
@@ -197,7 +201,9 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
         when(organisationalUnitService.deleteAgencyToken(organisationalUnit)).thenReturn(null);
 
         mockMvc.perform(
-                MockMvcRequestBuilders.delete(String.format("/organisationalUnits/%d/agencyToken", organisationalUnit.getId())))
+                MockMvcRequestBuilders
+                        .delete(String.format("/organisationalUnits/%d/agencyToken", organisationalUnit.getId()))
+                        .with(csrf()))
                 .andExpect(status().is5xxServerError());
 
         verify(organisationalUnitService, times(1)).getOrganisationalUnit(organisationalUnit.getId());
@@ -212,7 +218,9 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
         when(organisationalUnitService.getOrganisationalUnit(organisationalUnit.getId())).thenReturn(Optional.empty());
 
         mockMvc.perform(
-                MockMvcRequestBuilders.delete(String.format("/organisationalUnits/%d/agencyToken", organisationalUnit.getId())))
+                MockMvcRequestBuilders
+                        .delete(String.format("/organisationalUnits/%d/agencyToken", organisationalUnit.getId()))
+                        .with(csrf()))
                 .andExpect(status().isNotFound());
 
         verify(organisationalUnitService, times(1)).getOrganisationalUnit(organisationalUnit.getId());

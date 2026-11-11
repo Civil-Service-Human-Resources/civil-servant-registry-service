@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -28,6 +29,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
 @RunWith(SpringRunner.class)
 @WithMockUser(username = "user")
 public class QuizControllerTest extends CSRSControllerTestBase {
@@ -35,6 +40,10 @@ public class QuizControllerTest extends CSRSControllerTestBase {
   @MockBean QuizDtoFactory quizDTOFactory;
   @MockBean QuizRepository quizRepository;
   @MockBean QuizService quizService;
+
+  @Autowired
+  @Qualifier("requestMappingHandlerAdapter")
+  private RequestMappingHandlerAdapter handlerAdapter;
 
   @Test
   @WithMockUser(
@@ -179,7 +188,8 @@ public class QuizControllerTest extends CSRSControllerTestBase {
             delete("/api/quiz/delete")
                 .param("professionId", "1")
                 .param("organisationId", "1")
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                    .with(csrf()))
         .andExpect(status().isOk());
   }
 

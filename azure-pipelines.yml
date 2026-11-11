@@ -23,16 +23,19 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-  - task: Gradle@3
+  - task: JavaToolInstaller@0
     inputs:
-      gradleWrapperFile: 'gradlew'
-      jdkVersionOption: '1.8'
-      javaHomeOption: 'JDKVersion'
+      versionSpec: '25'
       jdkArchitectureOption: 'x64'
+      jdkSourceOption: 'PreInstalled'
+    displayName: 'Set up Java 25'
+
+  - task: Maven@4
+    inputs:
+      mavenPOMFile: 'pom.xml'
+      goals: 'clean package'
       publishJUnitResults: false
-      testResultsFiles: 'build/test-results/**/TEST-*.xml'
-      tasks: 'clean build'
-    displayName: 'Install Gradle and Java 8 and build'
+    displayName: 'Run Maven Build'
 
   - task: Docker@2
     inputs:

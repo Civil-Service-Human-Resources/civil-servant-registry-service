@@ -21,6 +21,7 @@ import java.util.Collections;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -89,7 +90,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
                         post("/organisationalUnits/1/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test.org\"}"))
+                                .content("{\"domain\": \"test.org\"}")
+                                .with(csrf()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.domain.domain", equalTo("test.org")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(1)))
@@ -104,7 +106,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
                         post("/organisationalUnits/31/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test-two.org\"}"))
+                                .content("{\"domain\": \"test-two.org\"}")
+                                .with(csrf()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.domain.domain", equalTo("test-two.org")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))
@@ -123,7 +126,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
                         post("/organisationalUnits/32/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test-three.org\"}"))
+                                .content("{\"domain\": \"test-three.org\"}")
+                                .with(csrf()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.domain.domain", equalTo("test-three.org")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(32)))
@@ -138,7 +142,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
                         post("/organisationalUnits/900/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test.org\"}"))
+                                .content("{\"domain\": \"test.org\"}")
+                                .with(csrf()))
                 .andExpect(status().isNotFound());
 
     }
@@ -150,7 +155,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
                         post("/organisationalUnits/33/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"incorrectFormat\"}"))
+                                .content("{\"domain\": \"incorrectFormat\"}")
+                                .with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.apiErrorCode.code", equalTo("OU002")))
                 .andExpect(jsonPath("$.apiErrorCode.description", equalTo("Invalid domain format. Correct format is: 'example.gov.uk'")));
@@ -165,7 +171,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
                         post("/organisationalUnits/33/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test-four.org\"}"))
+                                .content("{\"domain\": \"test-four.org\"}")
+                                .with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.apiErrorCode.code", equalTo("OU001")))
                 .andExpect(jsonPath("$.apiErrorCode.description", equalTo("Domain already exists on the organisational unit")));
@@ -179,7 +186,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
         CivilServant cs = civilServantRepository.findByIdentity("learner").get();
         mockMvc.perform(
                         delete("/organisationalUnits/2/domains/1")
-                                .param("includeSubOrgs", "true"))
+                                .param("includeSubOrgs", "true")
+                                .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.domain.domain", equalTo("cabinetoffice.gov.uk")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(2)))
@@ -191,7 +199,7 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     public void shouldDeleteDomainAndNotCascade() throws Exception {
         AddDomainToOrgResponse resp = organisationalUnitService.addDomainToOrganisation(31L, "test-six.org");
         mockMvc.perform(
-                        delete("/organisationalUnits/31/domains/" + resp.getDomain().getId()))
+                        delete("/organisationalUnits/31/domains/" + resp.getDomain().getId()).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.domain.domain", equalTo("test-six.org")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))

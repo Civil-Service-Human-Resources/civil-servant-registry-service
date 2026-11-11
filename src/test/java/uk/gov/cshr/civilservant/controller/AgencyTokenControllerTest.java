@@ -14,7 +14,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.service.AgencyTokenService;
-import uk.gov.cshr.civilservant.utils.MockMVCFilterOverrider;
 
 import java.util.Optional;
 
@@ -42,11 +41,6 @@ public class AgencyTokenControllerTest {
 
     @MockBean
     private AgencyTokenService agencyTokenService;
-
-    @Before
-    public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException {
-        MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
-    }
 
     @Test
     public void shouldReturnTrueIfRequestingAgencyTokensWithDomainIfExists() throws Exception {

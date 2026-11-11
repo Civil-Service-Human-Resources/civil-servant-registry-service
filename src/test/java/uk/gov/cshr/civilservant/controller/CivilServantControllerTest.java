@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.civilservant.domain.CivilServant;
@@ -92,6 +92,10 @@ public class CivilServantControllerTest extends CSRSControllerTestBase {
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+
+        verify(civilServantRepository).findByPrincipal();
+        verify(lineManagerService).checkLineManager("learner@domain.com");
+        verify(civilServantRepository).findByIdentity("myuid");
     }
 
     @Test
@@ -116,7 +120,7 @@ public class CivilServantControllerTest extends CSRSControllerTestBase {
         when(civilServantRepository.findByIdentity("mid")).thenReturn(Optional.of(lineManager));
         when(civilServantRepository.findByPrincipal()).thenReturn(Optional.of(civilServant));
 
-        when(civilServantResourceFactory.create(civilServant)).thenReturn(new Resource<>(civilServantResource));
+        when(civilServantResourceFactory.create(civilServant)).thenReturn(EntityModel.of(civilServantResource));
 
         mockMvc.perform(
                 patch("/civilServants/manager?email=learner@domain.com").with(csrf())
@@ -156,7 +160,7 @@ public class CivilServantControllerTest extends CSRSControllerTestBase {
         civilServant.setId(1L);
 
         when(civilServantRepository.findByIdentity(uid)).thenReturn(Optional.of(civilServant));
-        when(civilServantResourceFactory.create(civilServant)).thenReturn(new Resource<>(civilServantResource));
+        when(civilServantResourceFactory.create(civilServant)).thenReturn(EntityModel.of(civilServantResource));
 
 
         mockMvc.perform(

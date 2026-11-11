@@ -3,22 +3,21 @@ package uk.gov.cshr.civilservant.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.data.rest.webmvc.RepositoryLinksResource;
-import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.data.rest.webmvc.support.RepositoryEntityLinks;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.ResourceProcessor;
-import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.RepresentationModelProcessor;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.cshr.civilservant.config.EntityUriResolver;
 import uk.gov.cshr.civilservant.controller.v2.models.SimplePage;
-import uk.gov.cshr.civilservant.domain.CivilServant;
-import uk.gov.cshr.civilservant.domain.Identity;
+import uk.gov.cshr.civilservant.domain.*;
+import uk.gov.cshr.civilservant.dto.CivilServantPatchRequestDto;
 import uk.gov.cshr.civilservant.dto.CivilServantProfileDto;
 import uk.gov.cshr.civilservant.dto.UpdateOrganisationDTO;
 import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
@@ -30,17 +29,17 @@ import uk.gov.cshr.civilservant.service.CivilServantService;
 import uk.gov.cshr.civilservant.service.LineManagerService;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-@RepositoryRestController
+@RestController
 @RequestMapping("/civilServants")
-@RestResource(exported = false)
-public class CivilServantController implements ResourceProcessor<RepositoryLinksResource> {
-
+public class CivilServantController implements RepresentationModelProcessor<RepositoryLinksResource> {
     private final LineManagerService lineManagerService;
 
     private final CivilServantRepository civilServantRepository;
@@ -49,29 +48,31 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
     private final RepositoryEntityLinks repositoryEntityLinks;
 
     private final CivilServantResourceFactory civilServantResourceFactory;
+    private final EntityUriResolver entityUriResolver;
 
     public CivilServantController(LineManagerService lineManagerService, CivilServantRepository civilServantRepository,
                                   CivilServantService civilServantService, RepositoryEntityLinks repositoryEntityLinks,
-                                  CivilServantResourceFactory civilServantResourceFactory) {
+                                  CivilServantResourceFactory civilServantResourceFactory, EntityUriResolver entityUriResolver) {
         this.lineManagerService = lineManagerService;
         this.civilServantRepository = civilServantRepository;
         this.civilServantService = civilServantService;
         this.repositoryEntityLinks = repositoryEntityLinks;
         this.civilServantResourceFactory = civilServantResourceFactory;
+        this.entityUriResolver = entityUriResolver;
     }
 
-    @GetMapping
-    public ResponseEntity<Resources<Void>> list() {
+    @GetMapping()
+    public ResponseEntity<CollectionModel<Void>> list() {
         log.debug("Listing civil servant links");
 
-        Resources<Void> resource = new Resources<>(new ArrayList<>());
-        resource.add(repositoryEntityLinks.linkToSingleResource(CivilServant.class, "me").withRel("me"));
+        CollectionModel<Void> resource = CollectionModel.of(new ArrayList<>());
+        resource.add(repositoryEntityLinks.linkToItemResource(CivilServant.class, "me").withRel("me"));
         return ResponseEntity.ok(resource);
     }
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Resource<CivilServantResource>> get() {
+    public ResponseEntity<EntityModel<CivilServantResource>> get() {
         log.debug("Getting civil servant details for logged in user");
 
         return civilServantRepository.findByPrincipal().map(
@@ -79,17 +80,33 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PatchMapping(value = "/me")
+    @PatchMapping( "/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity patch(@RequestBody @Valid Resource<CivilServant> csResource) {
-        log.debug("Patching civil servant details for logged in user");
-        civilServantService.update(csResource.getContent());
+    public ResponseEntity patch(@RequestBody @Valid CivilServantPatchRequestDto requestDto) {
+        log.debug("Patching civil servant details for logged in user: {}", requestDto);
+        CivilServant civilServant = new CivilServant();
+        civilServant.setFullName(requestDto.getFullName());
+        if(requestDto.getGrade() != null){
+            civilServant.setGrade(entityUriResolver.resolve(requestDto.getGrade(), Grade.class));
+        }
+        if(requestDto.getProfession() != null){
+            civilServant.setProfession(entityUriResolver.resolve(requestDto.getProfession(), Profession.class));
+        }
+        if(requestDto.getInterests() != null){
+            Set<Interest> interests = requestDto.getInterests().stream().map(interest -> entityUriResolver.resolve(interest, Interest.class)).collect(Collectors.toSet());
+            civilServant.setInterests(interests);
+        }
+        if(requestDto.getOtherAreasOfWork() != null){
+            Set<Profession> otherAreasOfWork = requestDto.getOtherAreasOfWork().stream().map(areaOfWork -> entityUriResolver.resolve(areaOfWork, Profession.class)).collect(Collectors.toSet());
+            civilServant.setOtherAreasOfWork(otherAreasOfWork);
+        }
+        civilServantService.update(civilServant);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/me/login")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Resource<CivilServantResource>> performLogin(CustomOAuth2Authentication identity) {
+    public ResponseEntity<EntityModel<CivilServantResource>> performLogin(CustomOAuth2Authentication identity) {
         log.debug("Checking civil servant login details & fetching the profile");
         IdentityDTO dto = new IdentityDTO(identity.getUid(), identity.getUserEmail(), identity.getRoles());
         return civilServantService.performLogin(dto).map(
@@ -100,7 +117,7 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
     @PatchMapping("/me/organisationalUnit")
     @PreAuthorize("isAuthenticated()")
     @ResponseBody
-    public Resource<CivilServantResource> patchOrganisation(@RequestBody UpdateOrganisationDTO updateOrganisationDTO) {
+    public EntityModel<CivilServantResource> patchOrganisation(@RequestBody UpdateOrganisationDTO updateOrganisationDTO) {
         log.debug("Updating organisational unit for logged in user");
         CivilServant cs = civilServantService.updateMyOrganisationalUnit(updateOrganisationDTO.getOrganisationalUnitId());
         return civilServantResourceFactory.create(cs);
@@ -109,7 +126,7 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
     @PatchMapping("/manager")
     @PreAuthorize("isAuthenticated()")
     @Transactional
-    public ResponseEntity<Resource<CivilServantResource>> updateLineManager(@RequestParam(value = "email") String email) {
+    public ResponseEntity<EntityModel<CivilServantResource>> updateLineManager(@RequestParam(value = "email") String email) {
 
         Optional<CivilServant> optionalCivilServant = civilServantRepository.findByPrincipal();
 
@@ -166,8 +183,8 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
 
     @GetMapping("/resource/{uid}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Resource<CivilServantResource>> getByUID(@PathVariable("uid") String uid) {
-        Resource<CivilServantResource> resource = civilServantService.getCivilServantResourceWithUid(uid);
+    public ResponseEntity<EntityModel<CivilServantResource>> getByUID(@PathVariable("uid") String uid) {
+        EntityModel<CivilServantResource> resource = civilServantService.getCivilServantResourceWithUid(uid);
         if (resource != null) {
             return ResponseEntity.ok(resource);
         } else {
@@ -196,7 +213,10 @@ public class CivilServantController implements ResourceProcessor<RepositoryLinks
 
     @Override
     public RepositoryLinksResource process(RepositoryLinksResource resource) {
-        resource.add(ControllerLinkBuilder.linkTo(CivilServantController.class).withRel("civilServants"));
+        resource.add(
+                WebMvcLinkBuilder.linkTo(CivilServantController.class)
+                        .withRel("civilServants")
+        );
         return resource;
     }
 }

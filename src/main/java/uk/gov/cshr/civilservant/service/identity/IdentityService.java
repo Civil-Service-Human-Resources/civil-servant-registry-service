@@ -5,16 +5,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.cshr.civilservant.domain.CivilServant;
+import uk.gov.cshr.civilservant.domain.Identity;
 import uk.gov.cshr.civilservant.dto.IdentityAgencyResponseDTO;
 import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
+import uk.gov.cshr.civilservant.repository.IdentityRepository;
 import uk.gov.cshr.civilservant.service.exception.UserNotFoundException;
 import uk.gov.cshr.civilservant.service.identity.model.AgencyTokenCapacityUsed;
 
@@ -25,19 +27,22 @@ import java.util.Optional;
 @Service
 public class IdentityService {
 
-    private OAuth2RestOperations restOperations;
+    private RestClient restClient;
     private String identityAPIUrl;
     private String identityAgencyTokenUrl;
     private final UriComponentsBuilder agencyTokenUrlBuilder;
+    private final IdentityRepository identityRepository;
 
     @Autowired
-    public IdentityService(OAuth2RestOperations restOperations, @Value("${identity.identityAPIUrl}") String identityAPIUrl,
+    public IdentityService(RestClient restClient, @Value("${identity.identityAPIUrl}") String identityAPIUrl,
                            @Value("${identity.agencyTokenUrl}") String agencyTokenUrl,
-                           @Value("${identity.identityAgencyTokenUrl}") String identityAgencyTokenUrl) {
-        this.restOperations = restOperations;
+                           @Value("${identity.identityAgencyTokenUrl}") String identityAgencyTokenUrl,
+                           IdentityRepository identityRepository) {
+        this.restClient = restClient;
         this.identityAPIUrl = identityAPIUrl;
         this.identityAgencyTokenUrl = identityAgencyTokenUrl;
         this.agencyTokenUrlBuilder = UriComponentsBuilder.fromHttpUrl(agencyTokenUrl);
+        this.identityRepository = identityRepository;
     }
 
     public IdentityDTO findByEmail(String email) {
@@ -49,7 +54,7 @@ public class IdentityService {
         IdentityDTO identity;
 
         try {
-            identity = restOperations.getForObject(builder.toUriString(), IdentityDTO.class);
+            identity = restClient.get().uri(builder.toUriString()).retrieve().body(IdentityDTO.class);
         } catch (HttpClientErrorException http) {
             if (http.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return null; // we kind of have to assume 403 is email not found rather than service not there ...
@@ -65,7 +70,7 @@ public class IdentityService {
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(identityAPIUrl)
                 .queryParam("uid", uid);
-            return restOperations.getForObject(builder.toUriString(), IdentityDTO.class);
+            return restClient.get().uri(builder.toUriString()).retrieve().body(IdentityDTO.class);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return null;
@@ -73,6 +78,15 @@ public class IdentityService {
             throw new UserNotFoundException(e);
         }
 
+    }
+
+    public Identity getOrCreateIdentity(String uid) {
+                Identity storedIdentity = identityRepository.findByUid(uid)
+                .orElseGet(() -> {
+                    log.debug("No identity exists for id {}, creating.", uid);
+                    return identityRepository.save(new Identity(uid));
+                });
+                return storedIdentity;
     }
 
     public String getEmailAddress(CivilServant civilServant) {
@@ -91,7 +105,7 @@ public class IdentityService {
         sb.append(userUid);
 
         try {
-            ResponseEntity<IdentityAgencyResponseDTO> response = restOperations.getForEntity(sb.toString(), IdentityAgencyResponseDTO.class);
+            ResponseEntity<IdentityAgencyResponseDTO> response = restClient.get().uri(sb.toString()).retrieve().toEntity(IdentityAgencyResponseDTO.class);
 
             if(response.getStatusCode().is2xxSuccessful() && response.getBody() != null && response.getBody().getAgencyTokenUid() != null) {
                 return Optional.of(response.getBody().getAgencyTokenUid());
@@ -109,7 +123,7 @@ public class IdentityService {
         UriComponents url = agencyTokenUrlBuilder.buildAndExpand(uid);
 
         try {
-            AgencyTokenCapacityUsed capacityUsed = restOperations.getForObject(url.toUriString(), AgencyTokenCapacityUsed.class);
+            AgencyTokenCapacityUsed capacityUsed = restClient.get().uri(url.toUriString()).retrieve().body(AgencyTokenCapacityUsed.class);
             return Objects.requireNonNull(capacityUsed).capacityUsed;
         } catch (HttpClientErrorException clientError) {
             if(clientError.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -132,7 +146,7 @@ public class IdentityService {
         UriComponents url = agencyTokenUrlBuilder.buildAndExpand(agencyTokenUid);
 
         try {
-            restOperations.delete(url.toUriString());
+            restClient.delete().uri(url.toUriString());
         } catch (HttpClientErrorException clientError) {
             throw new CSRSApplicationException("Error calling identity service: delete agency token", clientError);
         } catch (HttpServerErrorException serverError) {

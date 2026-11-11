@@ -2,7 +2,7 @@ package uk.gov.cshr.civilservant.mapping;
 
 import java.io.IOException;
 import java.util.Map;
-import javax.persistence.AttributeConverter;
+import jakarta.persistence.AttributeConverter;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;

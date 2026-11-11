@@ -1,8 +1,4 @@
-gradle
-gradlew
-gradlew.bat
 src
-*.gradle
 *.iml
 .idea
 .DS_Store

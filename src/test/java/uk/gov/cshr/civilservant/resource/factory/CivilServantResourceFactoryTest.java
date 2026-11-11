@@ -6,8 +6,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.Resource;
 import uk.gov.cshr.civilservant.domain.*;
 import uk.gov.cshr.civilservant.dto.OrgCodeDTO;
 import uk.gov.cshr.civilservant.dto.OrganisationalUnitDto;
@@ -92,7 +92,7 @@ public class CivilServantResourceFactoryTest {
         when(linkFactory.createRelationshipLink(civilServant, "profession"))
                 .thenReturn(professionLink);
 
-        Resource<CivilServantResource> resource = factory.create(civilServant);
+        EntityModel<CivilServantResource> resource = factory.create(civilServant);
 
         CivilServantResource content = resource.getContent();
 
