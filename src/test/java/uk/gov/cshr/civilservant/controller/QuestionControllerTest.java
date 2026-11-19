@@ -1,13 +1,16 @@
 package uk.gov.cshr.civilservant.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.cshr.civilservant.PropertySourceLogger;
 import uk.gov.cshr.civilservant.dto.AddQuestionDto;
 import uk.gov.cshr.civilservant.dto.QuestionDto;
 import uk.gov.cshr.civilservant.dto.factory.QuestionDtoFactory;
@@ -25,6 +28,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,35 +43,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
       "ORGANISATION_REPORTER",
       "PROFESSION_REPORTER"
     })
+@ContextConfiguration(initializers = PropertySourceLogger.class)
 public class QuestionControllerTest extends CSRSControllerTestBase {
   @Autowired ObjectMapper objectMapper;
-  @MockBean QuestionDtoFactory questionDtoFactory;
-  @MockBean QuestionService questionService;
+  @MockitoBean QuestionDtoFactory questionDtoFactory;
+  @MockitoBean QuestionService questionService;
 
   @Test
   public void shouldAddANewQuestionToQuiz() throws Exception {
-    // Given
-
     Integer professionId = 12312312;
-    Integer organisationId = 12312312;
     QuestionDto questionDto = QuizBuilder.buildAQuestion(1L);
-    String questionsJson =
-        objectMapper.writeValueAsString(
-            AddQuestionDto.builder()
-                .question(questionDto)
-                .professionId(professionId)
-                .build());
-    // then
 
-    mockMvc
-        .perform(
-            post("/api/questions/add-question")
-                .with(csrf())
-                .content(questionsJson)
-                .contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(result -> equalTo(1L));
+    String questionsJson = objectMapper.writeValueAsString(
+            AddQuestionDto.builder()
+                    .question(questionDto)
+                    .professionId(professionId)
+                    .build());
+
+    mockMvc.perform(
+                    post("/api/questions/add-question")
+                            .with(csrf())
+                            .with(jwt().authorities(
+                                    new SimpleGrantedAuthority("LEARNING_MANAGER")))
+                            .content(questionsJson)
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andExpect(status().isOk());
   }
 
   @Test
@@ -82,7 +83,7 @@ public class QuestionControllerTest extends CSRSControllerTestBase {
     mockMvc
         .perform(
             post("/api/questions/update")
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
                 .content(questionsJson)
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
         .andDo(print())
@@ -101,7 +102,7 @@ public class QuestionControllerTest extends CSRSControllerTestBase {
     mockMvc
         .perform(
             delete(String.format("/api/questions/%d/delete", questionId))
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
         .andDo(print())
         .andExpect(status().isOk());
@@ -124,7 +125,7 @@ public class QuestionControllerTest extends CSRSControllerTestBase {
     mockMvc
         .perform(
             post("/api/questions/update")
-                .with(csrf())
+                    .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
                 .content(questionsJson)
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
         .andDo(print())
@@ -154,7 +155,7 @@ public class QuestionControllerTest extends CSRSControllerTestBase {
     mockMvc
         .perform(
             post("/api/questions/add-question")
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
                 .content(questionsJson)
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
         .andDo(print())
@@ -176,7 +177,7 @@ public class QuestionControllerTest extends CSRSControllerTestBase {
     mockMvc
         .perform(
             post("/api/questions/add-question")
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
                 .content("")
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
         .andDo(print())
@@ -194,7 +195,9 @@ public class QuestionControllerTest extends CSRSControllerTestBase {
     // then
 
     mockMvc
-        .perform(delete("/api/questions/1/delete").with(csrf()).contentType(MediaType.APPLICATION_JSON))
+        .perform(delete("/api/questions/1/delete")
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
+                .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isInternalServerError());
   }
 
@@ -209,7 +212,7 @@ public class QuestionControllerTest extends CSRSControllerTestBase {
     // then
 
     mockMvc
-        .perform(get("/api/questions/1/preview").with(csrf()).accept(MediaType.APPLICATION_JSON))
+        .perform(get("/api/questions/1/preview").with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER"))).accept(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.value", is(questionDto.getValue())));

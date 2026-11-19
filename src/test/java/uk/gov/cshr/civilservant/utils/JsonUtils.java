@@ -1,6 +1,6 @@
 package uk.gov.cshr.civilservant.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class JsonUtils {
 

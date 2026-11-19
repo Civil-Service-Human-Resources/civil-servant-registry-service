@@ -87,7 +87,7 @@ public class IdentityServiceTest {
         identity.setUsername("shouldReturnUriStringFromOrg@domain.com");
 
         UriComponentsBuilder builder = UriComponentsBuilder
-                .fromHttpUrl(IDENTITY_API_URL)
+                .fromUriString(IDENTITY_API_URL)
                 .queryParam("emailAddress", identity.getUsername());
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
@@ -117,7 +117,7 @@ public class IdentityServiceTest {
         identity.setUid("uid");
         identity.setUsername("shouldReturnUriStringFromOrg@domain.com");
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(IDENTITY_API_URL)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(IDENTITY_API_URL)
                 .queryParam("emailAddress", identity.getUsername());
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
@@ -136,7 +136,7 @@ public class IdentityServiceTest {
         String agencyTokenUid = UUID.randomUUID().toString();
 
         UriComponentsBuilder builder =
-                UriComponentsBuilder.fromHttpUrl(AGENCY_TOKEN_URL);
+                UriComponentsBuilder.fromUriString(AGENCY_TOKEN_URL);
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
 
@@ -351,7 +351,7 @@ public class IdentityServiceTest {
     public void removeAgencyTokenFromUsers_ok() throws CSRSApplicationException {
         String agencyTokenUid = UUID.randomUUID().toString();
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(AGENCY_TOKEN_URL);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(AGENCY_TOKEN_URL);
 
         when(restClient.delete()).thenReturn(requestHeadersUriSpec);
 
@@ -372,7 +372,7 @@ public class IdentityServiceTest {
         String agencyTokenUid = UUID.randomUUID().toString();
 
         UriComponentsBuilder builder =
-                UriComponentsBuilder.fromHttpUrl(AGENCY_TOKEN_URL);
+                UriComponentsBuilder.fromUriString(AGENCY_TOKEN_URL);
 
         String expectedUrl = builder
                 .buildAndExpand(agencyTokenUid)
@@ -403,7 +403,7 @@ public class IdentityServiceTest {
         String agencyTokenUid = UUID.randomUUID().toString();
 
         UriComponentsBuilder builder =
-                UriComponentsBuilder.fromHttpUrl(AGENCY_TOKEN_URL);
+                UriComponentsBuilder.fromUriString(AGENCY_TOKEN_URL);
 
         HttpServerErrorException causeException =
                 new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -433,7 +433,7 @@ public class IdentityServiceTest {
         String agencyTokenUid = UUID.randomUUID().toString();
 
         UriComponentsBuilder builder =
-                UriComponentsBuilder.fromHttpUrl(AGENCY_TOKEN_URL);
+                UriComponentsBuilder.fromUriString(AGENCY_TOKEN_URL);
 
         String expectedUrl = builder
                 .buildAndExpand(agencyTokenUid)

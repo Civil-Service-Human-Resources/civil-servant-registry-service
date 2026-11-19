@@ -5,10 +5,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -19,6 +19,8 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -39,7 +41,7 @@ public class AgencyTokenControllerTest {
     @Autowired
     private Gson gson;
 
-    @MockBean
+    @MockitoBean
     private AgencyTokenService agencyTokenService;
 
     @Test
@@ -107,6 +109,7 @@ public class AgencyTokenControllerTest {
         when(agencyTokenService.getAgencyTokenByUid(UID)).thenReturn(Optional.of(agencyToken));
         mockMvc.perform(
                 MockMvcRequestBuilders.get(String.format("/agencyTokens?uid=%s", UID))
+                        .with(user("test-user"))
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -121,7 +124,7 @@ public class AgencyTokenControllerTest {
 
         when(agencyTokenService.getAgencyTokenByUid(UID)).thenReturn(Optional.empty());
         mockMvc.perform(
-                MockMvcRequestBuilders.get(String.format("/agencyTokens?uid=%s", UID))
+                MockMvcRequestBuilders.get(String.format("/agencyTokens?uid=%s", UID)).with(jwt())
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound());

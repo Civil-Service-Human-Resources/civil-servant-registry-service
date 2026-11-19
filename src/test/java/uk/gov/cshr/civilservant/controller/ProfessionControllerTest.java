@@ -4,9 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.GsonBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.civilservant.domain.Profession;
 import uk.gov.cshr.civilservant.service.ProfessionService;
@@ -17,6 +18,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -27,7 +29,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WithMockUser(username = "user")
 public class ProfessionControllerTest extends CSRSControllerTestBase{
 
-  @MockBean private ProfessionService professionService;
+  @MockitoBean
+  private ProfessionService professionService;
 
   @Test
   public void shouldReturnProfessionsAsTreeStructure() throws Exception {
@@ -62,17 +65,19 @@ public class ProfessionControllerTest extends CSRSControllerTestBase{
   }
 
   @Test
-  @WithMockUser(username = "user", authorities = "PROFESSION_MANAGER")
   public void shouldSaveProfessionProfessionManager() throws Exception {
     Map<String, String> profession = ImmutableMap.of("name", "new profession");
-
     String json = new GsonBuilder().create().toJson(profession);
 
-    mockMvc
-        .perform(
-            post("/professions").with(csrf()).content(json).accept(MediaType.APPLICATION_JSON)
-                    .with(csrf()))
-        .andDo(print())
-        .andExpect(status().isCreated());
+    mockMvc.perform(
+                    post("/professions")
+                            .with(csrf())
+                            .with(jwt().authorities(
+                                    new SimpleGrantedAuthority("PROFESSION_MANAGER")))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json)
+                            .accept(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andExpect(status().isCreated());
   }
 }

@@ -77,10 +77,13 @@ public class RoleRequestConditionTest {
     Authentication authentication = mock(Authentication.class);
 
     GrantedAuthority grantedAuthority = () -> role;
-    Collection<GrantedAuthority> authorities = Collections.singletonList(grantedAuthority);
+    Collection<? extends GrantedAuthority> authorities =
+            Collections.singletonList(grantedAuthority);
 
     when(securityContext.getAuthentication()).thenReturn(authentication);
-    doReturn(authorities).when(authentication).getAuthorities();
+    when(authentication.isAuthenticated()).thenReturn(true);
+    doReturn(Collections.singletonList(grantedAuthority))
+            .when(authentication).getAuthorities();
 
     SecurityContextHolder.setContext(securityContext);
   }

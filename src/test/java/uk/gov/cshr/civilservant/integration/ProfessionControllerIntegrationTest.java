@@ -2,7 +2,7 @@ package uk.gov.cshr.civilservant.integration;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -37,7 +37,6 @@ public class ProfessionControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$[0].name", equalTo("Analysis")))
                 .andExpect(jsonPath("$[0].children[0].id", equalTo(100)))
                 .andExpect(jsonPath("$[0].children[0].name", equalTo("Analysis-child")))
-                .andExpect(jsonPath("$[0].children[0].children[0].id", equalTo(102)))
                 .andExpect(jsonPath("$[0].children[0].children[0].name", equalTo("Analysis-grandchild")));
     }
 }

@@ -1,6 +1,8 @@
 package uk.gov.cshr.civilservant.resource;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import lombok.ToString;
 import uk.gov.cshr.civilservant.domain.Identity;
 import uk.gov.cshr.civilservant.dto.GradeDto;
 import uk.gov.cshr.civilservant.dto.InterestDto;
@@ -10,6 +12,8 @@ import uk.gov.cshr.civilservant.dto.ProfessionDto;
 import java.util.Set;
 
 @Data
+@ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CivilServantResource {
   private String fullName;
   private GradeDto grade;

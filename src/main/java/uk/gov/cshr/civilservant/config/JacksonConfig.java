@@ -1,20 +1,22 @@
 package uk.gov.cshr.civilservant.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
 
 @Configuration
 public class JacksonConfig {
 
     @Bean
-    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
+    public JsonMapperBuilderCustomizer jacksonCustomizer() {
         return builder -> {
-            builder.serializationInclusion(JsonInclude.Include.ALWAYS);
-            builder.featuresToEnable(
-                    SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            builder.changeDefaultPropertyInclusion(inclusion ->
+                    inclusion.withValueInclusion(JsonInclude.Include.ALWAYS));
+            builder.enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS);
+            builder.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         };
     }
 }

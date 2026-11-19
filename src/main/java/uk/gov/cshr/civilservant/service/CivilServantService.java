@@ -46,9 +46,15 @@ public class CivilServantService {
     }
 
     public Optional<CivilServant> performLogin(IdentityDTO identity) {
+        log.debug("Retrieving stored identity...");
+        Identity storedIdentity = identityService.getOrCreateIdentity(identity.getUid());
+        log.debug("Stored identity: {}", storedIdentity);
+
+        log.debug("Retrieving Civil Servant profile from identity...");
+        this.createCivilServantByIdentityIfNotExists(storedIdentity);
+
         return civilServantRepository.findByPrincipal()
             .map(cs -> {
-                log.debug("Civil servant: {}", cs);
                 String csDomain = identity.getEmailDomain();
                 if (!agencyTokenRepository.existsByDomain(csDomain)) {
                     cs.getOrganisationalUnit().ifPresent(o -> {
@@ -58,8 +64,6 @@ public class CivilServantService {
                         }
                     });
                 }
-                Identity storedIdentity = identityService.getOrCreateIdentity(identity.getUid());
-                this.createCivilServantByIdentityIfNotExists(storedIdentity);
 
                 return cs;
             });
@@ -138,15 +142,17 @@ public class CivilServantService {
     }
 
     public void createCivilServantByIdentityIfNotExists(Identity identity){
-        String identityUid = identity.getUid();
+        Optional<CivilServant> civilServantByIdentity = civilServantRepository.findByIdentity(identity);
 
-        civilServantRepository.findByIdentity(identityUid)
-        .orElseGet(() -> {
-            log.debug(
-                    "No civil servant exists for identity {}, creating.",
-                    identityUid);
-            return civilServantRepository.save(
-                    new CivilServant(identity));
-        });
+        if(civilServantByIdentity.isPresent()){
+            log.debug("Civil servant with identity UID {} already exists.", identity.getUid());
+        }
+        else{
+            log.debug("Civil servant does not exist for UID '{}'. Creating...", identity.getUid());
+            CivilServant civilServant = new CivilServant(identity);
+            civilServantRepository.save(civilServant);
+            log.debug("Civil servant with ID {} created", identity.getUid());
+        }
+
     }
 }

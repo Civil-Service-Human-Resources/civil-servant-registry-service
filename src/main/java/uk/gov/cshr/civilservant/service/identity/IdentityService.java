@@ -41,13 +41,13 @@ public class IdentityService {
         this.restClient = restClient;
         this.identityAPIUrl = identityAPIUrl;
         this.identityAgencyTokenUrl = identityAgencyTokenUrl;
-        this.agencyTokenUrlBuilder = UriComponentsBuilder.fromHttpUrl(agencyTokenUrl);
+        this.agencyTokenUrlBuilder = UriComponentsBuilder.fromUriString(agencyTokenUrl);
         this.identityRepository = identityRepository;
     }
 
     public IdentityDTO findByEmail(String email) {
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(identityAPIUrl)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(identityAPIUrl)
                 .queryParam("emailAddress", email);
 
         log.debug(" Checking email {}", email);
@@ -68,7 +68,7 @@ public class IdentityService {
 
     public IdentityDTO getidentity(String uid) {
         try {
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(identityAPIUrl)
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(identityAPIUrl)
                 .queryParam("uid", uid);
             return restClient.get().uri(builder.toUriString()).retrieve().body(IdentityDTO.class);
         } catch (HttpClientErrorException e) {
@@ -84,7 +84,9 @@ public class IdentityService {
                 Identity storedIdentity = identityRepository.findByUid(uid)
                 .orElseGet(() -> {
                     log.debug("No identity exists for id {}, creating.", uid);
-                    return identityRepository.save(new Identity(uid));
+                    Identity savedIdentity = identityRepository.save(new Identity(uid));
+                    log.debug("Identity created: {}", savedIdentity);
+                    return savedIdentity;
                 });
                 return storedIdentity;
     }

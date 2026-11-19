@@ -1,7 +1,7 @@
 package uk.gov.cshr.civilservant.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.cshr.civilservant.domain.*;
 import uk.gov.cshr.civilservant.dto.AnswerDto;
 import uk.gov.cshr.civilservant.dto.ProfessionDto;
@@ -134,7 +134,7 @@ public class QuizBuilder {
                         .question(
                                 objectMapperForTest.writeValueAsString(Question.builder().id((long) i).build()))
                         .build();
-      } catch (JsonProcessingException e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
       submittedAnswers.add(submittedAnswer);

@@ -2,7 +2,7 @@ package uk.gov.cshr.civilservant.integration;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -208,7 +208,7 @@ public class CivilServantControllerIntegrationTest extends BaseIntegrationTest {
                 get("/civilServants/1010/otherOrganisationalUnits")
                         .accept(APPLICATION_JSON)
                         .contentType(APPLICATION_JSON)
-                        .with(authentication(civilServant1010)))
+                        .with(authentication(civilServant1010)).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.organisationalUnits.length()", equalTo(2)));
     }

@@ -7,7 +7,6 @@ spring:
     url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
     username: ${DATASOURCE_USERNAME:root}
     password: ${DATASOURCE_PASSWORD:my-secret-pw}
-    platform: mysql
     hikari:
       connection-timeout: 30000
       idle-timeout: 600000
@@ -15,9 +14,6 @@ spring:
   rest:
       detection-strategy: annotated
   jackson:
-    serialization:
-      write_dates_as_timestamps: false
-      fail-on-empty-beans: false
     default-property-inclusion: non_null
   web:
     resources:
@@ -36,6 +32,9 @@ spring:
     console:
       enabled: true
       path: "/h2-console"
+  sql:
+    init:
+      platform: mysql
 
 server:
   port: 9002

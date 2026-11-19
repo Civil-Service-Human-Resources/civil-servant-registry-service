@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.EqualsAndHashCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.mvc.condition.RequestCondition;
@@ -33,15 +34,21 @@ public class RoleRequestCondition implements RequestCondition<RoleRequestConditi
 
   @Override
   public RoleRequestCondition combine(RoleRequestCondition other) {
-    this.roles.addAll(other.getRoles());
-    return this;
+    Set<String> combinedRoles = new HashSet<>(this.roles);
+    combinedRoles.addAll(other.getRoles());
+    return new RoleRequestCondition(combinedRoles);
   }
 
   @Override
   public RoleRequestCondition getMatchingCondition(HttpServletRequest request) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if(authentication == null || !authentication.isAuthenticated()) {
+      return null;
+    }
+
     Set<String> userRoles =
-        SecurityContextHolder.getContext()
-            .getAuthentication()
+        authentication
             .getAuthorities()
             .stream()
             .map(GrantedAuthority::getAuthority)

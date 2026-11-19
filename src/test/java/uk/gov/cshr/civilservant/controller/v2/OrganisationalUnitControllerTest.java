@@ -3,14 +3,14 @@ package uk.gov.cshr.civilservant.controller.v2;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.cshr.civilservant.controller.CSRSControllerTestBase;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,7 +29,7 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
     public void testGetOrganisationalUnit() throws Exception {
         mockMvc.perform(
                 get("/v2/organisationalUnits/4")
-                        .with(csrf())
+                        .with(jwt())
         )
                 .andDo(print())
                 .andExpect(status().is2xxSuccessful())
@@ -47,7 +47,7 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
     public void testGetOrganisationalUnitWithParent() throws Exception {
         mockMvc.perform(
                         get("/v2/organisationalUnits/4")
-                                .with(csrf())
+                                .with(jwt())
                                 .param("includeParents", "true")
                 ).andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("parentId").value("2"))

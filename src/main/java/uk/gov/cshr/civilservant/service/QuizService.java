@@ -1,7 +1,7 @@
 package uk.gov.cshr.civilservant.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -414,7 +414,7 @@ public class QuizService {
                           }
                           calculateMetrics(metricsMap.get(questionId), submittedAnswer);
 
-                      } catch (IOException e) {
+                      } catch (Exception e) {
                         log.error("Reading from question failed {}", e.getMessage());
                       }
                     }));

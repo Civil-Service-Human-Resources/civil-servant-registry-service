@@ -30,8 +30,8 @@ import uk.gov.cshr.civilservant.service.LineManagerService;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 
 import jakarta.validation.Valid;
+
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -109,9 +109,12 @@ public class CivilServantController implements RepresentationModelProcessor<Repo
     public ResponseEntity<EntityModel<CivilServantResource>> performLogin(CustomOAuth2Authentication identity) {
         log.debug("Checking civil servant login details & fetching the profile");
         IdentityDTO dto = new IdentityDTO(identity.getUid(), identity.getUserEmail(), identity.getRoles());
-        return civilServantService.performLogin(dto).map(
+
+        ResponseEntity<EntityModel<CivilServantResource>> civilServantResponseEntity = civilServantService.performLogin(dto).map(
                         civilServant -> ResponseEntity.ok(civilServantResourceFactory.create(civilServant)))
                 .orElse(ResponseEntity.notFound().build());
+
+        return civilServantResponseEntity;
     }
 
     @PatchMapping("/me/organisationalUnit")
