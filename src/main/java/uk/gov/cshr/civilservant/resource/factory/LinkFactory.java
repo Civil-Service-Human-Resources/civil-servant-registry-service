@@ -15,16 +15,18 @@ public class LinkFactory {
   }
 
   public Link createRelationshipLink(RegistryEntity entity, String relationship) {
-    return repositoryEntityLinks
-        .linkFor(entity.getClass())
-        .slash(entity.getId())
-        .slash(relationship)
-        .withRel(relationship);
+    Link collectionLink = repositoryEntityLinks
+            .linkToCollectionResource(entity.getClass());
+
+    return Link.of(
+            collectionLink.getHref() + "/" + entity.getId() + "/" + relationship,
+            relationship
+    );
   }
 
   public Link createSelfLink(RegistryEntity entity) {
     return repositoryEntityLinks
-        .linkToSingleResource(entity.getClass(), entity.getId())
-        .withSelfRel();
+            .linkToItemResource(entity.getClass(), entity.getId())
+            .withSelfRel();
   }
 }

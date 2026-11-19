@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import javax.validation.constraints.Max;
+import jakarta.validation.constraints.Max;
 
 @Data
 @AllArgsConstructor

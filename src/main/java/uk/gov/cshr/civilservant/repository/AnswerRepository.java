@@ -10,5 +10,5 @@ import uk.gov.cshr.civilservant.domain.Answer;
 @Repository
 @PreAuthorize("isAuthenticated()")
 public interface AnswerRepository extends CrudRepository<Answer, Long> {
-  Optional<Answer> findByQuestion(Long questionId);
+  Optional<Answer> findByQuestion_Id(Long questionId);
 }

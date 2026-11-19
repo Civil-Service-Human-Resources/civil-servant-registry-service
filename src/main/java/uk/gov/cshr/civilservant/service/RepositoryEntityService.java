@@ -7,7 +7,7 @@ import uk.gov.cshr.civilservant.domain.RegistryEntity;
 @Service
 public class RepositoryEntityService<T extends RegistryEntity> {
 
-  private RepositoryEntityLinks repositoryEntityLinks;
+  private final RepositoryEntityLinks repositoryEntityLinks;
 
   public RepositoryEntityService(RepositoryEntityLinks repositoryEntityLinks) {
     this.repositoryEntityLinks = repositoryEntityLinks;
@@ -15,9 +15,7 @@ public class RepositoryEntityService<T extends RegistryEntity> {
 
   public String getUri(T entity) {
     return repositoryEntityLinks
-        .linkFor(entity.getClass())
-        .slash(entity.getId())
-        .toUri()
-        .toString();
+            .linkToItemResource(entity.getClass(), entity.getId())
+            .getHref();
   }
 }

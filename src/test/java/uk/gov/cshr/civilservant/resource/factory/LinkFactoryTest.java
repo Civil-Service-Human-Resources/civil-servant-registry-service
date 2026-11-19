@@ -10,15 +10,17 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.rest.webmvc.support.RepositoryEntityLinks;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.LinkBuilder;
+
 import uk.gov.cshr.civilservant.domain.CivilServant;
 
 @RunWith(MockitoJUnitRunner.class)
 public class LinkFactoryTest {
 
-  @Mock private RepositoryEntityLinks repositoryEntityLinks;
+  @Mock
+  private RepositoryEntityLinks repositoryEntityLinks;
 
-  @InjectMocks private LinkFactory linkFactory;
+  @InjectMocks
+  private LinkFactory linkFactory;
 
   @Test
   public void shouldReturnRelationshipLink() {
@@ -28,37 +30,32 @@ public class LinkFactoryTest {
     CivilServant civilServant = new CivilServant();
     civilServant.setId(id);
 
-    LinkBuilder linkBuilder = mock(LinkBuilder.class);
-    Link link = mock(Link.class);
+    Link collectionLink = Link.of("/civilServants");
 
-    when(repositoryEntityLinks.linkFor(CivilServant.class)).thenReturn(linkBuilder);
-    when(linkBuilder.slash(id)).thenReturn(linkBuilder);
-    when(linkBuilder.slash(relationship)).thenReturn(linkBuilder);
-    when(linkBuilder.withRel(relationship)).thenReturn(link);
+    when(repositoryEntityLinks.linkToCollectionResource(CivilServant.class))
+            .thenReturn(collectionLink);
 
     Link result = linkFactory.createRelationshipLink(civilServant, relationship);
-    assertEquals(link, result);
 
-    verify(repositoryEntityLinks).linkFor(CivilServant.class);
-    verify(linkBuilder).slash(id);
-    verify(linkBuilder).slash(relationship);
-    verify(linkBuilder).withRel(relationship);
+    assertEquals("/civilServants/99/profession", result.getHref());
+    assertEquals(relationship, result.getRel().value());
   }
 
   @Test
   public void shouldReturnSelfLink() {
     long id = 99L;
+
     CivilServant civilServant = new CivilServant();
     civilServant.setId(id);
 
-    Link link = mock(Link.class);
-    Link withSelfLink = mock(Link.class);
+    Link link = Link.of("/civilServants/99");
 
-    when(repositoryEntityLinks.linkToSingleResource(CivilServant.class, id)).thenReturn(link);
-    when(link.withSelfRel()).thenReturn(withSelfLink);
+    when(repositoryEntityLinks.linkToItemResource(CivilServant.class, id))
+            .thenReturn(link);
 
     Link result = linkFactory.createSelfLink(civilServant);
 
-    assertEquals(withSelfLink, result);
+    assertEquals("/civilServants/99", result.getHref());
+    assertEquals("self", result.getRel().value());
   }
 }

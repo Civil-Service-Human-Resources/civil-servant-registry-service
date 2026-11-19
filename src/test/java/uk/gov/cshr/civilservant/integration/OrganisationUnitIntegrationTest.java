@@ -3,7 +3,7 @@ package uk.gov.cshr.civilservant.integration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -21,6 +21,8 @@ import java.util.Collections;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -46,10 +48,11 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     private OrganisationalUnitService organisationalUnitService;
 
     @Test
+    @WithMockUser
     public void shouldGetOrganisationalUnitWithDomains() throws Exception {
         mockMvc.perform(
                         get("/v2/organisationalUnits/1")
-                                .accept(APPLICATION_JSON))
+                                .accept(APPLICATION_JSON).with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", equalTo(1)))
                 .andExpect(jsonPath("$.name", equalTo("Cabinet Office")))
@@ -60,9 +63,11 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldGetMultipleOrganisationalUnits() throws Exception {
         mockMvc.perform(
                         get("/v2/organisationalUnits")
+                                .with(jwt())
                                 .accept(APPLICATION_JSON)
                                 .param("ids", "2,3"))
                 .andExpect(status().isOk())
@@ -72,10 +77,11 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldGetMultipleOrganisationalUnitsWithPagination() throws Exception {
         mockMvc.perform(
                         get("/v2/organisationalUnits?page=1&size=5")
-                                .accept(APPLICATION_JSON))
+                                .accept(APPLICATION_JSON).with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", equalTo(5)))
                 .andExpect(jsonPath("$.page", equalTo(1)))
@@ -84,12 +90,14 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldAddNewDomain() throws Exception {
         mockMvc.perform(
                         post("/organisationalUnits/1/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test.org\"}"))
+                                .content("{\"domain\": \"test.org\"}")
+                                .with(csrf()).with(jwt()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.domain.domain", equalTo("test.org")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(1)))
@@ -99,12 +107,14 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldAddNewDomainAndCascade() throws Exception {
         mockMvc.perform(
                         post("/organisationalUnits/31/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test-two.org\"}"))
+                                .content("{\"domain\": \"test-two.org\"}")
+                                .with(csrf()).with(jwt()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.domain.domain", equalTo("test-two.org")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))
@@ -116,6 +126,7 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldAddNewDomainAndNotCascade() throws Exception {
         organisationalUnitService.addDomainToOrganisation(33L, "test-three.org");
 
@@ -123,7 +134,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
                         post("/organisationalUnits/32/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test-three.org\"}"))
+                                .content("{\"domain\": \"test-three.org\"}")
+                                .with(csrf()).with(jwt()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.domain.domain", equalTo("test-three.org")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(32)))
@@ -133,12 +145,14 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldNotAddDomainIfOrgDoesNotExist() throws Exception {
         mockMvc.perform(
                         post("/organisationalUnits/900/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test.org\"}"))
+                                .content("{\"domain\": \"test.org\"}")
+                                .with(jwt()))
                 .andExpect(status().isNotFound());
 
     }
@@ -150,7 +164,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
                         post("/organisationalUnits/33/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"incorrectFormat\"}"))
+                                .content("{\"domain\": \"incorrectFormat\"}")
+                                .with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.apiErrorCode.code", equalTo("OU002")))
                 .andExpect(jsonPath("$.apiErrorCode.description", equalTo("Invalid domain format. Correct format is: 'example.gov.uk'")));
@@ -158,6 +173,7 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldNotAddDomainIfOrgAlreadyHasDomain() throws Exception {
         organisationalUnitService.addDomainToOrganisation(33L, "test-four.org");
 
@@ -165,7 +181,8 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
                         post("/organisationalUnits/33/domains")
                                 .accept(APPLICATION_JSON)
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"domain\": \"test-four.org\"}"))
+                                .content("{\"domain\": \"test-four.org\"}")
+                                .with(csrf()).with(jwt()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.apiErrorCode.code", equalTo("OU001")))
                 .andExpect(jsonPath("$.apiErrorCode.description", equalTo("Domain already exists on the organisational unit")));
@@ -173,13 +190,15 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldDeleteDomainAndCascade() throws Exception {
         stubPostClientToken();
         IdentityDTO identity = new IdentityDTO("learner", "learner@cabinetoffice.gov.uk", Collections.singleton("LEARNER"));
         CivilServant cs = civilServantRepository.findByIdentity("learner").get();
         mockMvc.perform(
                         delete("/organisationalUnits/2/domains/1")
-                                .param("includeSubOrgs", "true"))
+                                .param("includeSubOrgs", "true")
+                                .with(csrf()).with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.domain.domain", equalTo("cabinetoffice.gov.uk")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(2)))
@@ -188,10 +207,11 @@ public class OrganisationUnitIntegrationTest extends BaseIntegrationTest {
    }
 
     @Test
+    @WithMockUser
     public void shouldDeleteDomainAndNotCascade() throws Exception {
         AddDomainToOrgResponse resp = organisationalUnitService.addDomainToOrganisation(31L, "test-six.org");
         mockMvc.perform(
-                        delete("/organisationalUnits/31/domains/" + resp.getDomain().getId()))
+                        delete("/organisationalUnits/31/domains/" + resp.getDomain().getId()).with(csrf()).with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.domain.domain", equalTo("test-six.org")))
                 .andExpect(jsonPath("$.primaryOrganisationId", equalTo(31)))

@@ -21,6 +21,6 @@ public class AnswerService {
   }
 
   public Optional<Answer> getByQuestion(Long questionId) {
-    return answerRepository.findByQuestion(questionId);
+    return answerRepository.findByQuestion_Id(questionId);
   }
 }

@@ -15,6 +15,7 @@ import uk.gov.cshr.civilservant.exception.CivilServantNotFoundException;
 import uk.gov.cshr.civilservant.repository.AgencyTokenRepository;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
+import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -35,6 +36,9 @@ public class CivilServantServiceTest {
     @InjectMocks
     private CivilServantService classUnderTest;
 
+    @Mock
+    IdentityService identityService;
+
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
@@ -45,6 +49,7 @@ public class CivilServantServiceTest {
         Domain domain = new Domain("civil-service.gov.uk");
         ou.addDomain(domain);
         Identity identity = new Identity("1");
+        when(identityService.getOrCreateIdentity("1")).thenReturn(identity);
         CivilServant cs = new CivilServant(identity);
         cs.setOrganisationalUnit(ou);
         when(civilServantRepository.findByPrincipal()).thenReturn(Optional.of(cs));
@@ -59,6 +64,7 @@ public class CivilServantServiceTest {
         Domain domain = new Domain("civil-service.gov.uk");
         ou.addDomain(domain);
         Identity identity = new Identity("1");
+        when(identityService.getOrCreateIdentity("1")).thenReturn(identity);
         CivilServant cs = new CivilServant(identity);
         cs.setOrganisationalUnit(ou);
         when(civilServantRepository.findByPrincipal()).thenReturn(Optional.of(cs));

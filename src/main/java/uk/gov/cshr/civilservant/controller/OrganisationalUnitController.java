@@ -16,7 +16,7 @@ import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
 import uk.gov.cshr.civilservant.service.OrganisationalUnitService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

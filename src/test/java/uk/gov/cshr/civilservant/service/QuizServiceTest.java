@@ -1,6 +1,6 @@
 package uk.gov.cshr.civilservant.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -20,7 +20,7 @@ import uk.gov.cshr.civilservant.repository.ProfessionRepository;
 import uk.gov.cshr.civilservant.repository.QuizRepository;
 import uk.gov.cshr.civilservant.repository.QuizResultRepository;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

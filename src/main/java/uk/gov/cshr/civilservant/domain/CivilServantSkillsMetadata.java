@@ -2,7 +2,7 @@ package uk.gov.cshr.civilservant.domain;
 
 import lombok.*;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Getter
