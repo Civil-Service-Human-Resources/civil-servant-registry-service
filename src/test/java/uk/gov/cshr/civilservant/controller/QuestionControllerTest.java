@@ -2,14 +2,12 @@ package uk.gov.cshr.civilservant.controller;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import tools.jackson.databind.ObjectMapper;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.civilservant.PropertySourceLogger;
 import uk.gov.cshr.civilservant.dto.AddQuestionDto;
 import uk.gov.cshr.civilservant.dto.QuestionDto;
@@ -34,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
+
 @WithMockUser(
     username = "user",
     authorities = {

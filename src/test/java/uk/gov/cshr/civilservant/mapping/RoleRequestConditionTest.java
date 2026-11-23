@@ -1,7 +1,7 @@
 package uk.gov.cshr.civilservant.mapping;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -10,15 +10,15 @@ import java.util.Collections;
 import java.util.HashSet;
 import jakarta.servlet.http.HttpServletRequest;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class RoleRequestConditionTest {
-  @After
+  @AfterEach
   public void tearDown() {
     SecurityContextHolder.clearContext();
   }

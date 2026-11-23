@@ -1,11 +1,11 @@
 package uk.gov.cshr.civilservant.service;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.databind.ObjectMapper;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.cshr.civilservant.domain.Profession;
 import uk.gov.cshr.civilservant.domain.Question;
 import uk.gov.cshr.civilservant.domain.Quiz;
@@ -28,14 +28,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
-public class QuizServiceTest {
+@ExtendWith(MockitoExtension.class)
+class QuizServiceTest {
 
   @Mock QuizRepository quizRepository;
 
@@ -179,7 +178,7 @@ public class QuizServiceTest {
     verify(quizRepository, times(1)).save(quiz);
   }
 
-  @Test(expected = EntityNotFoundException.class)
+  @Test
   public void shouldThrowExceptionIfActiveQuizNotFound() {
     // Given
     Long professionId = 1L;
@@ -189,7 +188,10 @@ public class QuizServiceTest {
         .thenReturn(Optional.empty());
 
     // then
-    quizService.delete(professionId);
+    assertThrows(
+            EntityNotFoundException.class,
+            () -> quizService.delete(professionId)
+    );
   }
 
   @Test

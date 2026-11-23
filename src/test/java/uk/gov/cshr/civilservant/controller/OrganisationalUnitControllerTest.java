@@ -1,13 +1,9 @@
 package uk.gov.cshr.civilservant.controller;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
@@ -37,16 +33,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
+
 @WithMockUser(username = "user")
 public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
 
     private static final String WL_DOMAIN = "mydomain.com";
     private static final String NHS_GLASGOW_DOMAIN = "nhsglasgow.gov.uk";
     private static final String UID = "myuid";
-
-    @Rule
-    public final ExpectedException expectedException = ExpectedException.none();
 
     @MockitoBean
     private OrganisationalUnitService organisationalUnitService;
@@ -62,7 +55,7 @@ public class OrganisationalUnitControllerTest extends CSRSControllerTestBase {
 
     private List<OrganisationalUnit> filteredList;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         dto = AgencyTokenTestingUtils.createAgencyTokenDTO();
         completeList = new ArrayList<>(10);

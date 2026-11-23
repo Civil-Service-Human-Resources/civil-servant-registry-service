@@ -1,37 +1,25 @@
 package uk.gov.cshr.civilservant.repository;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.File;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import tools.jackson.databind.ObjectMapper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.civilservant.domain.Profession;
 import uk.gov.cshr.civilservant.domain.Quiz;
 import uk.gov.cshr.civilservant.domain.QuizResult;
 import uk.gov.cshr.civilservant.domain.Status;
-import uk.gov.cshr.civilservant.dto.AddQuestionDto;
 import uk.gov.cshr.civilservant.dto.QuizResultDto;
 import uk.gov.cshr.civilservant.dto.QuizResultSummaryDto;
-import uk.gov.cshr.civilservant.dto.QuizSubmissionDto;
-import uk.gov.cshr.civilservant.exception.ProfessionNotFoundException;
-import uk.gov.cshr.civilservant.exception.QuizNotFoundException;
-import uk.gov.cshr.civilservant.exception.QuizServiceException;
-import uk.gov.cshr.civilservant.service.QuestionService;
-import uk.gov.cshr.civilservant.service.QuizService;
 
-@RunWith(SpringRunner.class)
+
 @DataJpaTest
 public class QuizResultRepositoryTest {
 
@@ -46,7 +34,7 @@ public class QuizResultRepositoryTest {
 
     private Quiz testQuiz, anotherQuiz;
 
-    @Before
+    @BeforeEach
     public void setupQuizData() {
         Profession testProfession = new Profession();
         testProfession.setName("Test Profession - Quiz Result Test");
@@ -64,7 +52,7 @@ public class QuizResultRepositoryTest {
                         .build());
     }
 
-    @After
+    @AfterEach
     public void clearQuizData() {
         quizRepository.deleteAll();
     }
@@ -148,7 +136,7 @@ public class QuizResultRepositoryTest {
                 quizResultRepository.findQuizResultByStaffId(staffId);
 
         //then
-        assertTrue("No quiz submissions found",quizResultDtoList.size() > 0);
+        assertTrue(quizResultDtoList.size() > 0);
     }
 
     @Test
@@ -204,7 +192,7 @@ public class QuizResultRepositoryTest {
 
         //then
 
-        assertEquals("Number of entries mismatch",2, quizResultSummaryDtoList.size());
+        assertEquals(2, quizResultSummaryDtoList.size());
         // assert the second element in the list to ensure ordering by quiz name.
         assertEquals(2, quizResultSummaryDtoList.get(1).getProfessionId());
 

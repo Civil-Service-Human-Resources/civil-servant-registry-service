@@ -1,12 +1,10 @@
 package uk.gov.cshr.civilservant.service;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.cshr.civilservant.domain.CivilServant;
 import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.Identity;
@@ -16,16 +14,12 @@ import uk.gov.cshr.civilservant.repository.AgencyTokenRepository;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
 import uk.gov.cshr.civilservant.service.identity.IdentityDTO;
 import uk.gov.cshr.civilservant.service.identity.IdentityService;
-
 import java.util.Collections;
 import java.util.Optional;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CivilServantServiceTest {
 
     @Mock
@@ -38,9 +32,6 @@ public class CivilServantServiceTest {
 
     @Mock
     IdentityService identityService;
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void shouldPerformCsrsLoginCheckAndRetainOrganisation() {
@@ -81,7 +72,7 @@ public class CivilServantServiceTest {
 
         String actual = classUnderTest.getCivilServantUid();
 
-        assertThat(actual, equalTo("1"));
+        assertEquals(actual, "1");
     }
 
     @Test
@@ -90,22 +81,14 @@ public class CivilServantServiceTest {
         Optional<CivilServant> optionalCivilServant = Optional.of(cs);
         when(civilServantRepository.findByPrincipal()).thenReturn(optionalCivilServant);
 
-        expectedException.expect(CivilServantNotFoundException.class);
-
-        String actual = classUnderTest.getCivilServantUid();
-
-        assertThat(actual, isNull());
+        assertThrows(CivilServantNotFoundException.class, () -> classUnderTest.getCivilServantUid());
     }
 
     @Test
     public void shouldThrowCivilServantNotFoundExceptionWhenCivilServantNotFound() {
         when(civilServantRepository.findByPrincipal()).thenReturn(Optional.empty());
 
-        expectedException.expect(CivilServantNotFoundException.class);
-
-        String actual = classUnderTest.getCivilServantUid();
-
-        assertThat(actual, isNull());
+        assertThrows(CivilServantNotFoundException.class, () -> classUnderTest.getCivilServantUid());
     }
 
     @Test
@@ -113,12 +96,12 @@ public class CivilServantServiceTest {
         RuntimeException runtimeException = new RuntimeException("broken");
         when(civilServantRepository.findByPrincipal()).thenThrow(runtimeException);
 
-        expectedException.expect(RuntimeException.class);
-        expectedException.expectMessage("broken");
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> classUnderTest.getCivilServantUid()
+        );
 
-        String actual = classUnderTest.getCivilServantUid();
-
-        assertThat(actual, isNull());
+        assertEquals("broken", exception.getMessage());
     }
 
 }

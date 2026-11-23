@@ -2,14 +2,12 @@ package uk.gov.cshr.civilservant.controller;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import tools.jackson.databind.ObjectMapper;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.civilservant.domain.Quiz;
 import uk.gov.cshr.civilservant.dto.*;
 import uk.gov.cshr.civilservant.dto.factory.QuizDtoFactory;
@@ -32,9 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
-@RunWith(SpringRunner.class)
+
 @WithMockUser(username = "user")
 public class QuizControllerTest extends CSRSControllerTestBase {
   @Autowired ObjectMapper objectMapper;

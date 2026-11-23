@@ -1,11 +1,9 @@
 package uk.gov.cshr.civilservant.repository;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.civilservant.domain.AgencyDomain;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
@@ -14,13 +12,9 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
+
 @DataJpaTest
 public class AgencyTokenRepositoryTest {
 
@@ -34,7 +28,7 @@ public class AgencyTokenRepositoryTest {
 
     private AgencyToken agencyToken = null;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         agencyToken = new AgencyToken();
         agencyToken.setToken("token4Test");
@@ -71,10 +65,10 @@ public class AgencyTokenRepositoryTest {
         Optional<AgencyToken> actual = agencyTokenRepository.findByDomainTokenAndCode("nhs.scot", "token4Test", "nhs");
 
         assertTrue(actual.isPresent());
-        assertThat(actual.get().getToken(), equalTo("token4Test"));
-        assertThat(actual.get().getCapacity(), equalTo(100));
-        assertThat(actual.get().getId(), is(notNullValue()));
-        assertThat(actual.get().getAgencyDomains(), is(nullValue()));
+        assertEquals(actual.get().getToken(), "token4Test");
+        assertEquals(actual.get().getCapacity(), 100);
+        assertNotNull(actual.get().getId());
+        assertNull(actual.get().getAgencyDomains());
     }
 
     @Test
@@ -83,10 +77,10 @@ public class AgencyTokenRepositoryTest {
         Optional<AgencyToken> actual = agencyTokenRepository.findByDomainTokenAndCodeIncludingAgencyDomains("nhs.scot", "token4Test", "nhs");
 
         assertTrue(actual.isPresent());
-        assertThat(actual.get().getToken(), equalTo("token4Test"));
-        assertThat(actual.get().getCapacity(), equalTo(100));
-        assertThat(actual.get().getUid(), equalTo(UID));
-        assertThat(actual.get().getId(), is(notNullValue()));
-        assertThat(actual.get().getAgencyDomains(), hasSize(3));
+        assertEquals(actual.get().getToken(), "token4Test");
+        assertEquals(actual.get().getCapacity(), 100);
+        assertEquals(actual.get().getUid(), UID);
+        assertNotNull(actual.get().getUid());
+        assertEquals(actual.get().getAgencyDomains().size(), 3);
     }
 }

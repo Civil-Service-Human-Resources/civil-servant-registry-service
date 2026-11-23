@@ -1,12 +1,10 @@
 package uk.gov.cshr.civilservant.integration;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.CivilServant;
 import uk.gov.cshr.civilservant.dto.AddDomainToOrgResponse;
@@ -29,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.cshr.civilservant.utils.apiStubs.IdentityServiceStub.stubPostClientToken;
 
 @AutoConfigureMockMvc
-@RunWith(SpringRunner.class)
+
 @SpringBootTest
 @Transactional
 @WithMockUser(username = "user")

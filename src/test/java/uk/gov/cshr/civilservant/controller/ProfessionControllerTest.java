@@ -2,13 +2,11 @@ package uk.gov.cshr.civilservant.controller;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.GsonBuilder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.civilservant.domain.Profession;
 import uk.gov.cshr.civilservant.service.ProfessionService;
 
@@ -25,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
+
 @WithMockUser(username = "user")
 public class ProfessionControllerTest extends CSRSControllerTestBase{
 

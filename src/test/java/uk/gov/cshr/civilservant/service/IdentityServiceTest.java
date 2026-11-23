@@ -1,21 +1,18 @@
 package uk.gov.cshr.civilservant.service;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.cshr.civilservant.domain.Identity;
 import uk.gov.cshr.civilservant.dto.IdentityAgencyResponseDTO;
 import uk.gov.cshr.civilservant.exception.CSRSApplicationException;
 import uk.gov.cshr.civilservant.exception.TokenDoesNotExistException;
@@ -29,13 +26,10 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class IdentityServiceTest {
 
     private static final String USER_UID = "myuseruid";
@@ -63,18 +57,17 @@ public class IdentityServiceTest {
     @Mock
     private IdentityRepository identityRepository;
 
+    @Mock
+    private RestClient.RequestHeadersSpec<?> requestHeadersSpec;
+
     @Captor
     private ArgumentCaptor<String> uriArgumentCaptor;
 
     @Captor
     private ArgumentCaptor<String> identityAgencyUrlArgumentCaptor;
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
-    @Before
+    @BeforeEach
     public void setup() {
-        initMocks(this);
         identityService = new IdentityService(restClient, IDENTITY_API_URL, AGENCY_TOKEN_URL,
                 IDENTITY_AGENCY_TOKEN_URL, identityRepository);
     }
@@ -101,8 +94,8 @@ public class IdentityServiceTest {
 
         IdentityDTO foundIdentity = identityService.findByEmail(identity.getUsername());
 
-        assertThat(foundIdentity.getUsername(),
-                equalTo("shouldReturnUriStringFromOrg@domain.com"));
+        assertEquals(foundIdentity.getUsername(),
+                "shouldReturnUriStringFromOrg@domain.com");
 
         verify(restClient).get();
         verify(requestHeadersUriSpec).uri(builder.build().toUriString());
@@ -151,7 +144,7 @@ public class IdentityServiceTest {
 
         int actual = identityService.getSpacesUsedForAgencyToken(agencyTokenUid);
 
-        assertThat(actual, equalTo(expectedSpaces));
+        assertEquals(actual, expectedSpaces);
 
         verify(restClient, times(1)).get();
 
@@ -164,9 +157,9 @@ public class IdentityServiceTest {
                 .body(AgencyTokenCapacityUsed.class);
     }
 
-    @Test(expected = TokenDoesNotExistException.class)
+    @Test
     public void shouldThrowNotFoundExceptionIfNoAgencyTokenFound()
-            throws MalformedURLException, CSRSApplicationException {
+            throws MalformedURLException {
 
         HttpClientErrorException notFoundHttpClientException =
                 new HttpClientErrorException(HttpStatus.NOT_FOUND);
@@ -182,7 +175,7 @@ public class IdentityServiceTest {
         when(responseSpec.body(AgencyTokenCapacityUsed.class))
                 .thenThrow(notFoundHttpClientException);
 
-        identityService.getSpacesUsedForAgencyToken("123");
+        assertThrows(TokenDoesNotExistException.class, () -> identityService.getSpacesUsedForAgencyToken("123"));
 
         verify(restClient).get();
 
@@ -195,28 +188,35 @@ public class IdentityServiceTest {
 
         URI actualURI = URI.create(uriArgumentCaptor.getValue());
 
-        assertThat(actualURI.toURL().toString(), equalTo(EXPECTED_AGENCY_TOKEN_URL));
+        assertEquals(actualURI.toURL().toString(), EXPECTED_AGENCY_TOKEN_URL);
     }
 
-    @Test (expected = CSRSApplicationException.class)
-    public void shouldThrowGeneralApplicationExceptionIfUnexpectedError() throws MalformedURLException, CSRSApplicationException {
+    @Test
+    void shouldThrowGeneralApplicationExceptionIfUnexpectedError() {
         // given
-        HttpServerErrorException httpServerException = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
+        HttpServerErrorException httpServerException =
+                new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
-        doReturn(requestHeadersUriSpec).when(requestHeadersUriSpec).uri(anyString());
-        when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toEntity(IdentityAgencyResponseDTO.class)).thenThrow(httpServerException);
+        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.body(AgencyTokenCapacityUsed.class))
+                .thenThrow(httpServerException);
 
         // when
-        int actual = identityService.getSpacesUsedForAgencyToken("123");
+        assertThrows(
+                CSRSApplicationException.class,
+                () -> identityService.getSpacesUsedForAgencyToken("123")
+        );
 
         // then
-        assertNull(actual);
-        verify(restClient, times(1)).get().uri(uriArgumentCaptor.capture()).retrieve().toEntity(AgencyTokenCapacityUsed.class);
+        verify(restClient, times(1)).get();
+        verify(requestHeadersUriSpec, times(1)).uri(uriArgumentCaptor.capture());
+        verify(requestHeadersSpec, times(1)).retrieve();
+        verify(responseSpec, times(1)).body(AgencyTokenCapacityUsed.class);
 
         String actualURI = uriArgumentCaptor.getValue();
-        assertThat(actualURI.toString(), equalTo(EXPECTED_AGENCY_TOKEN_URL));
+        assertEquals(EXPECTED_AGENCY_TOKEN_URL, actualURI);
     }
 
     @Test
@@ -229,8 +229,7 @@ public class IdentityServiceTest {
                 new ResponseEntity<>(response, HttpStatus.OK);
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
-        doReturn(requestHeadersUriSpec)
-                .when(requestHeadersUriSpec).uri(anyString());
+        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
 
         when(responseSpec.toEntity(IdentityAgencyResponseDTO.class))
@@ -238,7 +237,7 @@ public class IdentityServiceTest {
 
         Optional<String> actual = identityService.getAgencyTokenUid(USER_UID);
 
-        assertThat(actual.get(), equalTo("100"));
+        assertEquals(actual.get(), "100");
 
         verify(restClient).get();
         verify(requestHeadersUriSpec).uri(uriArgumentCaptor.capture());
@@ -246,7 +245,7 @@ public class IdentityServiceTest {
         verify(responseSpec).toEntity(IdentityAgencyResponseDTO.class);
 
         String actualURL = uriArgumentCaptor.getValue();
-        assertThat(actualURL, equalTo(EXPECTED_GET_AGENCY_TOKEN_UID_URL));
+        assertEquals(actualURL, EXPECTED_GET_AGENCY_TOKEN_UID_URL);
     }
 
     @Test
@@ -284,7 +283,7 @@ public class IdentityServiceTest {
                 .toEntity(IdentityAgencyResponseDTO.class);
 
         String actualURL = identityAgencyUrlArgumentCaptor.getValue();
-        assertThat(actualURL, equalTo(EXPECTED_GET_AGENCY_TOKEN_UID_URL));
+        assertEquals(actualURL, EXPECTED_GET_AGENCY_TOKEN_UID_URL);
     }
 
     @Test
@@ -319,24 +318,21 @@ public class IdentityServiceTest {
 
         String actualURL = identityAgencyUrlArgumentCaptor.getValue();
 
-        assertThat(actualURL, equalTo(EXPECTED_GET_AGENCY_TOKEN_UID_URL));
+        assertEquals(actualURL, EXPECTED_GET_AGENCY_TOKEN_UID_URL);
     }
 
     @Test
-    public void getAgencyTokenUid_technicalError() throws CSRSApplicationException {
+    public void getAgencyTokenUid_technicalError() {
         RuntimeException runtimeException = new RuntimeException("broken");
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         doReturn(requestHeadersUriSpec).when(requestHeadersUriSpec).uri(anyString());
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.toEntity(IdentityAgencyResponseDTO.class)).thenThrow(runtimeException);
 
-        expectedException.expect(CSRSApplicationException.class);
-        expectedException.expectCause(instanceOf(RuntimeException.class));
-        expectedException.expectMessage("Unexpected error calling identity service: get agency token uid");
+        CSRSApplicationException exception = assertThrows(CSRSApplicationException.class, () -> identityService.getAgencyTokenUid(USER_UID));
+        assertEquals(exception.getCause(), runtimeException);
+        assertEquals(exception.getMessage(), "Unexpected error calling identity service: get agency token uid");
 
-        Optional<String> actual = identityService.getAgencyTokenUid(USER_UID);
-
-        assertTrue(!actual.isPresent());
         verify(restClient).get();
         verify(requestHeadersUriSpec)
                 .uri(identityAgencyUrlArgumentCaptor.capture());
@@ -344,7 +340,7 @@ public class IdentityServiceTest {
         verify(responseSpec).toEntity(IdentityAgencyResponseDTO.class);
 
         String actualURL = identityAgencyUrlArgumentCaptor.getValue();
-        assertThat(actualURL, equalTo(EXPECTED_GET_AGENCY_TOKEN_UID_URL));
+        assertEquals(actualURL, EXPECTED_GET_AGENCY_TOKEN_UID_URL);
     }
 
     @Test
@@ -387,12 +383,9 @@ public class IdentityServiceTest {
                 .when(requestHeadersUriSpec)
                 .uri(expectedUrl);
 
-        expectedException.expect(CSRSApplicationException.class);
-        expectedException.expectMessage(
-                "Error calling identity service: delete agency token");
-        expectedException.expectCause(instanceOf(HttpClientErrorException.class));
-
-        identityService.removeAgencyTokenFromUsers(agencyTokenUid);
+        CSRSApplicationException exception = assertThrows(CSRSApplicationException.class, () -> identityService.removeAgencyTokenFromUsers(agencyTokenUid));
+        assertEquals(exception.getMessage(), "Error calling identity service: delete agency token");
+        assertEquals(exception.getCause(), causeException);
 
         verify(restClient, times(1)).delete();
         verify(requestHeadersUriSpec, times(1)).uri(expectedUrl);
@@ -414,13 +407,11 @@ public class IdentityServiceTest {
                 .when(requestHeadersUriSpec)
                 .uri(builder.buildAndExpand(agencyTokenUid).toUriString());
 
-        expectedException.expect(CSRSApplicationException.class);
-        expectedException.expectMessage(
-                "Server error calling identity service: delete agency token"
+        CSRSApplicationException csrsApplicationException = assertThrows(
+                CSRSApplicationException.class, () -> identityService.removeAgencyTokenFromUsers(agencyTokenUid)
         );
-        expectedException.expectCause(instanceOf(HttpServerErrorException.class));
-
-        identityService.removeAgencyTokenFromUsers(agencyTokenUid);
+        assertEquals(csrsApplicationException.getCause(), causeException);
+        assertEquals(csrsApplicationException.getMessage(), "Server error calling identity service: delete agency token");
 
         verify(restClient).delete();
 
@@ -447,12 +438,12 @@ public class IdentityServiceTest {
                 .when(requestHeadersUriSpec)
                 .uri(expectedUrl);
 
-        expectedException.expect(CSRSApplicationException.class);
-        expectedException.expectMessage(
-                "Unexpected error calling identity service: delete agency token");
-        expectedException.expectCause(instanceOf(RuntimeException.class));
-
-        identityService.removeAgencyTokenFromUsers(agencyTokenUid);
+        CSRSApplicationException csrsApplicationException = assertThrows(
+                CSRSApplicationException.class,
+                () -> identityService.removeAgencyTokenFromUsers(agencyTokenUid)
+        );
+        assertEquals(csrsApplicationException.getCause(), causeException);
+        assertEquals(csrsApplicationException.getMessage(), "Unexpected error calling identity service: delete agency token");
 
         verify(restClient, times(1)).delete();
         verify(requestHeadersUriSpec, times(1)).uri(expectedUrl);

@@ -1,9 +1,9 @@
 package uk.gov.cshr.civilservant.dto.factory;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.dto.AgencyDomainDTO;
 import uk.gov.cshr.civilservant.dto.AgencyTokenDTO;
@@ -11,10 +11,10 @@ import uk.gov.cshr.civilservant.dto.AgencyTokenDTO;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AgencyTokenFactoryTest {
 
     private static final String TOKEN = "TOKEN123";

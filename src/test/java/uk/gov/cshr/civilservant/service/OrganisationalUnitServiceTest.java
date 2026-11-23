@@ -1,13 +1,10 @@
 package uk.gov.cshr.civilservant.service;
 
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.domain.Domain;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
@@ -27,15 +24,13 @@ import java.util.*;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OrganisationalUnitServiceTest {
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
     @Mock
     private OrganisationalUnitRepository organisationalUnitRepository;
     @Mock
@@ -138,9 +133,9 @@ public class OrganisationalUnitServiceTest {
 
         AgencyTokenResponseDto actual = organisationalUnitService.getAgencyToken(orgId);
 
-        Assert.assertThat(actual.getToken(), equalTo((responseDto.getToken())));
-        Assert.assertThat(actual.getCapacity(), equalTo((responseDto.getCapacity())));
-        Assert.assertThat(actual.getCapacityUsed(), equalTo(responseDto.getCapacityUsed()));
+        assertEquals(actual.getToken(),responseDto.getToken());
+        assertEquals(actual.getCapacity(), responseDto.getCapacity());
+        assertEquals(actual.getCapacityUsed(), responseDto.getCapacityUsed());
 
         Set<AgencyDomainDTO> actualAgencyDomains = actual.getAgencyDomains();
         assertEquals(actualAgencyDomains.size(), 1);
@@ -154,24 +149,25 @@ public class OrganisationalUnitServiceTest {
         long orgId = 3l;
         when(organisationalUnitRepository.findById(eq(orgId))).thenReturn(Optional.empty());
 
-        expectedException.expect(TokenDoesNotExistException.class);
-
-        AgencyTokenResponseDto actual = organisationalUnitService.getAgencyToken(orgId);
-
-        verifyNoInteractions(agencyTokenService);
+        assertThrows(
+                TokenDoesNotExistException.class,
+                () -> organisationalUnitService.getAgencyToken(orgId)
+        );
     }
 
     @Test
-    public void shouldThrowTokenDoesNotExistIfTokenNotFound() throws CSRSApplicationException {
+    public void shouldThrowTokenDoesNotExistIfTokenNotFound() {
         AgencyTokenResponseDto responseDto = AgencyTokenTestingUtils.getAgencyTokenResponseDto();
         long orgId = 3l;
         OrganisationalUnit orgUnit = new OrganisationalUnit();
         Optional<OrganisationalUnit> optionalOrganisationalUnit = Optional.of(orgUnit);
         when(organisationalUnitRepository.findById(eq(orgId))).thenReturn(optionalOrganisationalUnit);
 
-        expectedException.expect(TokenDoesNotExistException.class);
+        assertThrows(
+                TokenDoesNotExistException.class,
+                () -> organisationalUnitService.getAgencyToken(orgId)
+        );
 
-        AgencyTokenResponseDto actual = organisationalUnitService.getAgencyToken(orgId);
     }
 
     @Test
@@ -186,13 +182,16 @@ public class OrganisationalUnitServiceTest {
 
         RuntimeException runtimeException = new RuntimeException();
         when(agencyTokenService.getAgencyTokenResponseDto(eq(agencyToken))).thenThrow(new CSRSApplicationException("something went wrong", runtimeException));
-        expectedException.expect(CSRSApplicationException.class);
-        expectedException.expectMessage("something went wrong");
-        expectedException.expectCause(is(runtimeException));
 
-        AgencyTokenResponseDto actual = organisationalUnitService.getAgencyToken(orgId);
+        CSRSApplicationException exception = assertThrows(
+                CSRSApplicationException.class,
+                () -> organisationalUnitService.getAgencyToken(orgId)
+        );
 
-        verifyNoInteractions(agencyTokenService);
+        assertEquals("something went wrong", exception.getMessage());
+        assertSame(runtimeException, exception.getCause());
+
+        verify(agencyTokenService, times(1)).getAgencyTokenResponseDto(agencyToken);
     }
 
     @Test

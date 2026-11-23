@@ -1,15 +1,13 @@
 package uk.gov.cshr.civilservant.mapping;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.lang.reflect.Method;
-import java.security.Principal;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.annotation.AnnotationUtils;
-import uk.gov.cshr.civilservant.controller.ReportController;
 
 public class RoleMappingHandlerMappingTest {
 
