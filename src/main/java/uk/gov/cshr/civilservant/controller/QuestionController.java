@@ -1,7 +1,6 @@
 package uk.gov.cshr.civilservant.controller;
 
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 
 import lombok.extern.slf4j.Slf4j;

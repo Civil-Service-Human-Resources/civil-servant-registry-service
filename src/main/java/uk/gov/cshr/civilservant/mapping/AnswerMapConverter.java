@@ -1,12 +1,7 @@
 package uk.gov.cshr.civilservant.mapping;
 
-import java.io.IOException;
 import java.util.Map;
 import jakarta.persistence.AttributeConverter;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

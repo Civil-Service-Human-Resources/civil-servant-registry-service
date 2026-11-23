@@ -1,6 +1,5 @@
 package uk.gov.cshr.civilservant.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.cshr.civilservant.domain.*;
 import uk.gov.cshr.civilservant.dto.AnswerDto;
