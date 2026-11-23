@@ -2,11 +2,14 @@ package uk.gov.cshr.civilservant.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.ToString;
+
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
+@ToString
 public class OrganisationalUnit extends SelfReferencingEntity<OrganisationalUnit> {
 
     private static final long serialVersionUID = 1L;

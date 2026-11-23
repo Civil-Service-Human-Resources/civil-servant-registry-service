@@ -1,11 +1,9 @@
 package uk.gov.cshr.civilservant.repository;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.AgencyDomain;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
@@ -14,11 +12,10 @@ import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 
 import java.util.*;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
+
 @Transactional
 @WithMockUser(username = "user", roles = {"ORGANISATION_MANAGER"})
 public class OrganisationalUnitRepositoryTest {
@@ -89,7 +86,7 @@ public class OrganisationalUnitRepositoryTest {
     @Test
     public void shouldFindOrganisationsWhereNameStartsWith() {
         Optional<OrganisationalUnit> organisationalUnit = repository.findByCode("co");
-        assertThat(organisationalUnit.get().getName(), is("Cabinet Office"));
+        assertEquals(organisationalUnit.get().getName(), "Cabinet Office");
     }
 
     @Test
@@ -109,7 +106,7 @@ public class OrganisationalUnitRepositoryTest {
 
         Optional<OrganisationalUnit> savedChild = repository.findByCode("b");
 
-        assertThat(savedChild.get().getParent().getCode(), is("a"));
+        assertEquals(savedChild.get().getParent().getCode(), "a");
     }
 
     @Test
@@ -133,9 +130,9 @@ public class OrganisationalUnitRepositoryTest {
 
         List<OrganisationalUnit> subOrgs = new ArrayList<>(foundParent.get().getChildren());
 
-        assertThat(subOrgs.size(), is(2));
-        assertThat(subOrgs.get(0).getCode(), is("b"));
-        assertThat(subOrgs.get(1).getCode(), is("c"));
+        assertEquals(subOrgs.size(), 2);
+        assertEquals(subOrgs.get(0).getCode(), "b");
+        assertEquals(subOrgs.get(1).getCode(), "c");
     }
 
     @Test
@@ -150,14 +147,19 @@ public class OrganisationalUnitRepositoryTest {
 
         Optional<OrganisationalUnit> result = repository.findByCode("xx");
 
-        assertThat(result.get().getPaymentMethods(), is(Arrays.asList("method1", "method2", "method3")));
+        assertEquals(result.get().getPaymentMethods(), Arrays.asList("method1", "method2", "method3"));
     }
 
     @Test
     public void findOrganisationByAgencyToken_whenTokenAndOrgExistAndLinked() {
 
         // Create data
-        AgencyToken savedToken = agencyTokenRepository.save(new AgencyToken(-1, "test-token", 1, "uid"));
+        AgencyToken tokenToSave = new AgencyToken();
+        tokenToSave.setToken("test-token");
+        tokenToSave.setCapacity(1);
+        tokenToSave.setUid("uid");
+
+        AgencyToken savedToken = agencyTokenRepository.save(tokenToSave);
         OrganisationalUnit savedOrg = repository.save(new OrganisationalUnit("org-name", "org-code", "org-abbrv"));
 
         // Link
@@ -171,7 +173,12 @@ public class OrganisationalUnitRepositoryTest {
     public void findOrganisationByAgencyToken_whenTokenAndOrgExistButNotLinked() {
 
         // Create data
-        AgencyToken savedToken = agencyTokenRepository.save(new AgencyToken(-1, "test-token", 1, "uid"));
+        AgencyToken tokenToSave = new AgencyToken();
+        tokenToSave.setToken("test-token");
+        tokenToSave.setCapacity(1);
+        tokenToSave.setUid("uid");
+        AgencyToken savedToken = agencyTokenRepository.save(tokenToSave);
+
         OrganisationalUnit savedOrg = repository.save(new OrganisationalUnit("org-name", "org-code", "org-abbrv"));
 
         assertFalse(repository.findOrganisationByAgencyToken(savedToken).isPresent());

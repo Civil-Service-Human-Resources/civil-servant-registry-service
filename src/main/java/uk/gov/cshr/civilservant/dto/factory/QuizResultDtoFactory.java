@@ -1,10 +1,10 @@
 package uk.gov.cshr.civilservant.dto.factory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,8 +44,9 @@ public class QuizResultDtoFactory extends DtoFactory<QuizResultDto, QuizResult> 
                     questionDtoFactory.create(
                         objectMapper.readValue(submittedAnswer.getQuestion(), Question.class)),
                     QuizResultQuestionDto.class);
-          } catch (IOException e) {
-            e.printStackTrace();
+          }
+          catch(JacksonException e){
+              e.printStackTrace();
           }
           submittedAnswers.add(
               new SubmittedAnswerDto(

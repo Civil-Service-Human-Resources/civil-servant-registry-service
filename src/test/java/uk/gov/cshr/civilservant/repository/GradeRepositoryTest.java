@@ -1,17 +1,14 @@
 package uk.gov.cshr.civilservant.repository;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Iterables;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.civilservant.domain.Grade;
 
-@RunWith(SpringRunner.class)
+
 @SpringBootTest
 public class GradeRepositoryTest {
 
@@ -20,6 +17,6 @@ public class GradeRepositoryTest {
   @Test
   public void shouldFindGradesWithNoOrganisation() {
     Iterable<Grade> results = gradeRepository.findByOrganisationalUnitIsNull();
-    assertThat(Iterables.size(results), is(11));
+    assertEquals(Iterables.size(results), 11);
   }
 }

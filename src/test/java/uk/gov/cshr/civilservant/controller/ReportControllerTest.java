@@ -1,16 +1,14 @@
 package uk.gov.cshr.civilservant.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.cshr.civilservant.domain.Roles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.cshr.civilservant.domain.Status;
 import uk.gov.cshr.civilservant.dto.CivilServantReportDto;
 import uk.gov.cshr.civilservant.dto.SkillsReportsDto;
@@ -26,22 +24,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@RunWith(SpringRunner.class)
+
 @WithMockUser(username = "user")
 public class ReportControllerTest extends CSRSControllerTestBase {
 
   public static final String TEXT_CSV = "text/csv";
   @Autowired ObjectMapper objectMapper;
-  @MockBean private ReportService reportService;
+
+  @MockitoBean
+  private ReportService reportService;
 
   @Test
-  @WithMockUser(
-      username = "user",
-      authorities = {"ORGANISATION_REPORTER"})
   public void shouldGetCivilServantsByUserOrganisationWithCorrectRole() throws Exception {
     CivilServantReportDto civilServant1 = new CivilServantReportDto();
     civilServant1.setName("User 1");
@@ -52,7 +50,9 @@ public class ReportControllerTest extends CSRSControllerTestBase {
         .thenReturn(ImmutableMap.of("1", civilServant1, "2", civilServant2));
 
     mockMvc
-        .perform(get("/report/civilServants").with(csrf()).accept(MediaType.APPLICATION_JSON))
+        .perform(get("/report/civilServants")
+                .with(jwt().authorities(new SimpleGrantedAuthority("ORGANISATION_REPORTER")))
+                .accept(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("1.name", equalTo("User 1")))
@@ -60,9 +60,6 @@ public class ReportControllerTest extends CSRSControllerTestBase {
   }
 
   @Test
-  @WithMockUser(
-      username = "user",
-      authorities = {"CSHR_REPORTER"})
   public void shouldGetAllCivilServants() throws Exception {
     CivilServantReportDto civilServant1 = new CivilServantReportDto();
     civilServant1.setName("User 1");
@@ -74,7 +71,9 @@ public class ReportControllerTest extends CSRSControllerTestBase {
         .thenReturn(ImmutableMap.of("1", civilServant1, "2", civilServant2));
 
     mockMvc
-        .perform(get("/report/civilServants").with(csrf()).accept(MediaType.APPLICATION_JSON))
+        .perform(get("/report/civilServants")
+                .with(jwt().authorities(new SimpleGrantedAuthority("CSHR_REPORTER")))
+                .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("1.name", equalTo("User 1")))
         .andExpect(jsonPath("2.name", equalTo("User 2")));
@@ -91,9 +90,6 @@ public class ReportControllerTest extends CSRSControllerTestBase {
   }
 
   @Test
-  @WithMockUser(
-      username = "user",
-      authorities = {Roles.CSHR_REPORTER, Roles.LEARNING_MANAGER})
   public void shouldGetReportsForSuperAdmin() throws Exception {
     // Given
     List<SkillsReportsDto> skillsReportsDtoList = buildAReport();
@@ -107,7 +103,7 @@ public class ReportControllerTest extends CSRSControllerTestBase {
             get("/report/skills/report-for-super-admin")
                 .param("from", LocalDate.now().minusDays(1).toString())
                 .param("to", LocalDate.now().toString())
-                .with(csrf())
+                    .with(jwt().authorities(new SimpleGrantedAuthority("CSHR_REPORTER"), new SimpleGrantedAuthority("LEARNING_MANAGER")))
                 .accept(TEXT_CSV))
         .andExpect(status().isOk())
         .andExpect(content().string(FileUtils.readFileToString(file)));
@@ -132,9 +128,6 @@ public class ReportControllerTest extends CSRSControllerTestBase {
   }
 
   @Test
-  @WithMockUser(
-      username = "user",
-      authorities = {Roles.ORGANISATION_AUTHOR, Roles.ORGANISATION_REPORTER})
   public void shouldGetReportsForOrgAdmin() throws Exception {
     // Given
     List<SkillsReportsDto> skillsReportsDtoList = buildAReport();
@@ -151,16 +144,13 @@ public class ReportControllerTest extends CSRSControllerTestBase {
                 .param("from", LocalDate.now().minusDays(1).toString())
                 .param("to", LocalDate.now().toString())
                 .param("organisationId", "1")
-                .with(csrf())
+                    .with(jwt().authorities(new SimpleGrantedAuthority("ORGANISATION_AUTHOR"), new SimpleGrantedAuthority("ORGANISATION_REPORTER")))
                 .accept(TEXT_CSV))
         .andExpect(status().isOk())
         .andExpect(content().string(FileUtils.readFileToString(file)));
   }
 
   @Test
-  @WithMockUser(
-      username = "user",
-      authorities = {Roles.PROFESSION_AUTHOR, Roles.PROFESSION_REPORTER})
   public void shouldGetReportsForProfAdmin() throws Exception {
     // Given
     List<SkillsReportsDto> skillsReportsDtoList = buildAReport();
@@ -177,7 +167,7 @@ public class ReportControllerTest extends CSRSControllerTestBase {
                 .param("to", LocalDate.now().toString())
                 .param("organisationId", "1")
                 .param("professionId", "1")
-                .with(csrf())
+                    .with(jwt().authorities(new SimpleGrantedAuthority("PROFESSION_AUTHOR"), new SimpleGrantedAuthority("PROFESSION_REPORTER")))
                 .accept(TEXT_CSV))
         .andExpect(status().isOk())
         .andExpect(content().string(FileUtils.readFileToString(file)));

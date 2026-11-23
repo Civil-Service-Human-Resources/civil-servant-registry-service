@@ -16,8 +16,8 @@ import uk.gov.cshr.civilservant.exception.QuizServiceException;
 import uk.gov.cshr.civilservant.mapping.RoleMapping;
 import uk.gov.cshr.civilservant.service.QuizService;
 
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;

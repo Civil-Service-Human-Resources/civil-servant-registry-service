@@ -3,7 +3,7 @@ package uk.gov.cshr.civilservant.service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;

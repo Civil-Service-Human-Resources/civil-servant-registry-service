@@ -1,12 +1,10 @@
 package uk.gov.cshr.civilservant.integration;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.config.IntegrationTestUserConfig;
 import uk.gov.cshr.civilservant.utils.CustomAuthentication;
@@ -22,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = IntegrationTestUserConfig.class)
 @AutoConfigureMockMvc
-@RunWith(SpringRunner.class)
+
 @Transactional
 public class ReportControllerIntegrationTest extends BaseIntegrationTest {
     private final Authentication learner = new CustomAuthentication(Collections.singletonList(new SimpleGrantedAuthority("LEARNER")), "learner");

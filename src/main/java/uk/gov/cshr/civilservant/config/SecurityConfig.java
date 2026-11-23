@@ -1,105 +1,106 @@
 package uk.gov.cshr.civilservant.config;
 
-import org.apache.http.HttpHost;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
-import org.springframework.security.oauth2.client.OAuth2RestOperations;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
-import org.springframework.security.oauth2.client.token.AccessTokenRequest;
-import org.springframework.security.oauth2.client.token.DefaultAccessTokenRequest;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
-import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
-import uk.gov.cshr.civilservant.repository.CivilServantRepository;
-import uk.gov.cshr.civilservant.repository.IdentityRepository;
-import uk.gov.cshr.civilservant.security.CsrsJwtAccessTokenConverter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+import uk.gov.cshr.civilservant.security.CsrsJwtAuthenticationConverter;
 
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-@EnableResourceServer
-@EnableWebSecurity
-public class SecurityConfig extends ResourceServerConfigurerAdapter {
+@EnableMethodSecurity(prePostEnabled = true)
+public class SecurityConfig {
 
-    @Autowired
-    private IdentityRepository identityRepository;
+    private final CsrsJwtAuthenticationConverter
+            csrsJwtAuthenticationConverter;
 
-    @Autowired
-    private CivilServantRepository civilServantRepository;
+    public SecurityConfig(
+            CsrsJwtAuthenticationConverter csrsJwtAuthenticationConverter) {
+        this.csrsJwtAuthenticationConverter = csrsJwtAuthenticationConverter;
+    }
 
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
         http
-            .authorizeRequests()
-                .antMatchers("/error").permitAll()
-                .antMatchers("/actuator/health").permitAll()
-                .antMatchers("/domains").authenticated()
-            .anyRequest().permitAll();
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                )
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/domains").authenticated()
+                        .anyRequest().permitAll()
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .jwtAuthenticationConverter(csrsJwtAuthenticationConverter)
+                        )
+                );
+
+        return http.build();
     }
 
     @Bean
-    public TokenStore getTokenStore(OAuthProperties oAuthProperties) {
-        return new JwtTokenStore(accessTokenConverter(oAuthProperties));
+    @Order(1)
+    public SecurityFilterChain swaggerSecurityFilterChain(HttpSecurity http)
+            throws Exception {
+        http
+                .securityMatcher(
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**"
+                )
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(Customizer.withDefaults())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
+
+        return http.build();
     }
 
     @Bean
-    public JwtAccessTokenConverter accessTokenConverter(OAuthProperties oAuthProperties) {
-        CsrsJwtAccessTokenConverter csrsJwtAccessTokenConverter = new CsrsJwtAccessTokenConverter(identityRepository, civilServantRepository);
-        csrsJwtAccessTokenConverter.setSigningKey(oAuthProperties.getJwtKey());
-        return csrsJwtAccessTokenConverter;
+    public JwtDecoder jwtDecoder(OAuthProperties oAuthProperties) {
+        SecretKey key = new SecretKeySpec(
+                oAuthProperties.getJwtKey().getBytes(StandardCharsets.UTF_8),
+                "HmacSHA256");
+
+        return NimbusJwtDecoder.withSecretKey(key)
+                .macAlgorithm(MacAlgorithm.HS256)
+                .build();
     }
 
     @Bean
-    public OAuth2ProtectedResourceDetails resourceDetails(OAuthProperties oAuthProperties) {
+    public ClientRegistrationRepository clientRegistrationRepository(
+            OAuthProperties properties) {
 
-        ClientCredentialsResourceDetails resource = new ClientCredentialsResourceDetails();
-        resource.setId("identity");
-        resource.setAccessTokenUri(oAuthProperties.getTokenUrl());
-        resource.setClientId(oAuthProperties.getClientId());
-        resource.setClientSecret(oAuthProperties.getClientSecret());
+        ClientRegistration registration = ClientRegistration
+                .withRegistrationId("identity")
+                .clientId(properties.getClientId())
+                .clientSecret(properties.getClientSecret())
+                .authorizationGrantType(
+                        AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .tokenUri(properties.getTokenUrl())
+                .build();
 
-        return resource;
-    }
-
-    @Bean
-    public PoolingHttpClientConnectionManager httpClientConnectionManager(OAuthProperties oAuthProperties) {
-        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-        connectionManager.setMaxTotal(oAuthProperties.getMaxTotalConnections());
-        connectionManager.setDefaultMaxPerRoute(oAuthProperties.getDefaultMaxConnectionsPerRoute());
-        HttpHost host = new HttpHost(oAuthProperties.getServiceUrl());
-        connectionManager.setMaxPerRoute(new HttpRoute(host), oAuthProperties.getMaxPerServiceUrl());
-
-        return connectionManager;
-    }
-
-    @Bean
-    public OAuth2RestOperations oAuthRestTemplate(OAuth2ProtectedResourceDetails resourceDetails, PoolingHttpClientConnectionManager connectionManager) {
-        CloseableHttpClient httpClient = HttpClients.custom()
-            .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-            .setConnectionManager(connectionManager)
-            .build();
-
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(httpClient);
-
-        AccessTokenRequest atr = new DefaultAccessTokenRequest();
-        OAuth2RestTemplate oAuthRestTemplate = new OAuth2RestTemplate(resourceDetails, new DefaultOAuth2ClientContext(atr));
-        oAuthRestTemplate.setRequestFactory(requestFactory);
-
-        return oAuthRestTemplate;
+        return new InMemoryClientRegistrationRepository(registration);
     }
 }

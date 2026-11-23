@@ -1,16 +1,14 @@
 package uk.gov.cshr.civilservant.controller;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.cshr.civilservant.domain.CivilServant;
 import uk.gov.cshr.civilservant.domain.Identity;
 import uk.gov.cshr.civilservant.repository.CivilServantRepository;
@@ -23,30 +21,30 @@ import uk.gov.cshr.civilservant.service.identity.IdentityService;
 
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
+
 @WithMockUser(username = "user", authorities = "IDENTITY_DELETE")
 public class CivilServantControllerTest extends CSRSControllerTestBase {
 
-    @MockBean
+    @MockitoBean
     private LineManagerService lineManagerService;
 
-    @MockBean
+    @MockitoBean
     private CivilServantRepository civilServantRepository;
 
-    @MockBean
+    @MockitoBean
     private CivilServantResourceFactory civilServantResourceFactory;
 
-    @MockBean
+    @MockitoBean
     private OrganisationalUnitRepository organisationalUnitRepository;
 
     @Captor
@@ -56,7 +54,7 @@ public class CivilServantControllerTest extends CSRSControllerTestBase {
     public void shouldReturnNotFoundIfNoLineManager() throws Exception {
         when(civilServantRepository.findByPrincipal()).thenReturn(Optional.of(createCivilServant("myuid")));
         mockMvc.perform(
-                patch("/civilServants/manager?email=bogus@domain.com").with(csrf())
+                patch("/civilServants/manager?email=bogus@domain.com").with(csrf()).with(jwt())
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound());
@@ -69,6 +67,7 @@ public class CivilServantControllerTest extends CSRSControllerTestBase {
 
         mockMvc.perform(
                 patch("/civilServants/manager?email=learner@domain.com").with(csrf())
+                        .with(jwt())
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().is(422));
@@ -88,10 +87,14 @@ public class CivilServantControllerTest extends CSRSControllerTestBase {
         when(civilServantRepository.findByPrincipal()).thenReturn(Optional.of(civilServant));
 
         mockMvc.perform(
-                patch("/civilServants/manager?email=learner@domain.com").with(csrf())
+                patch("/civilServants/manager?email=learner@domain.com").with(csrf()).with(jwt())
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+
+        verify(civilServantRepository).findByPrincipal();
+        verify(lineManagerService).checkLineManager("learner@domain.com");
+        verify(civilServantRepository).findByIdentity("myuid");
     }
 
     @Test
@@ -116,10 +119,10 @@ public class CivilServantControllerTest extends CSRSControllerTestBase {
         when(civilServantRepository.findByIdentity("mid")).thenReturn(Optional.of(lineManager));
         when(civilServantRepository.findByPrincipal()).thenReturn(Optional.of(civilServant));
 
-        when(civilServantResourceFactory.create(civilServant)).thenReturn(new Resource<>(civilServantResource));
+        when(civilServantResourceFactory.create(civilServant)).thenReturn(EntityModel.of(civilServantResource));
 
         mockMvc.perform(
-                patch("/civilServants/manager?email=learner@domain.com").with(csrf())
+                patch("/civilServants/manager?email=learner@domain.com").with(csrf()).with(jwt())
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -156,7 +159,7 @@ public class CivilServantControllerTest extends CSRSControllerTestBase {
         civilServant.setId(1L);
 
         when(civilServantRepository.findByIdentity(uid)).thenReturn(Optional.of(civilServant));
-        when(civilServantResourceFactory.create(civilServant)).thenReturn(new Resource<>(civilServantResource));
+        when(civilServantResourceFactory.create(civilServant)).thenReturn(EntityModel.of(civilServantResource));
 
 
         mockMvc.perform(

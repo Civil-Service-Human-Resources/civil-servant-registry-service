@@ -1,32 +1,30 @@
 package uk.gov.cshr.civilservant.controller;
 
 import com.google.gson.Gson;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.cshr.civilservant.domain.AgencyToken;
 import uk.gov.cshr.civilservant.service.AgencyTokenService;
-import uk.gov.cshr.civilservant.utils.MockMVCFilterOverrider;
 
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@RunWith(SpringRunner.class)
+
 @WithMockUser(username = "user")
 public class AgencyTokenControllerTest {
 
@@ -40,13 +38,8 @@ public class AgencyTokenControllerTest {
     @Autowired
     private Gson gson;
 
-    @MockBean
+    @MockitoBean
     private AgencyTokenService agencyTokenService;
-
-    @Before
-    public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException {
-        MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
-    }
 
     @Test
     public void shouldReturnTrueIfRequestingAgencyTokensWithDomainIfExists() throws Exception {
@@ -113,6 +106,7 @@ public class AgencyTokenControllerTest {
         when(agencyTokenService.getAgencyTokenByUid(UID)).thenReturn(Optional.of(agencyToken));
         mockMvc.perform(
                 MockMvcRequestBuilders.get(String.format("/agencyTokens?uid=%s", UID))
+                        .with(user("test-user"))
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -127,7 +121,7 @@ public class AgencyTokenControllerTest {
 
         when(agencyTokenService.getAgencyTokenByUid(UID)).thenReturn(Optional.empty());
         mockMvc.perform(
-                MockMvcRequestBuilders.get(String.format("/agencyTokens?uid=%s", UID))
+                MockMvcRequestBuilders.get(String.format("/agencyTokens?uid=%s", UID)).with(jwt())
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound());

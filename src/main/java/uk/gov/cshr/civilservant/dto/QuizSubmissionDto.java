@@ -9,9 +9,9 @@ import lombok.*;
 @Setter
 public class QuizSubmissionDto {
   String staffId;
-  int quizId;
-  int professionId;
-  int organisationId;
+  Integer quizId;
+  Integer professionId;
+  Integer organisationId;
   String quizName;
   SubmittedAnswerDto[] answers;
 }

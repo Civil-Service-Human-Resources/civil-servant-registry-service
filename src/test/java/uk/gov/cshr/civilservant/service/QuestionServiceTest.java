@@ -1,18 +1,16 @@
 package uk.gov.cshr.civilservant.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.cshr.civilservant.domain.*;
 import uk.gov.cshr.civilservant.dto.QuestionDto;
 import uk.gov.cshr.civilservant.dto.factory.AnswerDtoFactory;
@@ -23,7 +21,7 @@ import uk.gov.cshr.civilservant.repository.AnswerRepository;
 import uk.gov.cshr.civilservant.repository.QuestionRepository;
 import uk.gov.cshr.civilservant.repository.QuizRepository;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class QuestionServiceTest {
 
   @Mock QuestionDtoFactory questionDtoFactory;
@@ -100,7 +98,7 @@ public class QuestionServiceTest {
     verify(questionRepository, times(1)).save(question);
   }
 
-  @Test(expected = QuizNotFoundException.class)
+  @Test
   public void shouldThrowQuizNotFoundExceptionWhenUpdatingAQuestionInAnInactiveQuiz()
       throws QuizServiceException, QuizNotFoundException {
     // Given
@@ -115,13 +113,15 @@ public class QuestionServiceTest {
     when(questionRepository.findById(questionDto.getId())).thenReturn(Optional.of(entity));
 
     // then
-    questionService.updateQuizQuestion(questionDto);
+    assertThrows(
+            QuizNotFoundException.class,
+            () -> questionService.updateQuizQuestion(questionDto)
+    );
     verify(questionRepository, times(1)).findById(questionDto.getId());
   }
 
-  @Test(expected = QuizServiceException.class)
-  public void shouldThrowQuizNotFoundExceptionWhenUpdatingAnInactiveQuestionInQuiz()
-      throws QuizServiceException, QuizNotFoundException {
+  @Test
+  public void shouldThrowQuizNotFoundExceptionWhenUpdatingAnInactiveQuestionInQuiz(){
     // Given
     Long professionId = 1L;
     QuestionDto questionDto = QuizBuilder.buildAQuestion(professionId);
@@ -134,11 +134,15 @@ public class QuestionServiceTest {
     when(questionRepository.findById(questionDto.getId())).thenReturn(Optional.of(entity));
 
     // then
-    questionService.updateQuizQuestion(questionDto);
+    assertThrows(
+            QuizServiceException.class,
+            () -> questionService.updateQuizQuestion(questionDto)
+    );
+
     verify(questionRepository, times(1)).findById(questionDto.getId());
   }
 
-  @Test(expected = QuizNotFoundException.class)
+  @Test
   public void shouldNotAddANewQuestionToAnInactiveQuiz()
       throws QuizServiceException, QuizNotFoundException {
     // Given
@@ -150,10 +154,13 @@ public class QuestionServiceTest {
         .thenReturn(Optional.empty());
 
     // then
-    questionService.addQuizQuestion(professionId, questionDto);
+    assertThrows(
+            QuizNotFoundException.class,
+            () -> questionService.addQuizQuestion(professionId, questionDto)
+    );
   }
 
-  @Test(expected = QuizServiceException.class)
+  @Test
   public void shouldThrowExceptionOnUpdateIfQuestionNotFound()
       throws QuizServiceException, QuizNotFoundException {
     // Given
@@ -163,12 +170,14 @@ public class QuestionServiceTest {
     when(questionRepository.findById(questionDto.getId())).thenReturn(Optional.empty());
 
     // then
-    questionService.updateQuizQuestion(questionDto);
+    assertThrows(
+            QuizServiceException.class,
+            () -> questionService.updateQuizQuestion(questionDto)
+    );
   }
 
-  @Test(expected = QuizServiceException.class)
-  public void shouldNotAddANewQuestionIfAltTextNotFoundForQuestionWithImageUrl()
-      throws QuizServiceException, QuizNotFoundException {
+  @Test
+  public void shouldNotAddANewQuestionIfAltTextNotFoundForQuestionWithImageUrl(){
     // Given
     long professionId = 1L;
     QuestionDto questionDto = QuizBuilder.buildAQuestion(1L);
@@ -177,7 +186,10 @@ public class QuestionServiceTest {
     questionDto.setImgUrl("www.gov.uk");
 
     // then
-    questionService.addQuizQuestion(professionId, questionDto);
+    assertThrows(
+            QuizServiceException.class,
+            () -> questionService.addQuizQuestion(professionId, questionDto)
+    );
   }
 
   @Test
@@ -220,7 +232,7 @@ public class QuestionServiceTest {
     assertEquals(expected, questionDto);
   }
 
-  @Test(expected = EntityNotFoundException.class)
+  @Test
   public void shouldThrowExceptionOnDeletingNonExistingQuestion() {
     // Given
     long questionId = 1L;
@@ -228,7 +240,10 @@ public class QuestionServiceTest {
     when(questionRepository.findById(questionId)).thenReturn(Optional.empty());
 
     // then
-    questionService.deleteQuestion(questionId);
+    assertThrows(
+            EntityNotFoundException.class,
+            () -> questionService.deleteQuestion(questionId)
+    );
     verify(questionRepository, times(1)).findById(questionId);
   }
 }

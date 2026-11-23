@@ -1,7 +1,7 @@
 
 CREATE TABLE `department_payment_methods` (
-  `department_id` smallint(5) NOT NULL,
-  `payment_method` char(20) NOT NULL,
+  `department_id` smallint NOT NULL,
+  `payment_method` varchar(20) NOT NULL,
   PRIMARY KEY (`department_id`, `payment_method`),
   CONSTRAINT `FK_department_payment_method` FOREIGN KEY (`department_id`) REFERENCES `department` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );

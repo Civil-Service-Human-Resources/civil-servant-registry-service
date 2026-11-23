@@ -1,22 +1,22 @@
 package uk.gov.cshr.civilservant.service.scheduler;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.cshr.civilservant.service.QuizService;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SchedulerTest {
 
     private static final Integer testWindow = Integer.valueOf(1095);
@@ -27,7 +27,7 @@ public class SchedulerTest {
     @InjectMocks
     Scheduler scheduler;
 
-    @Before
+    @BeforeEach
     public void setWindowValue() {
         ReflectionTestUtils.setField(scheduler, "retentionWindowInDays", testWindow);
     }

@@ -2,10 +2,11 @@ package uk.gov.cshr.civilservant.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.civilservant.domain.CivilServant;
+import uk.gov.cshr.civilservant.domain.Identity;
 import uk.gov.cshr.civilservant.domain.OrganisationalUnit;
 import uk.gov.cshr.civilservant.dto.CivilServantProfileDto;
 import uk.gov.cshr.civilservant.dto.factory.CivilServantProfileDtoFactory;
@@ -45,6 +46,13 @@ public class CivilServantService {
     }
 
     public Optional<CivilServant> performLogin(IdentityDTO identity) {
+        log.debug("Retrieving stored identity...");
+        Identity storedIdentity = identityService.getOrCreateIdentity(identity.getUid());
+        log.debug("Stored identity: {}", storedIdentity);
+
+        log.debug("Retrieving Civil Servant profile from identity...");
+        this.createCivilServantByIdentityIfNotExists(storedIdentity);
+
         return civilServantRepository.findByPrincipal()
             .map(cs -> {
                 String csDomain = identity.getEmailDomain();
@@ -56,6 +64,7 @@ public class CivilServantService {
                         }
                     });
                 }
+
                 return cs;
             });
     }
@@ -66,7 +75,7 @@ public class CivilServantService {
     }
 
     @Transactional
-    public Resource<CivilServantResource> getCivilServantResourceWithUid(String uid) {
+    public EntityModel<CivilServantResource> getCivilServantResourceWithUid(String uid) {
         return civilServantRepository.findByIdentity(uid).map(
                         resourceFactory::create)
                 .orElse(null);
@@ -75,6 +84,7 @@ public class CivilServantService {
     public void update(CivilServant cs) {
         CivilServant civilServant = civilServantRepository.findByPrincipal()
                 .orElseThrow(CivilServantNotFoundException::new);
+
         if (cs.getFullName() != null) {
             civilServant.setFullName(cs.getFullName());
         }
@@ -129,5 +139,20 @@ public class CivilServantService {
             throw new UserNotFoundException(uid);
         }
         return cs;
+    }
+
+    public void createCivilServantByIdentityIfNotExists(Identity identity){
+        Optional<CivilServant> civilServantByIdentity = civilServantRepository.findByIdentity(identity);
+
+        if(civilServantByIdentity.isPresent()){
+            log.debug("Civil servant with identity UID {} already exists.", identity.getUid());
+        }
+        else{
+            log.debug("Civil servant does not exist for UID '{}'. Creating...", identity.getUid());
+            CivilServant civilServant = new CivilServant(identity);
+            civilServantRepository.save(civilServant);
+            log.debug("Civil servant with ID {} created", identity.getUid());
+        }
+
     }
 }

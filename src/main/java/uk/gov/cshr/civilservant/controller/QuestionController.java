@@ -1,8 +1,7 @@
 package uk.gov.cshr.civilservant.controller;
 
-import javax.transaction.Transactional;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Valid;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

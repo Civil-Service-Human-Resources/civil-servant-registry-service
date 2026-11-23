@@ -1,13 +1,12 @@
 package uk.gov.cshr.civilservant.domain;
 
 import java.util.Map;
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
-import org.hibernate.mapping.ToOne;
 import uk.gov.cshr.civilservant.mapping.AnswerMapConverter;
 
 @Getter

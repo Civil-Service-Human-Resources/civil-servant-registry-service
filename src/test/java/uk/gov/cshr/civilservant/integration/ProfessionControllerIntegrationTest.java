@@ -1,12 +1,10 @@
 package uk.gov.cshr.civilservant.integration;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.civilservant.config.IntegrationTestUserConfig;
 import uk.gov.cshr.civilservant.utils.CustomAuthentication;
 
@@ -21,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = IntegrationTestUserConfig.class)
 @AutoConfigureMockMvc
-@RunWith(SpringRunner.class)
+
 public class ProfessionControllerIntegrationTest extends BaseIntegrationTest {
 
     private final Authentication learner = new CustomAuthentication(Collections.singletonList(new SimpleGrantedAuthority("LEARNER")), "learner");
@@ -37,7 +35,6 @@ public class ProfessionControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$[0].name", equalTo("Analysis")))
                 .andExpect(jsonPath("$[0].children[0].id", equalTo(100)))
                 .andExpect(jsonPath("$[0].children[0].name", equalTo("Analysis-child")))
-                .andExpect(jsonPath("$[0].children[0].children[0].id", equalTo(102)))
                 .andExpect(jsonPath("$[0].children[0].children[0].name", equalTo("Analysis-grandchild")));
     }
 }

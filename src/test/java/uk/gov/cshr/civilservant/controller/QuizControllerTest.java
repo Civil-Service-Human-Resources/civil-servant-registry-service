@@ -1,13 +1,13 @@
 package uk.gov.cshr.civilservant.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import tools.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.cshr.civilservant.domain.Quiz;
 import uk.gov.cshr.civilservant.dto.*;
 import uk.gov.cshr.civilservant.dto.factory.QuizDtoFactory;
@@ -22,19 +22,25 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
+
+
 @WithMockUser(username = "user")
 public class QuizControllerTest extends CSRSControllerTestBase {
   @Autowired ObjectMapper objectMapper;
-  @MockBean QuizDtoFactory quizDTOFactory;
-  @MockBean QuizRepository quizRepository;
-  @MockBean QuizService quizService;
+  @MockitoBean QuizDtoFactory quizDTOFactory;
+  @MockitoBean QuizRepository quizRepository;
+  @MockitoBean QuizService quizService;
+
+  @Autowired
+  @Qualifier("requestMappingHandlerAdapter")
+  private RequestMappingHandlerAdapter handlerAdapter;
 
   @Test
   @WithMockUser(
@@ -56,7 +62,7 @@ public class QuizControllerTest extends CSRSControllerTestBase {
                 .param("professionId", "1")
                 .param("organisationId", "1")
                 .param("limit", "3")
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isOk())
@@ -83,7 +89,7 @@ public class QuizControllerTest extends CSRSControllerTestBase {
     mockMvc
         .perform(
             post("/api/quiz")
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
                 .content(quizJson)
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
         .andDo(print())
@@ -110,7 +116,9 @@ public class QuizControllerTest extends CSRSControllerTestBase {
     // then
 
     mockMvc
-        .perform(get("/api/quiz/1").with(csrf()).accept(MediaType.APPLICATION_JSON))
+        .perform(get("/api/quiz/1")
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
+                .accept(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isNoContent());
   }
@@ -144,7 +152,7 @@ public class QuizControllerTest extends CSRSControllerTestBase {
     mockMvc
         .perform(
             post("/api/quiz/update")
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
                 .content(quizJson)
                 .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
@@ -179,7 +187,8 @@ public class QuizControllerTest extends CSRSControllerTestBase {
             delete("/api/quiz/delete")
                 .param("professionId", "1")
                 .param("organisationId", "1")
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                    .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER"))))
         .andExpect(status().isOk());
   }
 
@@ -204,7 +213,7 @@ public class QuizControllerTest extends CSRSControllerTestBase {
             get("/api/quiz/results-by-profession")
                 .param("professionId", "1")
                 .param("organisationId", "1")
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(status().isOk())
@@ -212,9 +221,6 @@ public class QuizControllerTest extends CSRSControllerTestBase {
   }
 
   @Test
-  @WithMockUser(
-      username = "user",
-      authorities = {"LEARNER"})
   public void shouldGetHistoryForStaff() throws Exception {
     // Given a profession id
     String staffId = "1232";
@@ -229,16 +235,13 @@ public class QuizControllerTest extends CSRSControllerTestBase {
     mockMvc
         .perform(
             get("/api/quiz/quiz-history?staffId=1232")
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNER")))
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(print())
         .andExpect(content().json(objectMapper.readTree(file).toString()));
   }
 
   @Test
-  @WithMockUser(
-      username = "user",
-      authorities = {"LEARNER"})
   public void shouldGetQuizSummary() throws Exception {
     // Given
     String quizResultId = "1";
@@ -254,7 +257,7 @@ public class QuizControllerTest extends CSRSControllerTestBase {
     mockMvc
         .perform(
             get("/api/quiz/quiz-summary")
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNER")))
                 .param("staffId", staffId)
                 .param("quizResultId", quizResultId)
                 .accept(MediaType.APPLICATION_JSON))
@@ -264,9 +267,6 @@ public class QuizControllerTest extends CSRSControllerTestBase {
   }
 
   @Test
-  @WithMockUser(
-      username = "user",
-      authorities = {"LEARNER"})
   public void shouldSubmitAnswersToQuiz() throws Exception {
     // Given
     Long resultId = 1L;
@@ -282,7 +282,7 @@ public class QuizControllerTest extends CSRSControllerTestBase {
     mockMvc
         .perform(
             post("/api/quiz/submit-answers")
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNER")))
                 .content(objectMapper.writeValueAsString(quizSubmissionDto))
                 .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())
@@ -313,7 +313,7 @@ public class QuizControllerTest extends CSRSControllerTestBase {
     mockMvc
         .perform(
             put("/api/quiz/publish")
-                .with(csrf())
+                .with(jwt().authorities(new SimpleGrantedAuthority("LEARNING_MANAGER")))
                 .content(quizJson)
                 .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())

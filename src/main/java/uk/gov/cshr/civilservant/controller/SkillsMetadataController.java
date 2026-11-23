@@ -10,7 +10,7 @@ import uk.gov.cshr.civilservant.controller.v2.models.SimplePage;
 import uk.gov.cshr.civilservant.dto.skills.SkillsMetadataDto;
 import uk.gov.cshr.civilservant.service.SkillsMetadataService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @Slf4j
 @RequestMapping("/skills-metadata")

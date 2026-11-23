@@ -1,6 +1,6 @@
 package uk.gov.cshr.civilservant.domain;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
